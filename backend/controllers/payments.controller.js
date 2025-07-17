@@ -1,6 +1,7 @@
 const { createRazorpayInstance } = require("../config/razorpay.config");
 const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
+
 exports.createOrder = (req, res) => {
   const { courseId, amount } = req.body;
   if (!courseId || !amount) {
@@ -23,7 +24,7 @@ exports.createOrder = (req, res) => {
           message: " Something went wrong",
         });
       }
-    //   console.log("pymco26", order);
+      // console.log("pymco26", order);
       return res.status(200).json(order);
     });
   } catch (error) {

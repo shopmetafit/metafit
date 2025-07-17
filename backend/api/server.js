@@ -16,7 +16,7 @@ const paymentRoutes = require("../routes/payments.routes");
 
 const app= express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({domain:["https://metafit-a5ll.vercel.app"]}));
 
 dotenv.config();
 const PORT=process.env.PORT || 3000;

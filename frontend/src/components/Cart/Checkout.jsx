@@ -44,7 +44,7 @@ const CheckOut = () => {
   }, [loadScript]);
 
   const handlePaymentSuccess = async (details, checkoutId) => {
-    console.log("co146", details);
+    // console.log("co146", details);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/checkout/${checkoutId}/pay`,
@@ -56,7 +56,7 @@ const CheckOut = () => {
         }
       );
 
-      console.log("cho60", response);
+      // console.log("cho60", response);
       if (response.status === 201) {
         const handleFinalizeCheckout = async (checkoutId) => {
           try {
