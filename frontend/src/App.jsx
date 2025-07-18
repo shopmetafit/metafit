@@ -21,6 +21,8 @@ import OrderManagement from "./components/Admin/OrderManagement";
 import { Provider } from "react-redux";
 import store from "./redux/store";
 import ProtectedRoutes from "./components/common/ProtectedRoutes";
+import ContactUs from "./pages/ContactUs";
+import AboutUs from "./pages/AboutUs";
 
 const App = () => {
   return (
@@ -36,6 +38,8 @@ const App = () => {
             <Route path="collections/:collection" element={<Collection />} />
             <Route path="product/:id" element={<ProductDetails />} />
             <Route path="checkout" element={<Checkout />} />
+            <Route path="contactUs" element={<ContactUs />} />
+            <Route path="aboutUs" element={< AboutUs/>} />
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}

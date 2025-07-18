@@ -3,6 +3,8 @@ import { TbBrandMeta } from "react-icons/tb";
 import { RiTwitterXFill } from "react-icons/ri";
 import { IoLogoInstagram } from "react-icons/io";
 import { FiPhoneCall } from "react-icons/fi";
+import contactUs from "../../pages/ContactUs"
+
 
 const Footer = () => {
   return (
@@ -66,12 +68,12 @@ const Footer = () => {
           <h3 className="text-lg text-gray-800 mb-4">Support</h3>
           <ul className="space-y-2 text-gray-600">
             <li>
-              <Link to="#" className="hover:text-gray-600 transition-colors">
+              <Link to="/contactUs" className="hover:text-gray-600 transition-colors">
                 Contact us
               </Link>
             </li>
             <li>
-              <Link to="#" className="hover:text-gray-600 transition-colors">
+              <Link to="/aboutUs" className="hover:text-gray-600 transition-colors">
                 About us
               </Link>
             </li>
@@ -129,7 +131,7 @@ const Footer = () => {
 
       <div className="container mx-auto mt-12 px-4 lg:px-0 border-t border-gray-200 pt-6">
         <p className="text-gray-500 text-sm tracking-tighter text-center">
-          &copy; 2025, Rabbit , All rights reserved
+         Copyright &copy;  2025 Metafitwellness. All Rights Reserved
         </p>
       </div>
     </footer>
