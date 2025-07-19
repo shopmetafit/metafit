@@ -112,7 +112,7 @@ const ProductDetails = ({ productId }) => {
               </div>
             </div>
             {/* Mobile Thumbnail */}
-            <div className="md:hidden flex overscroll-x-scroll space-x-4 mb-4">
+            <div className="md:hidden flex overflow-x-auto space-x-4 mb-4 scrollbar-hide">
               {selectedProduct.images.map((image, index) => (
                 <img
                   key={index}
