@@ -36,21 +36,7 @@ const CategoryGrid = () => {
       image: t_shirt_man,
       categoryAddress: "T shirt",
     },
-    {
-      name: "Full Sleeve",
-      image: FullSleeveMen,
-      categoryAddress: "Round Neck",
-    },
-    {
-      name: "Collar T-Shirt",
-      image: collarTShirt,
-      categoryAddress: "Collar T-Shirt",
-    },
-    {
-      name: "Bottom Wear Men",
-      image:  bottomMen ,
-      categoryAddress: "Bottom Wear Men",
-    },
+    
     {
       name: "Women",
       image: "https://picsum.photos/500/500?random=5",
@@ -61,17 +47,7 @@ const CategoryGrid = () => {
       image: jacketMen,
       categoryAddress: "jackets",
     },
-    {
-      name: "Women Bottom",
-      image: WomenTights,
-      categoryAddress: "Women Bottom",
-    },
-    {
-      name: "Shoes",
-      image: airForceCombat,
-      categoryAddress: "Shoes",
-    },
-    {
+   {
       name: "Accessories",
       image: accessories,
       categoryAddress: "Accessories",

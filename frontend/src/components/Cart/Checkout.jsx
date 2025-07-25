@@ -138,7 +138,11 @@ const CheckOut = () => {
           // console.log("cho139:verifyRes", verifyRes);
 
           if (verifyRes.data.success) {
-            handlePaymentSuccess("abc", checkoutId);
+            handlePaymentSuccess({
+            order_id: response.razorpay_order_id,
+            payment_id: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          }, checkoutId);
           } else {
             alert("Payment verification failed");
           }

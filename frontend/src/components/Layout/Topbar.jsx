@@ -9,7 +9,7 @@ const Topbar = () => {
         {/* Left Section: Logo + Social Icons */}
         <div className="flex items-center space-x-8">
       
-          <div className="bg-black p-1 rounded-md">
+          <div className=" p-1 rounded-md">
             <img
               src={logo}
               alt="Logo"

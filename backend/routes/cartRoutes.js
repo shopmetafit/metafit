@@ -32,9 +32,7 @@ router.post("/", async (req, res) => {
     if (cart) {
       const productIndex = cart.products.findIndex(
         (p) =>
-          p.productId.toString() === productId &&
-          p.size === size &&
-          p.color === color
+          p.productId.toString() === productId
       );
       if (productIndex > -1) {
         // if product already exist , update the quantity
@@ -70,8 +68,6 @@ router.post("/", async (req, res) => {
             name: product.name,
             image: product.images[0].url,
             price: product.price,
-            size,
-            color,
             quantity,
           },
         ],
@@ -89,16 +85,13 @@ router.post("/", async (req, res) => {
 // @desc update product quantity in the cart for a guest or logged in user
 // @access Public
 router.put("/", async (req, res) => {
-  const { productId, quantity, size, color, guestId, userId } = req.body;
+  const { productId, quantity, guestId, userId } = req.body;
 
   try {
     let cart = await getCart(userId, guestId);
     if (!cart) return res.status(404).json({ message: " Cart not found" });
     const productIndex = cart.products.findIndex(
-      (p) =>
-        p.productId.toString() === productId &&
-        p.size === size &&
-        p.color === color
+      (p) => p.productId.toString() === productId
     );
 
     if (productIndex > -1) {
@@ -190,8 +183,8 @@ router.post("/merge", protect, async (req, res) => {
     const guestCart = await Cart.findOne({ guestId });
     const userCart = await Cart.findOne({ user: req.user._id });
 
-    console.log("userCart", userCart)
-    console.log("guestCart", guestCart)
+    console.log("userCart", userCart);
+    console.log("guestCart", guestCart);
     if (guestCart) {
       if (guestCart.products.length === 0) {
         return res.status(400).json({ message: " guest cart is empty" });
@@ -245,8 +238,5 @@ router.post("/merge", protect, async (req, res) => {
     res.status(500).json({ message: " Server Error" });
   }
 });
-
-
-
 
 module.exports = router;

@@ -46,20 +46,20 @@ const ProductDetails = ({ productId }) => {
   };
 
   const handleAddToCart = () => {
-    if (!selectedColor || !selectedSize) {
-      toast.error("please select a size and color before adding to cart.", {
-        duration: 3000,
-      });
-      return;
-    }
+    // if (!selectedColor || !selectedSize) {
+    //   toast.error("please select a size and color before adding to cart.", {
+    //     duration: 3000,
+    //   });
+    //   return;
+    // }
 
     setIsButtonDisabled(true);
     dispatch(
       addToCart({
         productId: productFetchId,
         quantity,
-        size: selectedSize,
-        color: selectedColor,
+        size: selectedSize || null,
+        color: selectedColor || null,
         guestId,
         userId: user?._id,
       })
@@ -142,13 +142,55 @@ const ProductDetails = ({ productId }) => {
               <p className="text-gray-600 mb-4">
                 {selectedProduct.description}
               </p>
-              
-              <div className="mb-4">
-                <p className="text-gray-700">Size:</p>
-                <div className="flex gap-2 mt-2">
-                  <p  className="px-4 py-2 rounded border text-black">30 Gram</p>
+
+              {selectedProduct?.sizes?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-gray-700">Size:</p>
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {selectedProduct.sizes.map((size, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 rounded border ${
+                          selectedSize === size
+                            ? "bg-black text-white"
+                            : "text-black border-gray-300"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {selectedProduct?.colors?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-gray-700">Color:</p>
+                  <div className="flex gap-4 mt-2 flex-wrap">
+                    {selectedProduct.colors.map((color, index) => {
+                      const colorName =
+                        selectedProduct.colorsName &&
+                        selectedProduct.colorsName[index]
+                          ? selectedProduct.colorsName[index]
+                          : color;
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => setSelectedColor(color)}
+                          className={`w-8 h-8 rounded-full border-2 ${
+                            selectedColor === color
+                              ? "border-black scale-110"
+                              : "border-gray-300"
+                          }`}
+                          style={{ backgroundColor: color }}
+                          title={colorName}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               <div className="mb-6">
                 <p className="text-gray-700"> Quantity:</p>
@@ -214,8 +256,7 @@ const ProductDetails = ({ productId }) => {
             />
           </div>
         </div>
-      )
-      }
+      )}
     </div>
   );
 };
