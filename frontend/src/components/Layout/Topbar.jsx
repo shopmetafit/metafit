@@ -4,7 +4,7 @@ import logo from "../../assets/logo.png"; // Adjust path if needed
 
 const Topbar = () => {
   return (
-    <div className="bg-rabbit-red text-white">
+    <div  style={{ backgroundColor: "#bae6fd" }} className="text-white">
       <div className="container mx-auto flex justify-between items-center py-3 px-3">
         {/* Left Section: Logo + Social Icons */}
         <div className="flex items-center space-x-8">
@@ -21,19 +21,19 @@ const Topbar = () => {
           <div className="hidden md:flex items-center space-x-3">
             <a
               href="https://www.facebook.com/profile.php?id=61565468193885#"
-              className="hover:text-gray-300"
+              className="text-black hover:text-gray-700"
             >
               <FaFacebook className="h-5 w-5" />
             </a>
             <a
               href="https://www.instagram.com/metafitwellness/?igsh=NDl0ZzlzYzdrY2tk#"
-              className="hover:text-gray-300"
+              className="text-black hover:text-gray-700"
             >
               <IoLogoInstagram className="h-5 w-5" />
             </a>
             <a
               href="https://www.linkedin.com/company/meta-fit-wellness/"
-              className="hover:text-gray-300"
+              className="text-black hover:text-gray-700"
             >
               <FaLinkedin className="h-4 w-4" />
             </a>
@@ -41,13 +41,13 @@ const Topbar = () => {
         </div>
 
         {/* Center Text */}
-        <div className="text-sm text-center flex-grow">
+        <div className="text-sm text-center flex-grow text-black hover:text-gray-700">
           <span>We ship all over India - Fast and reliable shipping.</span>
         </div>
 
         {/* Right Contact Number */}
         <div className="text-sm hidden md:block">
-          <a href="tel:+919982498555" className="hover:text-gray-300">
+          <a href="tel:+919982498555" className="text-black hover:text-gray-700">
             +91 99824 98555
           </a>
         </div>

@@ -142,47 +142,11 @@ const ProductDetails = ({ productId }) => {
               <p className="text-gray-600 mb-4">
                 {selectedProduct.description}
               </p>
-              <div className="mb-4 ">
-                <p className="text-gray-700"> Color:</p>
-                <div className="flex gap-2  mt-2">
-                  {selectedProduct.colors.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => {
-                        setSelectedColor(color);
-                      }}
-                      className={`w-8 h-8 rounded-full border ${
-                        selectedColor === color
-                          ? "border-4 border-black"
-                          : "border-gray-300"
-                      }`}
-                      style={{
-                        backgroundColor: color.toLowerCase(),
-                        filter: "brightness(0.5)",
-                      }}
-                    ></button>
-                  ))}
-                </div>
-              </div>
-
+              
               <div className="mb-4">
                 <p className="text-gray-700">Size:</p>
                 <div className="flex gap-2 mt-2">
-                  {selectedProduct.sizes.map((size) => {
-                    return (
-                      <button
-                        key={size}
-                        onClick={() => {
-                          setSelectedSize(size);
-                        }}
-                        className={`px-4 py-2 rounded border ${
-                          selectedSize === size ? "bg-black text-white" : ""
-                        }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
+                  <p  className="px-4 py-2 rounded border text-black">30 Gram</p>
                 </div>
               </div>
 
