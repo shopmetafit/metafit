@@ -55,7 +55,7 @@ const Home = () => {
       
       <div>
         <h2 className="text-3xl text-center font-bold mb-4">
-          Top wears of Men
+          Products of the people choice
         </h2>
         <ProductGrid products={products} loading={loading}  error={error} />
       </div>

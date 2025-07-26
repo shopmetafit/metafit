@@ -20,7 +20,7 @@ const GenderCollectionSection = () => {
           </Link>
           <div className="absolute bottom-0 left-8 bg-white bg-opacity-90 py-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Women's Collection
+              Yoga
             </h2>
             <Link
               to="/collections/all?gender=Women"
@@ -41,7 +41,7 @@ const GenderCollectionSection = () => {
           </Link>
           <div className="absolute bottom-0 left-8 bg-white bg-opacity-90 py-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Men's Collection
+              Protein
             </h2>
             <Link
               to="/collections/all?gender=Men"

@@ -16,7 +16,7 @@ const FeaturesSection = () => {
           </div>
           <h4 className="tracking-tighter mb-2">Free national shipping</h4>
           <p className="text-gray-600 text-sm tracking-tighter">
-            On al orders over Rs100
+            On an order over Rs500
           </p>
         </div>
         {/* feature 2 */}

@@ -3,6 +3,8 @@ import UserLayout from "./components/Layout/UserLayout";
 import Home from "./pages/Home";
 import { Toaster } from "sonner";
 import Login from "./pages/Login";
+import PrivacyPolicy from "./pages/privacyPolicy";
+import RefundPolicy from "./pages/refundPolicy";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import Collection from "./pages/CollectionPage";
@@ -40,6 +42,8 @@ const App = () => {
             <Route path="checkout" element={<Checkout />} />
             <Route path="contactUs" element={<ContactUs />} />
             <Route path="aboutUs" element={< AboutUs/>} />
+            <Route path="privacyPolicy" element={< PrivacyPolicy/>} />
+            <Route path="refundPolicy" element={< RefundPolicy/>} />
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}

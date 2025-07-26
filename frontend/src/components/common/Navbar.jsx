@@ -41,25 +41,25 @@ const Navbar = () => {
             to="/collections/all?gender=Men"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
-            Men
+            Protein Bite
           </Link>
           <Link
             to="/collections/all?gender=Women"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
-            Women
+            Yoga
           </Link>
           <Link
             to="/collections/all?category=Top Wear"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
-            Top Wear
+            Ayurveda
           </Link>
           <Link
             to="/collections/all?category=Bottom Wear"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
-            Bottom Wear
+            Diet
           </Link>
         </div>
         {/* right icons */}
@@ -124,28 +124,28 @@ const Navbar = () => {
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
-              Men
+              Protein Bite
             </Link>
             <Link
               to="/collections/all?gender=Women"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
-              Women
+              Yoga
             </Link>
             <Link
               to="/collections/all?category=Top Wear"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
-              Topwear
+              Ayurveda
             </Link>
             <Link
               to="/collections/all?category=Bottom Wear"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
-              Bottom wear
+              Diet
             </Link>
           </nav>
         </div>

@@ -32,18 +32,18 @@ const CategoryGrid = () => {
 
   const categories = [
     {
-      name: "T-Shirt",
+      name: "Yoga",
       image: t_shirt_man,
       categoryAddress: "T shirt",
     },
     
     {
-      name: "Women",
-      image: "https://picsum.photos/500/500?random=5",
+      name: "Protein Bite",
+      image: WomenTights,
       categoryAddress: "Women",
     },
     {
-      name: "Jackets",
+      name: "Ayurveda",
       image: jacketMen,
       categoryAddress: "jackets",
     },
@@ -53,7 +53,7 @@ const CategoryGrid = () => {
       categoryAddress: "Accessories",
     },
     {
-      name: "Tracksuits",
+      name: "Respyr Device",
       image: traksuits,
       categoryAddress: "Tracksuits",
     },
@@ -78,7 +78,7 @@ const CategoryGrid = () => {
 
       {/* Scrollable Row */}
       <div className="overflow-x-auto">
-        <div className="flex space-x-6">
+        <div className="flex justify-between space-x-6">
           {categories.map((cat, idx) => (
             <Link
               key={idx}
