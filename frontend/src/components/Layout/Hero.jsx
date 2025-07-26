@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import heroImg from "../../assets/rabbit-hero.webp";
+import heroImg from "../../assets/products.webp";
 const Hero = () => {
   return (
     <section className="relative">
