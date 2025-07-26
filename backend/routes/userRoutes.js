@@ -1,14 +1,17 @@
 const express = require("express");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const {protect} = require("../middleware/authMiddleware")
+const {protect} = require("../middleware/authMiddleware");
+const loginSchema = require("../validators/login-validator");
+const registerSchema = require("../validators/auth-validator");
+const validate = require("../middleware/validate-middleware");
 
 const router = express.Router();
 
 // @route POST /api/users/register
 // @desc Register a new user
 // access Public
-router.post("/register", async (req, res) => {
+router.post("/register",validate(registerSchema), async (req, res) => {
   const { name, email, password } = req.body;
   // console.log("dsf",name);
   try {
@@ -34,7 +37,6 @@ router.post("/register", async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "40h" },
       (err, token) => {
         if (err) throw err;
         // send the user and token in response
@@ -59,7 +61,7 @@ router.post("/register", async (req, res) => {
 // @desc Authenticate user
 // @access Public
 
-router.post("/login", async (req, res) => {
+router.post("/login",validate(loginSchema), async (req, res) => {
   const { email, password } = req.body;
   try {
     let user = await User.findOne({ email });
@@ -76,7 +78,6 @@ router.post("/login", async (req, res) => {
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
-      { expiresIn: "40d" },
       (err, token) => {
         if (err) throw err;
         // send the user and token in response

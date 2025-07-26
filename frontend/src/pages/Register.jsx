@@ -4,6 +4,7 @@ import register from "../assets/register.webp";
 import { registerUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../redux/slices/cartSlice";
+import { toast } from "sonner";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -31,11 +32,31 @@ const Register = () => {
       }
   }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   // console.log("rr",name,email,password);
+  //   dispatch(registerUser({name, email, password}));
+  //   // console.log("user Register:",{name,email,password});
+  // };
+
+
+  
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log("rr",name,email,password);
-    dispatch(registerUser({name, email, password}));
-    // console.log("user Register:",{name,email,password});
+
+    const result = await dispatch(registerUser({name, email, password }));
+    console.log("Reg46",result.payload);
+    if (registerUser.rejected.match(result)) {
+      const error = result.payload;
+
+      if (error?.errors) {
+        error.errors.forEach((err) => toast.error(err.message));
+      } else if (error?.msg) {
+        toast.error(error.msg);
+      } else {
+        toast.error("Login failed. Please try again.");
+      }
+    }
   };
 
   return (

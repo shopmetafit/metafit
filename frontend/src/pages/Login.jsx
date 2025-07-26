@@ -5,6 +5,7 @@ import { loginUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 import { mergeCart } from "../redux/slices/cartSlice";
+import { toast } from "sonner";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -31,10 +32,31 @@ const Login = () => {
       }
   }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   // console.log("user Login:", { email, password });
+  //   dispatch(loginUser({ email, password }));
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log("user Login:", { email, password });
-    dispatch(loginUser({ email, password }));
+
+    const result = await dispatch(loginUser({ email, password }));
+
+    if (loginUser.rejected.match(result)) {
+      const error = result.payload;
+      if (error?.errors) {
+        error.errors.forEach((err) => toast.error(err.message));
+      } else if (error?.msg) {
+        toast.error(error.msg);
+      }
+      // else if(undefined){
+
+      // }
+      else {
+        toast.error("Login failed. Please try again.");
+      }
+    }
   };
 
   return (
