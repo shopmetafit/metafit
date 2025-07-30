@@ -19,38 +19,20 @@ const FilterSidebar = () => {
 
   const [priceRange, setPriceRange] = useState([0, 10000]);
   // x.com/a=1&b=2
-  const categories = ["Top Wear", "Bottom Wear"];
+  const categories = ["Protein Bite", "Respyr Device"];
 
   const colors = [
-    "Red",
-    "Blue",
-    "Green",
-    "Yellow",
-    "Purple",
-    "Orange",
-    "Pink",
-    "Brown",
-    "Black",
-    "White",
-    "Gray",
+    
   ];
   const materials = [
-    "Polyester",
-    "Cotton",
-    "Leather",
-    "Plastic",
-    "Glass",
-    "Aluminum",
-    "Brick",
-    "Stone",
-    "Copper",
+  
   ];
 
-  const sizes = ["XS", "S", "M", "L", "XL", "XXL", "7", "8", "9", "10", "11"];
+  const sizes = ["XS", "S", "M", "L"];
 
-  const brands = ["Nike", "Apple", "Adidas", "Samsung", "Sony", "Technosport"];
+  const brands = ["Metawellness"];
 
-  const genders = ["Men", "Women", "Unisex"];
+  const genders = ["Unisex"];
 
   useEffect(() => {
     const params = Object.fromEntries([...searchParams]);

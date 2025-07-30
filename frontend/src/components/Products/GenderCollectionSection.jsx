@@ -33,7 +33,7 @@ const GenderCollectionSection = () => {
         </div>
         {/* men's collection */}
         <div className="relative flex-1">
-          <Link to="/collections/all?gender=Men">
+          <Link to="/collections/all?">
             <img
               src={protein}
               alt="Protein Bite"
