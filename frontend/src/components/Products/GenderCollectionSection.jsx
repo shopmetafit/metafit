@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import menCollectionImage from "../../assets/mens-collection.webp";
-import womenCollectionImage from "../../assets/womens-collection.webp";
+
+import respyrDevice from "../../assets/respyrDevice.webp"
+import protein from "../../assets/protein.webp"
 
 const GenderCollectionSection = () => {
   return (
@@ -13,14 +14,14 @@ const GenderCollectionSection = () => {
             className="text-gray-900 underline"
           >
             <img
-              src={womenCollectionImage}
-              alt="Women-collection"
+              src={respyrDevice}
+              alt="Respyr Device"
               className="w-full h-[700px] object-cover"
             />
           </Link>
           <div className="absolute bottom-0 left-8 bg-white bg-opacity-90 py-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Yoga
+              Respyr Device
             </h2>
             <Link
               to="/collections/all?gender=Women"
@@ -34,17 +35,17 @@ const GenderCollectionSection = () => {
         <div className="relative flex-1">
           <Link to="/collections/all?gender=Men">
             <img
-              src={menCollectionImage}
-              alt="Men-collection"
+              src={protein}
+              alt="Protein Bite"
               className="w-full h-[700px] object-cover"
             />
           </Link>
           <div className="absolute bottom-0 left-8 bg-white bg-opacity-90 py-4">
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              Protein
+              Protein Bite
             </h2>
             <Link
-              to="/collections/all?gender=Men"
+              to="/collections/all?"
               className="text-gray-900 underline"
             >
               Shop now

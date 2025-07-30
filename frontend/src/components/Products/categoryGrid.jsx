@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import bottomMen from "../../assets/bottomMen.webp";
-import collarTShirt from "../../assets/collarTShirt.webp";
-import jacketMen from "../../assets/jacketMen.webp";
-import t_shirt_man from "../../assets/t_shirt_man.webp";
-import airForceCombat from "../../assets/airForceCombat.webp";
-import FullSleeveMen from "../../assets/FullSleeveMen.webp";
-import traksuits from "../../assets/traksuits.webp";
-import WomenTights from "../../assets/WomanTights.webp";
-import accessories from "../../assets/accessories.webp";
+import meta from "../../assets/2meta.webp"
+import acup from "../../assets/acup.webp"
+import panch from "../../assets/panch.webp"
+import respyr from "../../assets/respyr1.webp"
+import proteinBite from "../../assets/proteinBite.png"
 import { useNavigate } from "react-router-dom";
 import {
   setFilters,
@@ -33,28 +29,28 @@ const CategoryGrid = () => {
   const categories = [
     {
       name: "Yoga",
-      image: t_shirt_man,
-      categoryAddress: "T shirt",
+      image: meta,
+      categoryAddress: "Yoga",
     },
     
     {
       name: "Protein Bite",
-      image: WomenTights,
+      image: proteinBite,
       categoryAddress: "Women",
     },
     {
       name: "Ayurveda",
-      image: jacketMen,
+      image: acup,
       categoryAddress: "jackets",
     },
    {
       name: "Accessories",
-      image: accessories,
+      image: panch,
       categoryAddress: "Accessories",
     },
     {
       name: "Respyr Device",
-      image: traksuits,
+      image: respyr,
       categoryAddress: "Tracksuits",
     },
   ];
