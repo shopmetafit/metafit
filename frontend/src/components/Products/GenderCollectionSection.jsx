@@ -24,7 +24,7 @@ const GenderCollectionSection = () => {
               Respyr Device
             </h2>
             <Link
-              to="/collections/all?gender=Women"
+              to="/collections/all?"
               className="text-gray-900 underline"
             >
               Shop now
