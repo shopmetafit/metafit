@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createCheckout } from "../../redux/slices/checkoutSlice";
 import axios from "axios";
+import checkoutSchema from "./checkout-schema";
+import { toast } from "sonner";
 
 const CheckOut = () => {
   const dispatch = useDispatch();
@@ -18,7 +20,7 @@ const CheckOut = () => {
     address: "",
     city: "",
     postalCode: "",
-    country: "",
+    country: "INDIA",
     phone: "",
   });
 
@@ -138,11 +140,14 @@ const CheckOut = () => {
           // console.log("cho139:verifyRes", verifyRes);
 
           if (verifyRes.data.success) {
-            handlePaymentSuccess({
-            order_id: response.razorpay_order_id,
-            payment_id: response.razorpay_payment_id,
-            signature: response.razorpay_signature,
-          }, checkoutId);
+            handlePaymentSuccess(
+              {
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+              },
+              checkoutId
+            );
           } else {
             alert("Payment verification failed");
           }
@@ -157,6 +162,32 @@ const CheckOut = () => {
   // console.log("cho-cart", cart);
   const handleCreateCheckout = async (e) => {
     e.preventDefault();
+
+    const formData = {
+      email: user ? user.email : "",
+      shippingAddress,
+    };
+
+    const result = checkoutSchema.safeParse(formData);
+    // console.log("chko171",result.error.format());
+    if (!result.success) {
+      const errors = result.error.format();
+
+      // Show toast for the first available error
+      const firstError =
+        errors.email?._errors[0] ||
+        errors.shippingAddress?.firstName?._errors[0] ||
+        errors.shippingAddress?.lastName?._errors[0] ||
+        errors.shippingAddress?.address?._errors[0] ||
+        errors.shippingAddress?.city?._errors[0] ||
+        errors.shippingAddress?.postalCode?._errors[0] ||
+        errors.shippingAddress?.country?._errors[0] ||
+        errors.shippingAddress?.phone?._errors[0];
+
+      if (firstError) toast.error(firstError);
+      return; // 🛑 Stop here if validation fails
+    }
+
     if (cart && cart.products.length > 0) {
       const res = await dispatch(
         createCheckout({

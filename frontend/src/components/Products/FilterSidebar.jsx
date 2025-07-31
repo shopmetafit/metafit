@@ -8,10 +8,9 @@ const FilterSidebar = () => {
   const navigate = useNavigate();
   const [filters, setFilters] = useState({
     category: "",
-    gender: "",
-    color: "",
+    // gender: "",
+    // color: "",
     size: [],
-    material: [],
     brand: [],
     minPrice: 0,
     maxPrice: 10000,
@@ -21,18 +20,18 @@ const FilterSidebar = () => {
   // x.com/a=1&b=2
   const categories = ["Protein Bite", "Respyr Device"];
 
-  const colors = [
+  // const colors = [
     
-  ];
-  const materials = [
+  // ];
+  // const materials = [
   
-  ];
+  // ];
 
   const sizes = ["XS", "S", "M", "L"];
 
   const brands = ["Metawellness"];
 
-  const genders = ["Unisex"];
+  // const genders = ["Unisex"];
 
   useEffect(() => {
     const params = Object.fromEntries([...searchParams]);
@@ -43,8 +42,8 @@ const FilterSidebar = () => {
 
     setFilters({
       category: params.category || "",
-      gender: params.gender || "",
-      color: params.color || "",
+      // gender: params.gender || "",
+      // color: params.color || "",
       size: params.size ? params.size.split(",") : [], //.split convert it into array
       material: params.material ? params.material.split(",") : [],
       brand: params.brand ? params.brand.split(",") : [],
@@ -61,7 +60,6 @@ const FilterSidebar = () => {
     // console.log(e);
     // console.log({ name, value, checked, type });
     let newFilters = { ...filters };
-    // console.log("ddsg",newFilters);
 
     if (type === "checkbox") {
       if (checked) {
@@ -138,7 +136,7 @@ const FilterSidebar = () => {
         </div>
       </div>
       {/* gender filter */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <label className="block text-gray-600 font-medium mb-2">Gender</label>
         {genders.map((gender) => {
           return (
@@ -155,9 +153,11 @@ const FilterSidebar = () => {
             </div>
           );
         })}
-      </div>
+      </div> */}
+
+
       {/* color filter */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <label className="block text-gray-600 font-medium mb-2">Color</label>
         <div className="flex flex-wrap gap-2">
           {colors.map((color) => (
@@ -172,10 +172,10 @@ const FilterSidebar = () => {
             ></button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Material filter */}
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <label className="block text-gray-600 font-medium mb-2">material</label>
         {materials.map((material) => (
           <div key={material} className="flex items-center mb-1">
@@ -190,7 +190,7 @@ const FilterSidebar = () => {
             <span className="text-gray-700">{material}</span>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* brand filter */}
       <div className="mb-6">

@@ -32,31 +32,31 @@ const Navbar = () => {
       <nav className="container mx-auto flex items-center justify-between py-4 px-6 ">
         <div>
           <Link to="/" className="text-2xl font-medium">
-            Metafit
+            M Wellness Bazaar
           </Link>
         </div>
         {/* // center navigation */}
         <div className="hidden md:flex space-x-6 ">
           <Link
-            to="/collections/all?gender=Men"
+            to="/collections/all?"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
             Protein Bite
           </Link>
           <Link
-            to="/collections/all?gender=Women"
+            to="/collections/all?"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
             Yoga
           </Link>
           <Link
-            to="/collections/all?category=Top Wear"
+            to="/collections/all?"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
             Ayurveda
           </Link>
           <Link
-            to="/collections/all?category=Bottom Wear"
+            to="/collections/all?"
             className="text-gray-700 hover:text-black text-sm font-medium uppercase"
           >
             Diet
