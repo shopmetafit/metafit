@@ -120,28 +120,28 @@ const Navbar = () => {
           </h2>
           <nav className="space-y-6 mt-6">
             <Link
-              to="/collections/all?gender=Men"
+              to="/collections/all?"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
               Protein Bite
             </Link>
             <Link
-              to="/collections/all?gender=Women"
+              to="/collections/all?"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
               Yoga
             </Link>
             <Link
-              to="/collections/all?category=Top Wear"
+              to="/collections/all?"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
               Ayurveda
             </Link>
             <Link
-              to="/collections/all?category=Bottom Wear"
+              to="/collections/all?"
               onClick={togglerNavDrawer}
               className="block text-gray-600 hover:text-black"
             >
