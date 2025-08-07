@@ -133,13 +133,13 @@ const NewArrivals = () => {
         {newArrivals.map((product) => (
           <div
             key={product._id}
-            className="min-w-[50%] sm:min-w-50% lg:min-w-30% relative"
+            className="min-w-[80%] sm:min-w-[50%] md:min-w-[40%] lg:min-w-[30%] relative"
           >
             <Link to={`/product/${product._id}`}>
               <img
                 src={product.images[0]?.url}
                 alt={product.images[0]?.altText || product.name}
-                className="w-full h-[500px] object-cover rounded-lg"
+                className="w-full h-[300px]  sm:h-[400px] lg:h-[500px] object-cover object-top rounded-lg"
                 draggable="false"
               />
             </Link>

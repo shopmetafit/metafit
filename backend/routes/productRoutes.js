@@ -58,6 +58,7 @@ router.post("/", protect, admin, async (req, res) => {
     res.status(201).json(createProduct);
   } catch (error) {
     res.status(500).send("Server Error", error);
+    // console.log("err", error)
   }
 });
 
