@@ -18,16 +18,22 @@ const FilterSidebar = () => {
 
   const [priceRange, setPriceRange] = useState([0, 10000]);
   // x.com/a=1&b=2
-  const categories = ["Protein Bite", "Respyr Device"];
+  const categories = [
+    "Organic",
+    "Eco-Friendly",
+    "Vegan",
+    "Lab Tested",
+    "Chemical Free",
+  ];
 
   // const colors = [
-    
+
   // ];
   // const materials = [
-  
+
   // ];
 
-  const sizes = ["XS", "S", "M", "L"];
+  const sizes = ["S", "M"];
 
   const brands = ["Metawellness"];
 
@@ -154,7 +160,6 @@ const FilterSidebar = () => {
           );
         })}
       </div> */}
-
 
       {/* color filter */}
       {/* <div className="mb-6">
