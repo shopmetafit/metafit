@@ -26,6 +26,8 @@ import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import ContactUs from "./pages/ContactUs";
 import AboutUs from "./pages/AboutUs";
 import ShippingPolicy from "./pages/ShippingPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import PricingPolicy from "./pages/PricingPolicy";
 
 const App = () => {
   return (
@@ -45,7 +47,9 @@ const App = () => {
             <Route path="aboutUs" element={< AboutUs/>} />
             <Route path="privacyPolicy" element={< PrivacyPolicy/>} />
             <Route path="refundPolicy" element={< RefundPolicy/>} />
-            <Route path="ShippingPolicy" element={< ShippingPolicy/>} />
+            <Route path="shippingPolicy" element={< ShippingPolicy/>} />
+            <Route path="termsConditions" element={< TermsConditions/>} />
+            <Route path="pricingPolicy" element={< PricingPolicy/>} />
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}

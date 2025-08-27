@@ -157,10 +157,26 @@ const Footer = () => {
           </p>
           <p className="text-gray-500 text-sm tracking-tighter text-center">
             <Link
-              to="/ShippingPolicy"
+              to="/shippingPolicy"
               className="hover:text-gray-600 transition-colors"
             >
               Shipping Policy
+            </Link>
+          </p>
+          <p className="text-gray-500 text-sm tracking-tighter text-center">
+            <Link
+              to="/termsConditions"
+              className="hover:text-gray-600 transition-colors"
+            >
+              Terms & Conditions
+            </Link>
+          </p>
+          <p className="text-gray-500 text-sm tracking-tighter text-center">
+            <Link
+              to="/pricingPolicy"
+              className="hover:text-gray-600 transition-colors"
+            >
+              Pricing Policy
             </Link>
           </p>
         </div>
