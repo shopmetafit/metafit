@@ -6,10 +6,10 @@ import ProductDetails from "../components/Products/ProductDetails";
 import ProductGrid from "../components/Products/ProductGrid";
 import CategoryGrid from "../components/Products/categoryGrid";
 import FeaturedCollection from "../components/Products/featuredCollection";
-import { useDispatch, useSelector } from "react-redux"; 
-import { fetchProductsByFilters } from "../redux/slices/productSlice";                       
+import { useDispatch, useSelector } from "react-redux";
+import { fetchProductsByFilters } from "../redux/slices/productSlice";
 import axios from "axios";
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -20,8 +20,7 @@ const Home = () => {
     //fetch product from specific collection
     dispatch(
       fetchProductsByFilters({
-        gender: "Men",
-        category: "Top Wear",
+        search: "a",
         limit: 8,
       })
     );
@@ -44,20 +43,22 @@ const Home = () => {
   return (
     <div>
       <Hero />
-      <CategoryGrid/>
+      <CategoryGrid />
       <GenderCollectionSection />
       <NewArrivals />
       {/* best seller */}
       <h2 className="text-3xl text-center font-bold mb-4">Best Seller</h2>
-      {bestSellerProduct ? (<ProductDetails productId={bestSellerProduct._id}/>):
-      (
-      <p className="text-center"> Loading best seller product...</p>)}
-      
+      {bestSellerProduct ? (
+        <ProductDetails productId={bestSellerProduct._id} />
+      ) : (
+        <p className="text-center"> Loading best seller product...</p>
+      )}
+
       <div>
         <h2 className="text-3xl text-center font-bold mb-4">
           Products of the people choice
         </h2>
-        <ProductGrid products={products} loading={loading}  error={error} />
+        <ProductGrid products={products} loading={loading} error={error} />
       </div>
       <FeaturedCollection />
       <FeaturesSection />

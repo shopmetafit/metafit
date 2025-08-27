@@ -155,6 +155,14 @@ const Footer = () => {
               Refund Policy
             </Link>
           </p>
+          <p className="text-gray-500 text-sm tracking-tighter text-center">
+            <Link
+              to="/ShippingPolicy"
+              className="hover:text-gray-600 transition-colors"
+            >
+              Shipping Policy
+            </Link>
+          </p>
         </div>
       </div>
     </footer>

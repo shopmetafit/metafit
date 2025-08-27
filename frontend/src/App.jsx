@@ -25,6 +25,7 @@ import store from "./redux/store";
 import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import ContactUs from "./pages/ContactUs";
 import AboutUs from "./pages/AboutUs";
+import ShippingPolicy from "./pages/ShippingPolicy";
 
 const App = () => {
   return (
@@ -44,6 +45,7 @@ const App = () => {
             <Route path="aboutUs" element={< AboutUs/>} />
             <Route path="privacyPolicy" element={< PrivacyPolicy/>} />
             <Route path="refundPolicy" element={< RefundPolicy/>} />
+            <Route path="ShippingPolicy" element={< ShippingPolicy/>} />
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}
