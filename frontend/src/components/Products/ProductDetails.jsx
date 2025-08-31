@@ -133,11 +133,11 @@ const ProductDetails = ({ productId }) => {
                 {selectedProduct.name}
               </h1>
               <p className="text-lg text-gray-600 mb-1 line-through">
-                {selectedProduct.originalPrice &&
-                  `${selectedProduct.originalPrice}`}
+                {selectedProduct.price &&
+                  `${selectedProduct.price}`}
               </p>
               <p className="text-xl text-gray-500 mb-2  ">
-                Rs{selectedProduct.price}
+                Rs{selectedProduct.discountPrice}
               </p>
               <p className="text-gray-600 mb-4">
                 {selectedProduct.description}

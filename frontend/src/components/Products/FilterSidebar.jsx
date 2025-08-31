@@ -1,20 +1,50 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 
 const FilterSidebar = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  // console.log([...searchParams]);
-  // console.log(searchParams);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState({
     category: "",
-    // gender: "",
-    // color: "",
+    benefit: [],
     size: [],
     brand: [],
+    routine: [],
+    ingredient: [],
+    dietaryPreference: [],
     minPrice: 0,
     maxPrice: 10000,
   });
+
+  const [openSections, setOpenSections] = useState({
+    category: false,
+    routine: false,
+    ingredient: false,
+    dietaryPreferences: false,
+    benefit: false,
+    brand: false,
+    size: false,
+    price: false,
+  });
+
+  const resetFilters = () => {
+    const defaultFilters = {
+      category: "",
+      benefit: [],
+      size: [],
+      brand: [],
+      routine: [],
+      ingredient: [],
+      dietaryPreference: [],
+      minPrice: 0,
+      maxPrice: 10000,
+    };
+    setFilters(defaultFilters);
+    setPriceRange([0, 10000]);
+    setSearchParams({});
+    navigate("");
+  };
 
   const [priceRange, setPriceRange] = useState([0, 10000]);
   // x.com/a=1&b=2
@@ -26,16 +56,22 @@ const FilterSidebar = () => {
     "Chemical Free",
   ];
 
-  // const colors = [
+  const Ratings = ["4 Stars and up", "3 Stars and up"];
 
-  // ];
-  // const materials = [
-
-  // ];
+  const Routines = ["Morning", "Night", "Workout"];
+  const Ingredients = ["Ashwagandha", "Collagen", "Vitamin C"];
+  const DietaryPreferences = ["Vegan", "Keto", "Gluten-Free"];
+  const Benefits = [
+    "Sleep",
+    "Immunity",
+    "Stress Relief",
+    "Weight loss",
+    "Gain Pcod",
+  ];
 
   const sizes = ["S", "M"];
 
-  const brands = ["Metawellness"];
+  const brands = ["Metawellness", "Brand B", "Brand C"];
 
   // const genders = ["Unisex"];
 
@@ -48,14 +84,16 @@ const FilterSidebar = () => {
 
     setFilters({
       category: params.category || "",
-      // gender: params.gender || "",
-      // color: params.color || "",
-      size: params.size ? params.size.split(",") : [], //.split convert it into array
-      material: params.material ? params.material.split(",") : [],
+      size: params.size ? params.size.split(",") : [],
+      benefit: params.benefit ? params.benefit.split(",") : [],
       brand: params.brand ? params.brand.split(",") : [],
-      minPrice: params.minPrice || 0,
-      maxPrice: params.maxPrice || 10000,
+      routine: params.routine ? params.routine.split(",") : [],
+      ingredient: params.ingredient ? params.ingredient.split(",") : [],
+      dietaryPreferences: params.dietaryPreferences
+        ? params.dietaryPreferences.split(",")
+        : [],
     });
+
     setPriceRange([0, params.maxPrice || 10000]);
   }, [searchParams]);
 
@@ -115,51 +153,166 @@ const FilterSidebar = () => {
     const newFilters = { ...filters, minPrice: 0, maxPrice: newPrice };
     setFilters(newFilters);
     updateURLParams(newFilters);
-    // console.log("fsdds",newFilters);
+  };
+
+  const toggleSection = (section) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
   };
 
   return (
     <div className="p-4">
       <div className="text-xl font-medium text-gray-800 mb-4">
-        {/* category filter */}
+        {/* Category */}
         <div className="mb-6">
-          <label className="block text-gray-600 font-medium mb-2">
-            Category
-          </label>
-          {categories.map((category) => (
-            <div key={category} className="flex items-center mb-1">
-              <input
-                type="radio"
-                name="category"
-                value={category}
-                onChange={handleFilterChange}
-                checked={filters.category == category}
-                className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
-              />
-              <span className="text-gray-700">{category}</span>
+          <div
+            className="flex justify-between items-center cursor-pointer"
+            onClick={() => toggleSection("category")}
+          >
+            <label className="block text-gray-600 font-medium mb-2">
+              Category
+            </label>
+            {openSections.category ? (
+              <FaChevronUp className="text-gray-600" />
+            ) : (
+              <FaChevronDown className="text-gray-600" />
+            )}
+          </div>
+
+          {openSections.category && (
+            <div>
+              {categories.map((category) => (
+                <div key={category} className="flex items-center mb-1">
+                  <input
+                    type="radio"
+                    name="category"
+                    value={category}
+                    onChange={handleFilterChange}
+                    checked={filters.category === category}
+                    className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                  />
+                  <span className="text-gray-700">{category}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </div>
-      {/* gender filter */}
-      {/* <div className="mb-6">
-        <label className="block text-gray-600 font-medium mb-2">Gender</label>
-        {genders.map((gender) => {
-          return (
-            <div key={gender} className="flex items-center mb-1">
-              <input
-                type="radio"
-                name="gender"
-                value={gender}
-                onChange={handleFilterChange}
-                checked={filters.gender == gender}
-                className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
-              />
-              <span className="text-gray-700">{gender}</span>
-            </div>
-          );
-        })}
-      </div> */}
+
+      {/*  Routines filter */}
+      <div className="mb-6">
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("routine")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">
+            Routine
+          </label>
+          {openSections.routine ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.routine && (
+          <div>
+            {Routines.map((routine) => (
+              <div key={routine} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="routine"
+                  value={routine}
+                  onChange={handleFilterChange}
+                  checked={filters.routine.includes(routine)}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{routine}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/*  Ingredients filter */}
+      <div className="mb-6">
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("ingredient")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">
+            Ingredients
+          </label>
+          {openSections.ingredient ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.ingredient && (
+          <div>
+            {Ingredients.map((ingredient) => (
+              <div key={ingredient} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="ingredient"
+                  value={ingredient}
+                  onChange={handleFilterChange}
+                  checked={filters.ingredient.includes(ingredient)}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{ingredient}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/*  DietaryPreferences filter */}
+      <div className="mb-6">
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("dietaryPreferences")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">
+            Dietary Preferences
+          </label>
+          {openSections.dietaryPreferences ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.dietaryPreferences && (
+          <div>
+            {DietaryPreferences.map((dietaryPreference) => (
+              <div key={dietaryPreference} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="dietaryPreferences"
+                  value={dietaryPreference}
+                  onChange={handleFilterChange}
+                  checked={filters.dietaryPreferences.includes(
+                    dietaryPreference
+                  )}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{dietaryPreference}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* color filter */}
       {/* <div className="mb-6">
@@ -179,59 +332,114 @@ const FilterSidebar = () => {
         </div>
       </div> */}
 
-      {/* Material filter */}
-      {/* <div className="mb-6">
-        <label className="block text-gray-600 font-medium mb-2">material</label>
-        {materials.map((material) => (
-          <div key={material} className="flex items-center mb-1">
-            <input
-              type="checkbox"
-              name="material"
-              className="mr-2 h-4 w-4  text-blue-500 focus:ring-blue-400 border-gray-400"
-              value={material}
-              checked={filters.material.includes(material)}
-              onChange={handleFilterChange}
-            />
-            <span className="text-gray-700">{material}</span>
+      {/* Benefit filter */}
+      <div className="mb-6">
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("benefit")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">
+            Benefit
+          </label>
+          {openSections.benefit ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.benefit && (
+          <div>
+            {Benefits.map((benefit) => (
+              <div key={benefit} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="benefit"
+                  value={benefit}
+                  onChange={handleFilterChange}
+                  checked={filters.benefit.includes(benefit)}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{benefit}</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div> */}
+        )}
+      </div>
 
       {/* brand filter */}
       <div className="mb-6">
-        <label className="block text-gray-600 font-medium mb-2">brand</label>
-        {brands.map((brand) => (
-          <div key={brand} className="flex items-center mb-1">
-            <input
-              type="checkbox"
-              name="brand"
-              className="mr-2 h-4 w-4  text-blue-500 focus:ring-blue-400 border-gray-400"
-              value={brand}
-              checked={filters.brand.includes(brand)}
-              onChange={handleFilterChange}
-            />
-            <span className="text-gray-700">{brand}</span>
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("brand")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">Brand</label>
+          {openSections.brand ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.brand && (
+          <div>
+            {brands.map((brand) => (
+              <div key={brand} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="brand"
+                  value={brand}
+                  onChange={handleFilterChange}
+                  checked={filters.brand.includes(brand)}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{brand}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
-      {/* size filter */}
       <div className="mb-6">
-        <label className="block text-gray-600 font-medium mb-2">Size</label>
-        {sizes.map((size) => (
-          <div key={size} className="flex items-center mb-1">
-            <input
-              type="checkbox"
-              name="size"
-              className="mr-2 h-4 w-4  text-blue-500 focus:ring-blue-400 border-gray-400"
-              value={size}
-              onChange={handleFilterChange}
-              checked={filters.size.includes(size)}
-            />
-            <span className="text-gray-700">{size}</span>
+        {/* Heading with toggle */}
+        <div
+          className="flex justify-between items-center cursor-pointer"
+          onClick={() => toggleSection("size")}
+        >
+          <label className="block text-gray-600 font-medium mb-2">Size</label>
+          {openSections.size ? (
+            <FaChevronUp className="text-gray-600" />
+          ) : (
+            <FaChevronDown className="text-gray-600" />
+          )}
+        </div>
+
+        {/* Filter options */}
+        {openSections.size && (
+          <div>
+            {sizes.map((size) => (
+              <div key={size} className="flex items-center mb-1">
+                <input
+                  type="checkbox"
+                  name="size"
+                  value={size}
+                  onChange={handleFilterChange}
+                  checked={filters.size.includes(size)}
+                  className="mr-2 h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300"
+                />
+                <span className="text-gray-700">{size}</span>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
+
+      {/* Metafit shop.metafit@gmail.com */}
+
       {/* price range filter */}
       <div className="mb-6">
         <label className="block text-gray-600 font-medium mb-6">
@@ -251,6 +459,14 @@ const FilterSidebar = () => {
           <span className="">Rs{priceRange[1]}</span>
         </div>
       </div>
+
+      {/* Reset Filters */}
+      <button
+        onClick={resetFilters}
+        className="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition font-semibold"
+      >
+        Reset Filters
+      </button>
     </div>
   );
 };
