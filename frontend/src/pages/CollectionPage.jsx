@@ -61,17 +61,17 @@ const CollectionPage = () => {
         />
         {/* Overlay Content */}
         <div className="absolute inset-0 bg-black/40 flex items-center">
-          <div className="max-w-7xl mx-auto px-6 py-16 text-white">
+          <div className="max-w-7xl mx-auto px-4 py-16 text-white">
             <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-center lg:text-left">
               M Wellness Bazaar
             </h1>
-            <p className="text-lg sm:text-2xl text-gray-200 mb-10 text-center lg:text-left">
+            <p className="hidden sm:block text-base sm:text-xl text-gray-200 mb-6">
               Premium quality wellness products for your healthy lifestyle
               journey
             </p>
 
             {/* Features */}
-            <div className="flex flex-wrap gap-8 text-sm justify-center lg:justify-start mb-10">
+            <div className="hidden sm:flex flex-wrap gap-8 text-sm justify-center lg:justify-start mb-10">
               <div className="flex items-center gap-2">
                 <Truck className="w-6 h-6" />
                 <span>Free shipping over ₹999</span>
@@ -87,13 +87,14 @@ const CollectionPage = () => {
             </div>
 
             {/* Category Navbar */}
-            <div className="absolute bottom-0 left-0 w-full flex justify-center pb-6">
-              <nav className="overflow-x-auto flex items-center gap-4 py-3 px-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg">
+            <div className="absolute bottom-0 left-0 w-full flex justify-center pb-4 sm:pb-6">
+              <nav className="overflow-x-auto flex items-center gap-3 py-2 px-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg">
                 {categories.map((cat) => (
                   <Link
                     key={cat.name}
                     to={cat.link}
-                    className={`flex-shrink-0 px-6 py-3 rounded-full font-semibold transition
+                    className={`flex-shrink-0 snap-start px-3 py-1.5 sm:px-5 sm:py-2.5 
+          rounded-full font-medium text-sm sm:text-base transition
               ${
                 cat.name === "New Products Launch"
                   ? "bg-yellow-400 text-black shadow-lg"
