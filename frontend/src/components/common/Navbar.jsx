@@ -30,11 +30,7 @@ const Navbar = () => {
   return (
     <>
       <nav className="container mx-auto flex items-center justify-between py-4 px-6 ">
-        <div>
-          <Link to="/" className="text-2xl font-medium">
-            M Wellness Bazaar
-          </Link>
-        </div>
+        
         {/* // center navigation */}
         <div className="hidden md:flex space-x-6 ">
           <Link

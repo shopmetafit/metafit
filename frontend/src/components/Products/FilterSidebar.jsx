@@ -438,8 +438,6 @@ const FilterSidebar = () => {
         )}
       </div>
 
-      {/* Metafit shop.metafit@gmail.com */}
-
       {/* price range filter */}
       <div className="mb-6">
         <label className="block text-gray-600 font-medium mb-6">

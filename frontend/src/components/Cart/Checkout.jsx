@@ -232,7 +232,7 @@ const CheckOut = () => {
           <h3 className="text-lg mb-4">Delivery</h3>
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700">First Name</label>
+              <label className="block text-gray-700">First Name *</label>
               <input
                 type="text"
                 value={shippingAddress.firstName}
@@ -247,7 +247,7 @@ const CheckOut = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700">Last Name</label>
+              <label className="block text-gray-700">Last Name *</label>
               <input
                 type="text"
                 value={shippingAddress.lastName}
@@ -263,7 +263,7 @@ const CheckOut = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Address</label>
+            <label className="block text-gray-700">Address *</label>
             <input
               type="text"
               value={shippingAddress.address}
@@ -279,7 +279,7 @@ const CheckOut = () => {
           </div>
           <div className="mb-4 grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-700">City</label>
+              <label className="block text-gray-700">City *</label>
               <input
                 type="text"
                 value={shippingAddress.city}
@@ -294,7 +294,7 @@ const CheckOut = () => {
               />
             </div>
             <div>
-              <label className="block text-gray-700">Postal Code</label>
+              <label className="block text-gray-700">Postal Code *</label>
               <input
                 type="text"
                 value={shippingAddress.postalCode}
@@ -310,7 +310,7 @@ const CheckOut = () => {
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Country</label>
+            <label className="block text-gray-700">Country *</label>
             <input
               type="text"
               value={shippingAddress.country}
@@ -325,7 +325,7 @@ const CheckOut = () => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Phone</label>
+            <label className="block text-gray-700">Phone *</label>
             <input
               type="tel"
               value={shippingAddress.phone}
@@ -345,39 +345,6 @@ const CheckOut = () => {
           >
             Continue to Payment
           </button>
-
-          {/* 
-          <div className="mt-6">
-            {!checkoutId ? (
-              <button className="w-full bg-black text-white py-3 rounded"  
-              // onClick={() => {
-              //     onPayment();
-              //   }}
-              >
-                Continue to Payment
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="w-full bg-black text-white py-3 rounded"
-                // onClick={() => {
-                //   onPayment();
-                // }}
-              >
-                Razorpay Payment
-              </button>
-              // <div>
-              //   <h3 className="text-lg mb-4">Pay with Paypal</h3>
-              //   <PayPalButton
-              //     amount={cart.totalPrice}
-              //     onSuccess={handlePaymentSuccess}
-              //     onError={(err) => {
-              //       alert("payent failed. Try again");
-              //     }}
-              //   />
-              // </div>
-            )}
-          </div> */}
         </form>
       </div>
 
@@ -425,22 +392,3 @@ const CheckOut = () => {
 
 export default CheckOut;
 
-// const cart = {
-//   products: [
-//     {
-//       name: "Stylish Jacket",
-//       size: "M",
-//       color: "Black",
-//       price: 120,
-//       image: "https://picsum.photos/150?random=1",
-//     },
-//     {
-//       name: "Casual Sneakers",
-//       size: "42",
-//       color: "White",
-//       price: 76,
-//       image: "https://picsum.photos/150?random=1",
-//     },
-//   ],
-//   totalPrice: 195,
-// };

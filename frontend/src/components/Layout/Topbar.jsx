@@ -1,6 +1,7 @@
 import { IoLogoInstagram } from "react-icons/io";
 import { FaFacebook, FaLinkedin } from "react-icons/fa";
 import logo from "../../assets/logo.png"; // Adjust path if needed
+import { Link } from "react-router-dom";
 
 const Topbar = () => {
   return (
@@ -41,8 +42,10 @@ const Topbar = () => {
         </div>
 
         {/* Center Text */}
-        <div className="text-sm text-center flex-grow text-black hover:text-gray-700">
-          <span>We ship all over India - Fast and reliable shipping.</span>
+        <div className="text-black">
+          <Link to="/" className="text-2xl font-medium" >
+            M Wellness Bazaar
+          </Link>
         </div>
 
         {/* Right Contact Number */}

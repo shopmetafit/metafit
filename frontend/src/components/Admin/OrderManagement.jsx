@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchAllOrders, updateOrderStatus } from "../../redux/slices/adminOrderSlice";
-
+import {
+  fetchAllOrders,
+  updateOrderStatus,
+} from "../../redux/slices/adminOrderSlice";
 
 const OrderManagement = () => {
   const dispatch = useDispatch();
@@ -17,7 +19,7 @@ const OrderManagement = () => {
     } else {
       dispatch(fetchAllOrders());
     }
-  }, [dispatch,user, navigate]);
+  }, [dispatch, user, navigate]);
 
   const handleStatusChange = (orderId, status) => {
     // console.log({ id: orderID, status });
@@ -46,7 +48,10 @@ const OrderManagement = () => {
                   key={order._id}
                   className="border-b hover:bg-gray-50 cursor-pointer"
                 >
-                  <td className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap">
+                  <td
+                    className="py-4 px-4 font-medium text-gray-900 whitespace-nowrap cursor-pointer hover:text-blue-600"
+                    onClick={() => navigate(`/order/${order._id}`)}
+                  >
                     #{order._id}
                   </td>
                   <td className="p-4">{order.user.name}</td>
@@ -89,14 +94,3 @@ const OrderManagement = () => {
 };
 
 export default OrderManagement;
-
-// const orders = [
-//     {
-//       _id: 123123,
-//       user: {
-//         name: "john doe",
-//       },
-//       totalPrice: 100,
-//       status: "Processing",
-//     },
-//   ];

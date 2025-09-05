@@ -12,7 +12,7 @@ const OrderDetailsPage = () => {
   // console.log("ODep12",orderDetails);
   useEffect(() => {
     dispatch(fetchOrderDetails(id));
-  },[dispatch, id]);
+  }, [dispatch, id]);
 
   if (loading) return <p> Loading cart...</p>;
   if (error) return <p> Error: {error}</p>;
@@ -52,6 +52,22 @@ const OrderDetailsPage = () => {
                 } px-3 py-1 rounded-full text-sm font-medium mb-2`}
               >
                 {orderDetails.isDelivered ? "Delivered" : "Pending"}
+              </span>
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-medium mb-2
+    ${
+      orderDetails.status === "Shipped"
+        ? "bg-blue-100 text-blue-700"
+        : orderDetails.status === "Processing"
+        ? "bg-yellow-100 text-yellow-700"
+        : orderDetails.status === "Delivered"
+        ? "bg-green-100 text-green-700"
+        : orderDetails.status === "Cancelled"
+        ? "bg-red-100 text-red-700"
+        : "bg-gray-100 text-gray-700"
+    }`}
+              >
+                {orderDetails.status}
               </span>
             </div>
           </div>
