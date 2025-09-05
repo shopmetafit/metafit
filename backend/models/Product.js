@@ -10,10 +10,11 @@ const productSchema = new mongoose.Schema(
     sku: { type: Number, required: true, unique: true },
     category: { type: String, required: true },
     brand: { type: String, required: true },
-    sizes: { type: [String], default:[] },
-    colors: { type: [String], default:[]},
+    sizes: { type: [String], default: [] },
+    colors: { type: [String], default: [] },
     collection: { type: String, required: true },
     material: { type: String },
+    videoUrl: { type: String },
     gender: { type: String, enum: ["Men", "Women", "Unisex"] },
     images: [
       {

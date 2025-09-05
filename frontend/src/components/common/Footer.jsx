@@ -2,8 +2,24 @@ import { Link } from "react-router-dom";
 import { IoLogoInstagram } from "react-icons/io";
 import { FiPhoneCall } from "react-icons/fi";
 import { FaFacebook, FaLinkedin } from "react-icons/fa";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 const Footer = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // close dropdown if clicked outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <footer className="border-t py-12">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 px-4 lg:px-0">
@@ -133,52 +149,72 @@ const Footer = () => {
         </div>
       </div>
       {/* footer bottom */}
-
-      <div className="container flex justify-between mx-auto mt-12 px-4 lg:px-0 border-t border-gray-200 pt-6">
-        <p className="text-gray-500 text-sm tracking-tighter text-center">
+      <div className="container flex justify-between items-center mx-auto mt-12 px-4 lg:px-0 border-t border-gray-200 pt-6">
+        {/* copyright */}
+        <p className="text-gray-500 text-sm tracking-tighter">
           Copyright &copy; 2025 Metafitwellness. All Rights Reserved
         </p>
-        <div className="flex justify-between gap-x-4">
-          <p className="text-gray-500 text-sm tracking-tighter text-center">
-            <Link
-              to="/privacyPolicy"
-              className="hover:text-gray-600 transition-colors"
-            >
-              Privacy Policy
-            </Link>
-          </p>
-          <p className="text-gray-500 text-sm tracking-tighter text-center">
-            <Link
-              to="/refundPolicy"
-              className="hover:text-gray-600 transition-colors"
-            >
-              Refund Policy
-            </Link>
-          </p>
-          <p className="text-gray-500 text-sm tracking-tighter text-center">
-            <Link
-              to="/shippingPolicy"
-              className="hover:text-gray-600 transition-colors"
-            >
-              Shipping Policy
-            </Link>
-          </p>
-          <p className="text-gray-500 text-sm tracking-tighter text-center">
-            <Link
-              to="/termsConditions"
-              className="hover:text-gray-600 transition-colors"
-            >
-              Terms & Conditions
-            </Link>
-          </p>
-          <p className="text-gray-500 text-sm tracking-tighter text-center">
-            <Link
-              to="/pricingPolicy"
-              className="hover:text-gray-600 transition-colors"
-            >
-              Pricing Policy
-            </Link>
-          </p>
+
+        {/* dropdown */}
+        <div className="relative inline-block text-left" ref={dropdownRef}>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center text-gray-500 text-sm hover:text-gray-600 transition-colors"
+          >
+            Policies <ChevronDown className="ml-1 h-4 w-4" />
+          </button>
+
+          {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 rounded-2xl bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+              <ul className="py-2 text-sm text-gray-600">
+                <li>
+                  <Link
+                    to="/privacyPolicy"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/refundPolicy"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Refund Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/shippingPolicy"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Shipping Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/termsConditions"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Terms & Conditions
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/pricingPolicy"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    Pricing Policy
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </footer>

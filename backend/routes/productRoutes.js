@@ -84,6 +84,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       images,
       isFeatured,
       isPublished,
+      videoUrl,
       tags,
       dimensions,
       weight,
@@ -106,6 +107,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.material = material ?? product.material;
       product.gender = gender ?? product.gender;
       product.images = images ?? product.images;
+      product.videoUrl = videoUrl ?? product.videoUrl;
       product.isFeatured =
         isFeatured !== undefined ? isFeatured : product.isFeatured;
       product.isPublished =
