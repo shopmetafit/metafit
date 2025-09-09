@@ -308,88 +308,89 @@ const Navbar = () => {
 
       <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={togglerCartOpen} />
 
-      {/* Mobile navigation */}
-      <div
-        className={`fixed bg-white top-0 left-0 w-3/4 sm:w-1/2 md:w-1/3 h-full shadow-lg transform transition-transform duration-300 z-50 ${
-          navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
-      >
-        <div className="flex justify-end p-4">
-          <button onClick={togglerNavDrawer}>
-            <IoMdClose className="h-6 w-6 text-gray-600" />
-          </button>
-        </div>
+     {/* Mobile navigation */}
+<div
+  className={`fixed bg-white top-0 left-0 w-3/4 sm:w-1/2 md:w-1/3 h-full shadow-lg transform transition-transform duration-300 z-50 ${
+    navDrawerOpen ? "translate-x-0" : "-translate-x-full"
+  } overflow-y-auto`}   // 👈 added here
+>
+  <div className="flex justify-end p-4 sticky top-0 bg-white z-10">
+    <button onClick={togglerNavDrawer}>
+      <IoMdClose className="h-6 w-6 text-gray-600" />
+    </button>
+  </div>
 
-        <div className="p-4">
-          <h2 className="text-xl font-semibold underline text-gray-600">
-            Menu
-          </h2>
-          <nav className="space-y-6 mt-6">
-            {sections.map((section) => (
-              <div key={section.title}>
-                <button
-                  onClick={() => toggleSection(section.title)}
-                  className="flex justify-between w-full text-gray-600 hover:text-black focus:outline-none"
-                >
-                  {section.title}
-                  <FaChevronDown
-                    className={`ml-2 transition-transform duration-200 ${
-                      openSection === section.title ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-                {openSection === section.title && (
-                  <div className="pl-4 mt-2 space-y-1">
-                    {section.sub.map((subItem) => (
-                      <div key={subItem.name}>
-                        {subItem.sub ? (
-                          <>
-                            <button
-                              onClick={() => toggleSubSection(subItem.name)}
-                              className="flex justify-between w-full text-gray-600 hover:text-black focus:outline-none"
+  <div className="p-4">
+    <h2 className="text-xl font-semibold underline text-gray-600">
+      Menu
+    </h2>
+    <nav className="space-y-6 mt-6">
+      {sections.map((section) => (
+        <div key={section.title}>
+          <button
+            onClick={() => toggleSection(section.title)}
+            className="flex justify-between w-full text-gray-600 hover:text-black focus:outline-none"
+          >
+            {section.title}
+            <FaChevronDown
+              className={`ml-2 transition-transform duration-200 ${
+                openSection === section.title ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          {openSection === section.title && (
+            <div className="pl-4 mt-2 space-y-1">
+              {section.sub.map((subItem) => (
+                <div key={subItem.name}>
+                  {subItem.sub ? (
+                    <>
+                      <button
+                        onClick={() => toggleSubSection(subItem.name)}
+                        className="flex justify-between w-full text-gray-600 hover:text-black focus:outline-none"
+                      >
+                        {subItem.name}
+                        <FaChevronDown
+                          className={`ml-2 transition-transform duration-200 ${
+                            openSubSection === subItem.name
+                              ? "rotate-180"
+                              : ""
+                          }`}
+                        />
+                      </button>
+                      {openSubSection === subItem.name && (
+                        <div className="pl-6 mt-1 space-y-1">
+                          {subItem.sub.map((subSub) => (
+                            <Link
+                              key={subSub.name}
+                              to={subSub.link}
+                              onClick={togglerNavDrawer}
+                              className="block text-gray-600 hover:text-black"
                             >
-                              {subItem.name}
-                              <FaChevronDown
-                                className={`ml-2 transition-transform duration-200 ${
-                                  openSubSection === subItem.name
-                                    ? "rotate-180"
-                                    : ""
-                                }`}
-                              />
-                            </button>
-                            {openSubSection === subItem.name && (
-                              <div className="pl-6 mt-1 space-y-1">
-                                {subItem.sub.map((subSub) => (
-                                  <Link
-                                    key={subSub.name}
-                                    to={subSub.link}
-                                    onClick={togglerNavDrawer}
-                                    className="block text-gray-600 hover:text-black"
-                                  >
-                                    {subSub.name}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <Link
-                            to={subItem.link}
-                            onClick={togglerNavDrawer}
-                            className="block text-gray-600 hover:text-black"
-                          >
-                            {subItem.name}
-                          </Link>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+                              {subSub.name}
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Link
+                      to={subItem.link}
+                      onClick={togglerNavDrawer}
+                      className="block text-gray-600 hover:text-black"
+                    >
+                      {subItem.name}
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      ))}
+    </nav>
+  </div>
+</div>
+
     </>
   );
 };
