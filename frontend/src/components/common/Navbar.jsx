@@ -312,9 +312,9 @@ const Navbar = () => {
       <div
         className={`fixed bg-white top-0 left-0 w-3/4 sm:w-1/2 md:w-1/3 h-full shadow-lg transform transition-transform duration-300 z-50 ${
           navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        } overflow-y-auto`}
       >
-        <div className="flex justify-end p-4">
+        <div className="flex justify-end p-4 sticky top-0 bg-white">
           <button onClick={togglerNavDrawer}>
             <IoMdClose className="h-6 w-6 text-gray-600" />
           </button>
