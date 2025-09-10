@@ -126,9 +126,12 @@ const sections = [
   },
   {
     title: "Digital Wellness Gadgets",
-    
+
     sub: [
-      { name: "Smart Water Bottels & Hydration Devices", link: "/collections/all" },
+      {
+        name: "Smart Water Bottels & Hydration Devices",
+        link: "/collections/all",
+      },
       { name: "All Purifiers & Wellness Tech", link: "/collections/all" },
       {
         name: "Fitness Trackers & Smartwatches",
@@ -310,9 +313,12 @@ const Navbar = () => {
 
       {/* Mobile navigation */}
       <div
-        className={`fixed bg-white top-0 left-0 w-3/4 sm:w-1/2 md:w-1/3 h-full shadow-lg transform transition-transform duration-300 z-50 ${
-          navDrawerOpen ? "translate-x-0" : "-translate-x-full"
-        } overflow-y-auto`}
+        className={`fixed bg-gradient-to-b from-white to-gray-50 top-0 left-0 
+  w-3/4 sm:w-1/2 md:w-1/3 h-full 
+  shadow-2xl rounded-r-2xl border-r border-gray-200
+  transform transition-transform duration-300 ease-in-out z-50 
+  ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"} 
+  overflow-y-auto`}
       >
         <div className="flex justify-end p-4 sticky top-0 bg-white">
           <button onClick={togglerNavDrawer}>
@@ -329,7 +335,11 @@ const Navbar = () => {
               <div key={section.title}>
                 <button
                   onClick={() => toggleSection(section.title)}
-                  className="flex justify-between font-bold  w-full text-gray-600 hover:text-black focus:outline-none"
+                  className="flex justify-between items-center w-full 
+  text-gray-700 font-semibold text-base tracking-wide 
+  px-4 py-3 rounded-lg 
+  hover:bg-gray-100 hover:text-black 
+  transition-all duration-200 ease-in-out"
                 >
                   {section.title}
                   <FaChevronDown
@@ -346,7 +356,11 @@ const Navbar = () => {
                           <>
                             <button
                               onClick={() => toggleSubSection(subItem.name)}
-                              className="flex justify-between w-full text-gray-600 hover:text-black focus:outline-none"
+                              className="flex justify-between items-center w-full 
+  text-gray-600 font-medium text-sm 
+  px-4 py-2 rounded-md 
+  hover:bg-gray-50 hover:text-gray-900 
+  transition-all duration-200 ease-in-out"
                             >
                               {subItem.name}
                               <FaChevronDown
@@ -364,7 +378,10 @@ const Navbar = () => {
                                     key={subSub.name}
                                     to={subSub.link}
                                     onClick={togglerNavDrawer}
-                                    className="block text-gray-600 hover:text-black"
+                                   className="block px-6 py-2 text-gray-500 text-sm 
+  hover:text-black hover:bg-gray-100 rounded-md 
+  transition-all duration-200 ease-in-out"
+
                                   >
                                     {subSub.name}
                                   </Link>
