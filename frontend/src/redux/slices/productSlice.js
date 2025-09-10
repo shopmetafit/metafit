@@ -1,6 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
+
+
+
+
 // Async thunk to fetch products by collection and optional features
 export const fetchProductsByFilters = createAsyncThunk(
   "products/fetchByFilters",
@@ -39,6 +43,25 @@ export const fetchProductsByFilters = createAsyncThunk(
     return response.data;
   }
 );
+
+
+// Thunk to fetch all products
+export const fetchAllProducts = createAsyncThunk(
+  "products/fetchAll",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products`);
+      // console.log("API Response 54:", response.data);
+      return response.data; // Assuming your backend returns { products: [...] }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch products"
+      );
+    }
+  }
+);
+
+
 // Async thunk to fetch a single product by Id
 
 export const fetchProductDetails = createAsyncThunk(
@@ -86,6 +109,7 @@ const productsSlice = createSlice({
   name: "products",
   initialState: {
     products: [],
+    allProducts: [],
     selectedProduct: null,
     similarProducts: [],
     loading: false,
@@ -181,6 +205,19 @@ const productsSlice = createSlice({
       .addCase(fetchSimilarProduct.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+       // fetch all products
+      .addCase(fetchAllProducts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAllProducts.fulfilled, (state, action) => {
+          // console.log("Action Payload:", action.payload);
+        state.loading = false;
+        state.allProducts = action.payload; // store unfiltered list
+      })
+      .addCase(fetchAllProducts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

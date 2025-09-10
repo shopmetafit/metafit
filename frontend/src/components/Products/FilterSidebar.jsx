@@ -1,10 +1,39 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+
+import { fetchAllProducts } from "../../redux/slices/productSlice";
 
 const FilterSidebar = () => {
   const navigate = useNavigate();
+
   const [searchParams, setSearchParams] = useSearchParams();
+  const [minProductPrice, setMinProductPrice] = useState(0);
+  const [maxProductPrice, setMaxProductPrice] = useState(10000);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+
+  const dispatch = useDispatch();
+ const { allProducts } = useSelector((state) => state.products);
+
+  useEffect(() => {
+    // Fetch all products without filters
+    dispatch(fetchAllProducts({}));
+  }, [dispatch]);
+
+  // console.log("filsid28",products);
+
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      const prices = allProducts.map((p) => p.discountPrice);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      setMinProductPrice(minPrice);
+      setMaxProductPrice(maxPrice);
+    }
+  }, []);
+
   const [filters, setFilters] = useState({
     category: "",
     benefit: [],
@@ -13,8 +42,8 @@ const FilterSidebar = () => {
     routine: [],
     ingredient: [],
     dietaryPreference: [],
-    minPrice: 0,
-    maxPrice: 10000,
+    minPrice: minProductPrice,
+    maxPrice: maxProductPrice,
   });
 
   const [openSections, setOpenSections] = useState({
@@ -29,6 +58,9 @@ const FilterSidebar = () => {
   });
 
   const resetFilters = () => {
+    // Reset slider inputs to product min/max
+  setMinPrice(minProductPrice);
+  setMaxPrice(maxProductPrice);
     const defaultFilters = {
       category: "",
       benefit: [],
@@ -37,16 +69,15 @@ const FilterSidebar = () => {
       routine: [],
       ingredient: [],
       dietaryPreference: [],
-      minPrice: 0,
-      maxPrice: 10000,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
     };
     setFilters(defaultFilters);
-    setPriceRange([0, 10000]);
     setSearchParams({});
     navigate("");
   };
 
-  const [priceRange, setPriceRange] = useState([0, 10000]);
+  // const [priceRange, setPriceRange] = useState([0, 10000]);
   // x.com/a=1&b=2
   const categories = [
     "Organic",
@@ -73,7 +104,7 @@ const FilterSidebar = () => {
 
   const brands = ["Metawellness", "Brand B", "Brand C"];
 
-  // const genders = ["Unisex"];
+ 
 
   useEffect(() => {
     const params = Object.fromEntries([...searchParams]);
@@ -94,7 +125,6 @@ const FilterSidebar = () => {
         : [],
     });
 
-    setPriceRange([0, params.maxPrice || 10000]);
   }, [searchParams]);
 
   const handleFilterChange = (e) => {
@@ -147,14 +177,7 @@ const FilterSidebar = () => {
     navigate(`?${params.toString()}`);
   };
 
-  const handlePriceChange = (e) => {
-    const newPrice = e.target.value;
-    setPriceRange([0, 10000]);
-    const newFilters = { ...filters, minPrice: 0, maxPrice: newPrice };
-    setFilters(newFilters);
-    updateURLParams(newFilters);
-  };
-
+ 
   const toggleSection = (section) => {
     setOpenSections((prev) => ({
       ...prev,
@@ -438,24 +461,80 @@ const FilterSidebar = () => {
         )}
       </div>
 
-      {/* price range filter */}
+      {/* Price Filter */}
       <div className="mb-6">
-        <label className="block text-gray-600 font-medium mb-6">
-          Price range
-        </label>
-        <input
-          type="range"
-          name="priceRange"
-          min={0}
-          max={10000}
-          value={priceRange[1]}
-          onChange={handlePriceChange}
-          className="w-full h-2 bg-gray-300 rounded-lg appearance-none"
-        />
-        <div className="flex justify-between text-gray-600 mt-2">
-          <span className="">Rs 0</span>
-          <span className="">Rs{priceRange[1]}</span>
-        </div>
+        <button
+          className="flex justify-between items-center w-full text-gray-700 font-semibold text-base px-2 py-2 rounded-md hover:bg-gray-100"
+          onClick={() => toggleSection("price")}
+        >
+          <span>Price</span>
+          {openSections.price ? <FaChevronUp /> : <FaChevronDown />}
+        </button>
+
+        {openSections.price && (
+          <div className="mt-2 space-y-4 px-2">
+            {/* Scrollable Price Range (slider) */}
+            <div>
+              <input
+                type="range"
+                min={minProductPrice}
+                max={maxProductPrice}
+                step="10"
+                value={minPrice || minProductPrice}
+                onChange={(e) => setMinPrice(Number(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+              <input
+                type="range"
+                min={minProductPrice}
+                max={maxProductPrice}
+                step="10"
+                value={maxPrice || maxProductPrice}
+                onChange={(e) => setMaxPrice(Number(e.target.value))}
+                className="w-full accent-blue-600 cursor-pointer"
+              />
+
+              <div className="flex justify-between text-sm text-gray-600 mt-1">
+                <span>₹{minPrice || minProductPrice}</span>
+                <span>₹{maxPrice || maxProductPrice}</span>
+              </div>
+            </div>
+
+            {/* Manual Min-Max Inputs */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="number"
+                placeholder={`Min (${minProductPrice})`}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                className="w-20 px-2 py-1 border rounded-md text-sm"
+              />
+              <span>-</span>
+              <input
+                type="number"
+                placeholder={`Max (${maxProductPrice})`}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="w-20 px-2 py-1 border rounded-md text-sm"
+              />
+            </div>
+            
+              <button
+                onClick={() => {
+                  const newFilters = {
+                    ...filters,
+                    minPrice: minPrice || minProductPrice,
+                    maxPrice: maxPrice || maxProductPrice,
+                  };
+                  setFilters(newFilters);
+                  updateURLParams(newFilters);
+                }}
+                className="ml-2 px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
+              >
+                Apply
+              </button>
+          </div>
+        )}
       </div>
 
       {/* Reset Filters */}

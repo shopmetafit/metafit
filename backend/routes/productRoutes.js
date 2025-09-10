@@ -3,6 +3,22 @@ const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
+// @route GET /api/products/all
+// @desc Get all products without filters (for sidebar min/max price)
+// @access Public
+router.get("/all", async (req, res) => {
+  try {
+    const products = await Product.find({});
+    res.json({ products });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+
+
+
 // @route POST / api/ products
 // @desc Create a new Product
 // @access Private/admin
@@ -197,9 +213,9 @@ router.get("/", async (req, res) => {
       query.gender = gender;
     }
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      query.discountPrice = {};
+      if (minPrice) query.discountPrice.$gte = Number(minPrice);
+      if (maxPrice) query.discountPrice.$lte = Number(maxPrice);
     }
     if (search) {
       query.$or = [
