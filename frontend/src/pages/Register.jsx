@@ -67,7 +67,7 @@ const Register = () => {
           className="w-full max-w-md bg-white p-8 rounded-lg  border shadow-sm"
         >
           <div className="flex justify-center mb-6">
-            <h2 className="text-xl font-medium">Mwellnessbazaar</h2>
+            <h2 className="text-xl font-medium">M Wellness Bazaar</h2>
           </div>
           <h2 className="text-2xl font-bold text-center mb-6">Hey There !</h2>
           <p className="text-center mb-6">
