@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import login from "../assets/login.webp";
+import skin  from "../assets/skin.webp";
 import { loginUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -67,7 +67,7 @@ const Login = () => {
           className="w-full max-w-md bg-white p-8 rounded-lg  border shadow-sm"
         >
           <div className="flex justify-center mb-6">
-            <h2 className="text-xl font-medium">Vrandavan</h2>
+            <h2 className="text-xl font-medium">Mwellnessbazaar</h2>
           </div>
           <h2 className="text-2xl font-bold text-center mb-6">Hey There !</h2>
           <p className="text-center mb-6">
@@ -112,16 +112,16 @@ const Login = () => {
           </p>
         </form>
       </div>
-
+{/* 
       <div className="hidden md:block w-1/2  bg-gray-800">
         <div className="h-full flex  flex-col  justify-center items-center">
           <img
-            src={login}
+            src={skin}
             alt="Login to account"
-            className="h-[750px] w-full object-cover"
+            className="h-[750px] w-full object-cover object-right"
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };
