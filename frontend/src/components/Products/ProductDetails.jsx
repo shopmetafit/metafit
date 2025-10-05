@@ -126,7 +126,7 @@ const ProductDetails = ({ productId }) => {
                   ₹{selectedProduct.discountPrice}
                 </p>
               </div>
-              <p className="text-gray-600 mb-6">{selectedProduct.description}</p>
+              <p className="text-gray-600 mb-6 whitespace-pre-line">{selectedProduct.description}</p>
 
               {/* Sizes */}
               {selectedProduct?.sizes?.length > 0 && (

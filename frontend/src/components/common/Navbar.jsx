@@ -210,6 +210,12 @@ const Navbar = () => {
     <>
       {/* Navbar */}
       <nav className="container mx-auto flex items-center justify-between py-4 px-6">
+        {/* Center tagline */}
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+          <h1 className="hidden md:block text-lg md:text-xl font-semibold text-gray-700 tracking-wide">
+            From Ancient Healing to AI Living
+          </h1>
+        </div>
         {/* Desktop navigation */}
         {/* <div className="hidden lg:flex space-x-6">
           {sections.map((section) => (
@@ -226,7 +232,7 @@ const Navbar = () => {
               </button>
 
               {/* Desktop dropdown */}
-              {/*{openSection === section.title && (
+        {/*{openSection === section.title && (
                 <div className="absolute left-0 top-full mt-2 w-56 bg-white shadow-lg rounded z-50">
                   {section.sub.map((subItem) => (
                     <div key={subItem.name} className="relative">
@@ -305,6 +311,7 @@ const Navbar = () => {
             )}
           </button>
         </div>
+       
       </nav>
 
       <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={togglerCartOpen} />
