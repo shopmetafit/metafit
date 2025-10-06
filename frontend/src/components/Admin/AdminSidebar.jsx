@@ -16,7 +16,7 @@ const AdminSidebar = () => {
     <div className="p-6">
       <div className="mb-6">
         <Link to="/admin" className="text-2xl font-medium">
-          Vrandavan
+          Mwellnessbazaar
         </Link>
       </div>
       <h2 className="text-xl font-medium mb-6  text-center">Admin Dashboard</h2>
@@ -41,7 +41,7 @@ const AdminSidebar = () => {
           }}
         >
           <FaBoxOpen />
-        <span>Products</span>
+        <span>Edit Products</span>
         </NavLink>
         <NavLink
           to="/admin/orders"

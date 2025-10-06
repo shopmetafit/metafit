@@ -17,6 +17,8 @@ const EditProductPage = () => {
     name: "",
     description: "",
     price: 0,
+    
+    discountPrice: 0,
     countInStock: 0,
     sku: "",
     category: "",
@@ -123,16 +125,30 @@ const EditProductPage = () => {
         </div>
         {/* price */}
 
-        <div className="mb-6">
-          <label className="block font-semibold mb-2">Price</label>
-          <input
-            type="number"
-            name="price"
-            value={productData.price}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded-md p-2"
-          />
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block font-semibold mb-2">Price</label>
+            <input
+              type="number"
+              name="price"
+              value={productData.price}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+          <div>
+            <label className="block font-semibold mb-2">Discount Price</label>
+            <input
+              type="number"
+              name="discountPrice"
+              value={productData.discountPrice}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+          </div>
         </div>
+
+
         {/* count in stock */}
         <div className="mb-6">
           <label className="block font-semibold mb-2">Count in stock</label>
