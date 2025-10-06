@@ -41,6 +41,41 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Thunk for Google login
+export const googleLoginUserThunk = createAsyncThunk(
+  "auth/googleLoginUser",
+  async (googleResponse, { rejectWithValue }) => {
+    try {
+      // Step 1: Extract Google ID Token
+      const idToken = googleResponse.credential;
+      if (!idToken) throw new Error("No Google ID token found");
+
+      // Step 2: Send token to backend
+      const resp = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/google-login`,
+        { token: idToken }
+      );
+
+      // Step 3: Validate response
+      if (resp.status === 200 && resp.data?.token && resp.data?.user) {
+        // Step 4: Store user info and token in localStorage
+        localStorage.setItem("userInfo", JSON.stringify(resp.data.user));
+        localStorage.setItem("userToken", resp.data.token);
+
+        // Step 5: Return user object for Redux
+        return resp.data.user;
+      } else {
+        throw new Error("Invalid server response");
+      }
+    } catch (error) {
+      console.error("Google login failed ❌", error);
+      return rejectWithValue(
+        error.response?.data || { message: error.message }
+      );
+    }
+  }
+);
+
 //   Async Thunk for User Registration
 
 export const registerUser = createAsyncThunk(
@@ -85,14 +120,14 @@ const authSlice = createSlice({
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
-            })
+      })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.user = action.payload; // ✅ Set the logged-in user
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
-                state.loading = false;
+        state.loading = false;
         state.error = action.payload.message;
       })
       .addCase(registerUser.pending, (state) => {
@@ -107,6 +142,18 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload.message;
+      })
+      .addCase(googleLoginUserThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLoginUserThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+      })
+      .addCase(googleLoginUserThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Google login failed";
       });
   },
 });

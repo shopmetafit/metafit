@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import skin  from "../assets/skin.webp";
-import { loginUser } from "../redux/slices/authSlice";
+import { loginUser ,googleLoginUserThunk} from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
+import { GoogleLogin } from "@react-oauth/google";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -59,6 +59,39 @@ const Login = () => {
     }
   };
 
+
+
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+  try {
+    // Dispatch the Google login thunk and wait for it to complete
+    const resAction = await dispatch(googleLoginUserThunk(credentialResponse));
+
+    if (googleLoginUserThunk.fulfilled.match(resAction)) {
+      // Login successful
+      const loggedInUser = resAction.payload;
+
+      // Redirect to checkout or homepage
+      navigate(isCheckoutRedirect ? "/checkout" : "/");
+    } else {
+      // Login failed
+      console.error("Google login failed:", resAction.payload);
+      alert("Google login failed ❌");
+    }
+  } catch (err) {
+    console.error("Google login error:", err);
+    alert("Google login failed ❌");
+  }
+};
+
+// Google login error
+  const handleGoogleLoginError = () => {
+    console.error("Google login failed");
+    alert("Google login failed ❌");
+  };
+
+
+
+
   return (
     <div className="flex">
       <div className="w-full md:m-1/2 flex flex-col justify-center items-center p-8 md:p-12">
@@ -101,6 +134,17 @@ const Login = () => {
           >
             Sign in
           </button>
+
+
+          {/* Google Login Button */}
+          <div className="mt-4 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleLoginSuccess}
+              onError={handleGoogleLoginError}
+            />
+          </div>
+
+
           <p className="mt-6 text-center text-sm">
             Don&apos;t have an account?
             <Link

@@ -12,8 +12,10 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
 
     },
-    password: { type: String, required: true, minLength: 6 },
-    role: { type: String, enum: ["customer", "admin"], default: "customer" },
+    password: { type: String, minLength: 6 },
+    role: { type: String, enum: ["customer", "admin","owner"], default: "customer" },
+    avatar: { type: String }, // ✅ added for Google picture
+    googleId: { type: String }, // ✅ store Google ID if needed later
   },
   { timestamps: true }
 );
