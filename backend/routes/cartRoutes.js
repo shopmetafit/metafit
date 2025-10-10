@@ -52,7 +52,7 @@ router.post("/", async (req, res) => {
 
       //   Recalculate the total price
       cart.totalPrice = cart.products.reduce(
-        (acc, item) => acc + item.price * item.quantity,
+        (acc, item) => acc + (item.price * item.quantity),
         0
       );
       await cart.save();
