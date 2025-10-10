@@ -13,6 +13,9 @@ const OrderManagement = () => {
   const { user } = useSelector((state) => state.auth);
   const { orders, loading, error } = useSelector((state) => state.adminOrders);
 
+// console.log("ordMan16",orders)
+// console.log("ordMan17",orders?.user)
+
   useEffect(() => {
     if (!user && user.role !== "admin") {
       navigate("/");
@@ -54,7 +57,7 @@ const OrderManagement = () => {
                   >
                     #{order._id}
                   </td>
-                  <td className="p-4">{order.user.name}</td>
+                  <td className="p-4">{order.user?.name}</td>
                   <td className="p-4">{order.totalPrice.toFixed(2)}</td>
                   <td className="p-4">
                     <select
