@@ -1,12 +1,14 @@
 import { IoLogoInstagram } from "react-icons/io";
-import { FaFacebook, FaLinkedin } from "react-icons/fa";
+import { FaFacebook, FaLinkedin, FaPhoneAlt } from "react-icons/fa";
 import logo from "../../assets/logo.png"; // Adjust path if needed
 import { Link } from "react-router-dom";
+import wellness from "../../assets/wellness.jfif"
+
 
 const Topbar = () => {
   return (
     <div style={{ backgroundColor: "#bae6fd" }} className="text-white">
-      <div className="container mx-auto flex justify-between items-center py-3 px-3">
+      <div className="container mx-auto flex justify-between items-center py-3 px-3 relative">
         {/* Left Section: Logo + Social Icons */}
         <div className="flex items-center space-x-8">
           <div className=" p-1 rounded-md">
@@ -43,9 +45,9 @@ const Topbar = () => {
         </div>
 
         {/* Center Text */}
-        <div className="text-black">
-          <Link to="/" className="text-2xl font-medium">
-            M Wellness Bazaar
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+          <Link to="/">
+            <img src={wellness} alt="Metafit Logo" className="h-20 w-auto" />
           </Link>
         </div>
 
@@ -55,7 +57,7 @@ const Topbar = () => {
             href="tel:+919982498555"
             className="text-black hover:text-gray-700"
           >
-            +91 99824 98555
+            <FaPhoneAlt className="h-5 w-5" />
           </a>
         </div>
       </div>
@@ -64,3 +66,4 @@ const Topbar = () => {
 };
 
 export default Topbar;
+

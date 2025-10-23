@@ -118,7 +118,7 @@ const CollectionPage = () => {
           </div>
           
           {/* Category Pills */}
-          <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-200">
+          {/* <div className="flex flex-wrap gap-3 mt-4 pt-4 border-t border-gray-200">
             {categories.map((category) => (
               <Link
                 key={category.name}
@@ -136,7 +136,7 @@ const CollectionPage = () => {
                 )}
               </Link>
             ))}
-          </div>
+          </div> */}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

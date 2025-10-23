@@ -10,7 +10,6 @@ import { FaChevronDown } from "react-icons/fa";
 import CartDrawer from "../Layout/CartDrawer";
 import { useSelector } from "react-redux";
 
-// Sections with sub + sub-sub
 // const sections = [
 //   {
 //     title: "Nutrition & Supplements",
@@ -212,7 +211,7 @@ const Navbar = () => {
       <nav className="container mx-auto flex items-center justify-between py-4 px-6">
         {/* Center tagline */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-          <h1 className="hidden md:block text-lg md:text-xl font-semibold text-gray-700 tracking-wide">
+          <h1 className="hidden md:block text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-500 hover:from-blue-500 hover:to-teal-600 transition-all duration-300 ease-in-out tracking-wider">
             From Ancient Healing to AI Living
           </h1>
         </div>
@@ -279,7 +278,6 @@ const Navbar = () => {
             </div>
           ))}
         </div> */}
-
         {/* Right icons */}
         <div className="flex justify-end space-x-4 w-full">
           <button onClick={togglerNavDrawer} className="lg:hidden">
