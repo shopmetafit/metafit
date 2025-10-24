@@ -286,7 +286,7 @@ const Navbar = () => {
           {user && user.role === "admin" && (
             <Link
               to="/admin"
-              className="block bg-black text-white px-2 mx-2 rounded text-xs"
+              className="block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 mx-2 rounded text-sm font-semibold"
             >
               Admin
             </Link>
