@@ -85,12 +85,31 @@ const EditProductPage = () => {
     }
   };
 
+  const handleDeleteImage = (indexToDelete) => {
+    setProductData((prevData) => ({
+      ...prevData,
+      images: prevData.images.filter((_, index) => index !== indexToDelete),
+    }));
+  };
+
+  const handleSetPrimaryImage = (indexToSet) => {
+    setProductData((prevData) => ({
+      ...prevData,
+      images: prevData.images.map((image, index) => ({
+        ...image,
+        isPrimary: index === indexToSet,
+      })),
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // console.log(productData);
     dispatch(updateProduct({ id, productData }));
     navigate("/admin/products");
   };
+
+
 
   if (loading) return <p>Loading..</p>;
   if (error) return <p>Error:{error}</p>;
@@ -214,12 +233,37 @@ const EditProductPage = () => {
           {uploading && <p>Uploading Image..</p>}
           <div className="flex gap-4 mt-4">
             {productData.images.map((image, index) => (
-              <div key={index}>
+              <div key={index} className="relative">
                 <img
                   src={image.url}
                   alt={image.altText || "Product Image"}
-                  className="w-20 h-20  object-cover  shadow-md"
+                  className={`w-20 h-20 object-cover shadow-md ${
+                    image.isPrimary ? "border-4 border-blue-500" : ""
+                  }`}
                 />
+                <div className="absolute top-0 right-0 flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(index)}
+                    className="bg-red-500 text-white p-1 rounded-full text-xs"
+                  >
+                    X
+                  </button>
+                  {!image.isPrimary && (
+                    <button
+                      type="button"
+                      onClick={() => handleSetPrimaryImage(index)}
+                      className="bg-green-500 text-white p-1 mt-1 rounded-full text-xs"
+                    >
+                      Set Primary
+                    </button>
+                  )}
+                </div>
+                {image.isPrimary && (
+                  <div className="absolute bottom-0 left-0 bg-blue-500 text-white text-xs px-1">
+                    Primary
+                  </div>
+                )}
               </div>
             ))}
           </div>
