@@ -51,8 +51,8 @@ const ProductGrid = ({ products, loading, error }) => {
             )}
             <div className="aspect-[4/3] w-full mb-3 overflow-hidden rounded-lg">
               <img
-                src={product.images[0].url}
-                alt={product.images[0].altText || product.name}
+                src={product.images && product.images.length > 0 ? product.images[0].url : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png"}
+                alt={product.images && product.images.length > 0 ? product.images[0].altText || product.name : product.name}
                 className="w-full h-full object-cover rounded-lg"
               />
             </div>
@@ -110,8 +110,7 @@ const ProductGrid = ({ products, loading, error }) => {
       </div>
     )}
   </div>
-);
-
+  );
 };
 
 export default ProductGrid;

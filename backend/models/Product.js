@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     discountPrice: { type: Number },
     countInStock: { type: Number, required: true, default: 0 },
-    sku: { type: Number, required: true, unique: true },
+    sku: { type: String, required: true, unique: true },
     category: { type: String, required: true },
     brand: { type: String, required: true },
     sizes: { type: [String], default: [] },
