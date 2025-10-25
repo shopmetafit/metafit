@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Facebook, Instagram, Linkedin, Phone, Menu, X } from 'lucide-react';
-import wellnessLogo from '../../assets/Wellness.png';
 
 const Topbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,7 +23,7 @@ const Topbar = () => {
           
           {/* Left: Metafit Wellness Logo + Social Icons */}
           <div className="flex items-center gap-4 md:gap-6">
-            {/* Metafit Wellness Logo */}
+            {/* Metafit Wellness Logo
             <a
               href="https://metafitwellness.com/"
               className="group flex items-center gap-2 transform transition-all duration-300 hover:scale-105"
@@ -39,9 +38,8 @@ const Topbar = () => {
               </div>
               <div className="hidden sm:block">
                 <div className="text-sm font-bold text-teal-800 leading-tight">Metafit</div>
-                <div className="text-xs text-teal-600 font-medium"></div>
               </div>
-            </a>
+            </a> */}
 
             {/* Social Icons - Desktop */}
             <div className="hidden lg:flex items-center gap-2">
@@ -71,23 +69,32 @@ const Topbar = () => {
             </div>
           </div>
 
-          {/* Center: Your Original Wellness Logo */}
+          {/* Center: Interactive M Wellness Bazaar Logo */}
           <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
-            <a href="/" className="group block">
+            <a href="/" className="group flex items-center gap-3">
               <div className="relative">
-                {/* Replace this with your actual wellness.jfif image */}
-                <img 
-                  src={wellnessLogo} 
-                  alt="Wellness Bazaar" 
-                  className="h-24 w-auto object-contain transition-all duration-300 transform group-hover:scale-105 drop-shadow-lg group-hover:drop-shadow-xl"
-                />
-                {/* In your actual code, use:
-                <img 
-                  src={wellness} 
-                  alt="Wellness Bazaar" 
-                  className="h-14 w-auto object-contain transition-all duration-300 transform group-hover:scale-105"
-                />
-                */}
+                {/* Main M Logo */}
+                <div className="w-14 h-14 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3">
+                  <span className="text-white font-black text-2xl">M</span>
+                </div>
+                {/* Animated Dot */}
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
+                  <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
+                </div>
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+              </div>
+              
+              {/* Text */}
+              <div className="relative">
+                <div className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight group-hover:from-teal-600 group-hover:to-cyan-600 transition-all duration-300">
+                  Wellness
+                </div>
+                <div className="text-sm font-bold text-teal-600 group-hover:text-teal-700 transition-colors duration-300">
+                  Bazaar
+                </div>
+                {/* Underline Animation */}
+                <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-500 to-cyan-500 group-hover:w-full transition-all duration-500"></div>
               </div>
             </a>
           </div>
@@ -120,21 +127,29 @@ const Topbar = () => {
         </div>
       </div>
 
-
-
       {/* Mobile Menu - Compact */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t-2 border-teal-400 shadow-xl animate-slideDown">
           <div className="container mx-auto py-6 px-4">
             {/* Center Logo - Mobile */}
-            <div className="mb-4 text-center">
-              <a href="/" className="inline-block">
-                <img 
-                  src={wellnessLogo} 
-                  alt="Wellness Bazaar" 
-                  className="h-20 w-auto object-contain mx-auto"
-                />
-                {/* Use in your code: <img src={wellness} alt="Wellness Bazaar" className="h-12 w-auto object-contain mx-auto" /> */}
+            <div className="mb-6 flex justify-center">
+              <a href="/" className="group flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
+                    <span className="text-white font-black text-3xl">M</span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
+                    <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight">
+                    Wellness
+                  </div>
+                  <div className="text-base font-bold text-teal-600">
+                    Bazaar
+                  </div>
+                </div>
               </a>
             </div>
 
@@ -186,19 +201,8 @@ const Topbar = () => {
             transform: translateY(0);
           }
         }
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
-          }
-        }
         .animate-slideDown {
           animation: slideDown 0.3s ease-out;
-        }
-        .animate-shimmer {
-          animation: shimmer 3s infinite;
         }
       `}</style>
     </div>
