@@ -34,6 +34,7 @@ router.post("/", protect, admin, async (req, res) => {
       collection,
       gender,
       images,
+      extraImages
     } = req.body;
     const newProducts = await Product.create({
       name,
@@ -49,6 +50,7 @@ router.post("/", protect, admin, async (req, res) => {
       collection,
       gender,
       images,
+      extraImages,
       user: req.user._id,
     });
 
@@ -78,6 +80,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       videoUrl,
       gender,
       images,
+      extraImages
     } = req.body;
     const product = await Product.findById(req.params.id);
     console.log(product);
@@ -97,6 +100,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.videoUrl = videoUrl || product.videoUrl;
       product.gender = gender || product.gender;
       product.images = images || product.images;
+      product.extraImages = extraImages || product.extraImages;
       product.sku = sku || product.sku;
 
       //   save the  updated product

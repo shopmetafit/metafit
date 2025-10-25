@@ -36,6 +36,7 @@ const EditProductPage = () => {
       //   url: "https://picsum.photos/150?random=1",
       // },
     ],
+    extraImages: [],
   });
 
   const [uploading, setUploading] = useState(false);
@@ -84,6 +85,32 @@ const EditProductPage = () => {
       setUploading(false);
     }
   };
+
+
+  const handleExtraImageUpload = async (e) => {
+  const file = e.target.files[0];
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    setUploading(true);
+    const { data } = await axios.post(
+      `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+
+    setProductData((prevData) => ({
+      ...prevData,
+      extraImages: [...prevData.extraImages, { url: data.imageUrl, altText: "" }],
+    }));
+    setUploading(false);
+  } catch (error) {
+    console.log(error);
+    setUploading(false);
+  }
+};
+
 
   const handleDeleteImage = (indexToDelete) => {
     setProductData((prevData) => ({
@@ -268,12 +295,45 @@ const EditProductPage = () => {
             ))}
           </div>
         </div>
+        
+        {/* Extra Images */}
+<div className="mb-6">
+  <label className="block font-semibold mb-2">Upload Extra Images</label>
+  <input type="file" onChange={handleExtraImageUpload} />
+  {uploading && <p>Uploading Image..</p>}
+  <div className="flex gap-4 mt-4 overflow-x-auto">
+    {productData.extraImages.map((image, index) => (
+      <div key={index} className="relative">
+        <img
+          src={image.url}
+          alt={image.altText || "Extra Image"}
+          className="w-20 h-20 object-cover shadow-md rounded"
+        />
+        <button
+          type="button"
+          onClick={() =>
+            setProductData((prevData) => ({
+              ...prevData,
+              extraImages: prevData.extraImages.filter((_, i) => i !== index),
+            }))
+          }
+          className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
+        >
+          X
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
+
         <button
           type="submit"
           className="w-full bg-green-500 text-white p-2 hover:bg-green-600"
         >
           Update Product
         </button>
+
+        
       </form>
     </div>
   );
