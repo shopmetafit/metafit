@@ -10,6 +10,7 @@ import { FaChevronDown } from "react-icons/fa";
 import CartDrawer from "../Layout/CartDrawer";
 import { useSelector } from "react-redux";
 
+
 // const sections = [
 //   {
 //     title: "Nutrition & Supplements",
@@ -52,6 +53,7 @@ import { useSelector } from "react-redux";
 //       { name: "Meditation Accessories", link: "/collections/all" },
 //       { name: "Stress Relief Products", link: "/collections/all" },
 
+
 //       {
 //         name: "Aromatherapy",
 //         sub: [
@@ -65,10 +67,12 @@ import { useSelector } from "react-redux";
 //   {
 //     title: "Health Food & Beverages",
 
+
 //     sub: [
 //       { name: "Hearbal Teas", link: "/collections/all" },
 //       { name: "Organic Snacks", link: "/collections/all" },
 //       { name: "Detox Juices", link: "/collections/all" },
+
 
 //       {
 //         name: "Natural Sweeteners",
@@ -100,6 +104,7 @@ import { useSelector } from "react-redux";
 //       { name: "Herbal Haircare", link: "/collections/all" },
 //       { name: "Bath & Body Products", link: "/collections/all" },
 
+
 //       {
 //         name: "Oral Care",
 //         sub: [
@@ -126,6 +131,7 @@ import { useSelector } from "react-redux";
 //   {
 //     title: "Digital Wellness Gadgets",
 
+
 //     sub: [
 //       {
 //         name: "Smart Water Bottels & Hydration Devices",
@@ -149,6 +155,7 @@ import { useSelector } from "react-redux";
 //         ],
 //       },
 
+
 //       {
 //         name: "Health Monitoring Devices",
 //         sub: [
@@ -159,6 +166,7 @@ import { useSelector } from "react-redux";
 //         ],
 //       },
 
+
 //       {
 //         name: "Sleep & Relaxation Gadgets",
 //         sub: [
@@ -167,6 +175,7 @@ import { useSelector } from "react-redux";
 //           { name: "Meditation Headbands", link: "/collections/all" },
 //         ],
 //       },
+
 
 //       {
 //         name: "Massage & Recovery Tools",
@@ -180,30 +189,37 @@ import { useSelector } from "react-redux";
 //   },
 // ];
 
+
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
   const [openSection, setOpenSection] = useState(null); // for main sections
   const [openSubSection, setOpenSubSection] = useState(null); // for sub-sections
 
+
   const { cart } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+
 
   const cartItemCount =
     cart?.products?.reduce((total, product) => total + product.quantity, 0) ||
     0;
 
+
   const togglerNavDrawer = () => setNavDrawerOpen(!navDrawerOpen);
   const togglerCartOpen = () => setDrawerOpen(!drawerOpen);
+
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
     setOpenSubSection(null); // reset sub-section when switching section
   };
 
+
   const toggleSubSection = (sub) => {
     setOpenSubSection(openSubSection === sub ? null : sub);
   };
+
 
   return (
     <>
@@ -216,68 +232,10 @@ const Navbar = () => {
           </h1>
         </div>
         {/* Desktop navigation */}
-        {/* <div className="hidden lg:flex space-x-6">
-          {sections.map((section) => (
-            <div key={section.title} className="relative">
-              <button
-                onClick={() => toggleSection(section.title)}
-                className="text-gray-700 text-xs font-medium uppercase flex items-center focus:outline-none"
-              >
-                {section.title}
-                <FaChevronDown
-                  className={`ml-1 text-gray-500 transition-transform duration-200 ${openSection === section.title ? "rotate-180" : ""
-                    }`}
-                />
-              </button>
-
-              {/* Desktop dropdown */}
-        {/*{openSection === section.title && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-white shadow-lg rounded z-50">
-                  {section.sub.map((subItem) => (
-                    <div key={subItem.name} className="relative">
-                      {subItem.sub ? (
-                        <>
-                          <button
-                            onClick={() => toggleSubSection(subItem.name)}
-                            className="flex justify-between w-full px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-black focus:outline-none"
-                          >
-                            {subItem.name}
-                            <FaChevronDown
-                              className={`ml-2 transition-transform duration-200 ${openSubSection === subItem.name
-                                  ? "rotate-180"
-                                  : ""
-                                }`}
-                            />
-                          </button>
-                          {openSubSection === subItem.name && (
-                            <div className="pl-6 mt-1 space-y-1">
-                              {subItem.sub.map((subSub) => (
-                                <Link
-                                  key={subSub.name}
-                                  to={subSub.link}
-                                  className="block text-gray-600 hover:bg-gray-100 hover:text-black"
-                                >
-                                  {subSub.name}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <Link
-                          to={subItem.link}
-                          className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-black"
-                        >
-                          {subItem.name}
-                        </Link>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div> */}
+        <div className="hidden lg:flex flex-nowrap  space-x-4 items-center">
+          <Link to="/aboutUs" className="inline-block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">About&nbsp;Us</Link>
+          <Link to="/contactUs" className="inline-block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">Contact&nbsp;Us</Link>
+        </div>
         {/* Right icons */}
         <div className="flex justify-end space-x-4 w-full">
           <button onClick={togglerNavDrawer} className="lg:hidden">
@@ -292,9 +250,11 @@ const Navbar = () => {
             </Link>
           )}
 
+
           <Link to="/profile" className="hover:text-black">
             <HiOutlineUser className="h-6 w-6 text-gray-700 " />
           </Link>
+
 
           {/* Cart button */}
           <button
@@ -312,15 +272,17 @@ const Navbar = () => {
        
       </nav>
 
+
       <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={togglerCartOpen} />
+
 
       {/* Mobile navigation */}
       <div
-        className={`fixed bg-gradient-to-b from-white to-gray-50 top-0 left-0 
-  w-3/4 sm:w-1/2 md:w-1/3 h-full 
+        className={`fixed bg-gradient-to-b from-white to-gray-50 top-0 left-0
+  w-3/4 sm:w-1/2 md:w-1/3 h-full
   shadow-2xl rounded-r-2xl border-r border-gray-200
-  transform transition-transform duration-300 ease-in-out z-50 
-  ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"} 
+  transform transition-transform duration-300 ease-in-out z-50
+  ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"}
   overflow-y-auto`}
       >
         <div className="flex justify-end p-4 sticky top-0 bg-white">
@@ -329,82 +291,14 @@ const Navbar = () => {
           </button>
         </div>
 
+
         <div className="p-4">
           <h2 className="text-xl font-semibold underline text-gray-600">
             Menu
           </h2>
           <nav className="space-y-6 mt-6">
-            {/* {sections.map((section) => (
-              <div key={section.title}>
-                <button
-                  onClick={() => toggleSection(section.title)}
-                  className="flex justify-between items-center w-full 
-  text-gray-700 font-semibold text-base tracking-wide 
-  px-4 py-3 rounded-lg 
-  hover:bg-gray-100 hover:text-black 
-  transition-all duration-200 ease-in-out"
-                >
-                  {section.title}
-                  <FaChevronDown
-                    className={`ml-2 transition-transform duration-200 ${openSection === section.title ? "rotate-180" : ""
-                      }`}
-                  />
-                </button>
-                {openSection === section.title && (
-                  <div className="pl-4 mt-2 space-y-1">
-                    {section.sub.map((subItem) => (
-                      <div key={subItem.name}>
-                        {subItem.sub ? (
-                          <>
-                            <button
-                              onClick={() => toggleSubSection(subItem.name)}
-                              className="flex justify-between items-center w-full 
-  text-gray-600 font-medium text-sm 
-  px-4 py-2 rounded-md 
-  hover:bg-gray-50 hover:text-gray-900 
-  transition-all duration-200 ease-in-out"
-                            >
-                              {subItem.name}
-                              <FaChevronDown
-                                className={`ml-2 transition-transform duration-200 ${openSubSection === subItem.name
-                                    ? "rotate-180"
-                                    : ""
-                                  }`}
-                              />
-                            </button>
-                            {openSubSection === subItem.name && (
-                              <div className="pl-6 mt-1 space-y-1">
-                                {subItem.sub.map((subSub) => (
-                                  <Link
-                                    key={subSub.name}
-                                    to={subSub.link}
-                                    onClick={togglerNavDrawer}
-                                    className="block px-6 py-2 text-gray-500 text-sm 
-  hover:text-black hover:bg-gray-100 rounded-md 
-  transition-all duration-200 ease-in-out"
-
-                                  >
-                                    {subSub.name}
-                                  </Link>
-                                ))}
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <Link
-                            to={subItem.link}
-                            onClick={togglerNavDrawer}
-                            className="block text-gray-600 hover:text-black"
-                          >
-                            {subItem.name}
-                          </Link>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))} */}
+            <Link to="/aboutUs" className="block text-gray-600 hover:text-black">About Us</Link>
+            <Link to="/contactUs" className="block text-gray-600 hover:text-black">Contact Us</Link>
           </nav>
         </div>
       </div>
@@ -412,4 +306,7 @@ const Navbar = () => {
   );
 };
 
+
 export default Navbar;
+
+
