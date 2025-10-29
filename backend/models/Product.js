@@ -18,6 +18,7 @@ const productSchema = new mongoose.Schema(
     gender: { type: String, enum: ["Men", "Women", "Unisex"] },
     images: [
       {
+        _id: false,
         url: {
           type: String,
           required: true,
@@ -25,6 +26,9 @@ const productSchema = new mongoose.Schema(
         altText: { type: String },
         isPrimary: { type: Boolean, default: false },
       },
+    ],
+    extraImages: [
+      { _id: false, url: { type: String }, altText: { type: String } },
     ],
     isFeatured: {
       type: Boolean,
@@ -68,3 +72,5 @@ const productSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Product", productSchema);
+
+// ll

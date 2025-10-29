@@ -117,7 +117,9 @@ const ProductDetails = ({ productId }) => {
 
             {/* Details */}
             <div className="md:w-1/2">
-              <h1 className="text-3xl font-bold mb-2">{selectedProduct.name}</h1>
+              <h1 className="text-3xl font-bold mb-2">
+                {selectedProduct.name}
+              </h1>
               <div className="flex items-center gap-3 mb-2">
                 <p className="text-lg text-gray-400 line-through">
                   {selectedProduct.price && `₹${selectedProduct.price}`}
@@ -126,7 +128,9 @@ const ProductDetails = ({ productId }) => {
                   ₹{selectedProduct.discountPrice}
                 </p>
               </div>
-              <p className="text-gray-600 mb-6 whitespace-pre-line">{selectedProduct.description}</p>
+              <p className="text-gray-600 mb-6 whitespace-pre-line">
+                {selectedProduct.description}
+              </p>
 
               {/* Sizes */}
               {selectedProduct?.sizes?.length > 0 && (
@@ -209,6 +213,23 @@ const ProductDetails = ({ productId }) => {
                 {isButtonDisabled ? "Adding..." : "Add to Cart"}
               </button>
 
+              {/* Small Information Image Strip */}
+              {selectedProduct?.extraImages?.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-3">More Details</h3>
+                  <div className="flex gap-4 overflow-x-auto scrollbar-hide p-2">
+                    {selectedProduct.extraImages.map((img, index) => (
+                      <img
+                        key={index}
+                        src={img.url}
+                        alt={img.altText || `Info ${index + 1}`}
+                        className="w-28 h-28 object-contain rounded-xl shadow-sm border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Characteristics */}
               <div className="mt-10">
                 <h3 className="text-xl font-bold mb-4">Characteristics</h3>
@@ -231,8 +252,7 @@ const ProductDetails = ({ productId }) => {
                 <div className="mt-8">
                   <h3 className="text-lg font-semibold mb-3">Product Video</h3>
                   <YouTube
-                    videoId={selectedProduct.videoUrl.split("/").pop()
-                    }
+                    videoId={selectedProduct.videoUrl.split("/").pop()}
                     iframeClassName="w-full aspect-video rounded-xl shadow-md"
                   />
                 </div>
