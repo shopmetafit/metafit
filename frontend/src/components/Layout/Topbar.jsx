@@ -15,11 +15,11 @@ const Topbar = () => {
 
   return (
     <div className={`w-full z-50 transition-all duration-300 ${
-      scrolled ? 'shadow-xl' : 'shadow-md'
+      scrolled ? 'shadow-2xl' : 'shadow-xl'
     }`}>
       {/* Main Top Bar - Compact */}
-      <div className="bg-gradient-to-r from-cyan-300 via-sky-200 to-cyan-300">
-        <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-6">
+      <div className="bg-gradient-to-r from-[#022824] via-[#06463C] to-[#022824] text-white border-b border-white/10">
+        <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-6 backdrop-blur-sm">
           
           {/* Left: Metafit Wellness Logo + Social Icons */}
           <div className="flex items-center gap-4 md:gap-6">
@@ -87,10 +87,10 @@ const Topbar = () => {
               
               {/* Text */}
               <div className="relative">
-                <div className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight group-hover:from-teal-600 group-hover:to-cyan-600 transition-all duration-300">
+              <div className="text-lg font-black text-white leading-tight drop-shadow-md transition-all duration-300">
                   Wellness
                 </div>
-                <div className="text-sm font-bold text-teal-600 group-hover:text-teal-700 transition-colors duration-300">
+                <div className="text-sm font-bold text-white/80 group-hover:text-white transition-colors duration-300">
                   Bazaar
                 </div>
                 {/* Underline Animation */}

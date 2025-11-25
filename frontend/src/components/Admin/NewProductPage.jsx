@@ -46,7 +46,7 @@ const NewProductPage = () => {
             "Content-Type": "multipart/form-data",
           },
         };
-        const { data } = await axios.post("/api/upload", formData, config);
+        const { data } = await axios.post("http://localhost:9000/api/upload", formData, config);
         imageUrl = data.imageUrl;
       } catch (error) {
         console.error(error);

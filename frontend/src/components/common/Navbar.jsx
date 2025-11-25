@@ -224,44 +224,44 @@ const Navbar = () => {
   return (
     <>
       {/* Navbar */}
-      <nav className="container mx-auto flex items-center justify-between py-4 px-6">
+      <nav className="container mx-auto flex items-center justify-between py-4 px-6 text-white bg-gradient-to-r from-[#0FB7A3] via-[#0DA28E] to-[#0A8271] rounded-b-3xl shadow-lg border border-white/10">
         {/* Center tagline */}
         <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
-          <h1 className="hidden md:block text-lg md:text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-500 hover:from-blue-500 hover:to-teal-600 transition-all duration-300 ease-in-out tracking-wider">
+          <h1 className="hidden md:inline-block text-lg md:text-xl font-semibold text-white tracking-[0.35em] uppercase drop-shadow">
             From Ancient Healing to AI Living
           </h1>
         </div>
         {/* Desktop navigation */}
         <div className="hidden lg:flex flex-nowrap  space-x-4 items-center">
-          <Link to="/aboutUs" className="inline-block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">About&nbsp;Us</Link>
-          <Link to="/contactUs" className="inline-block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 rounded text-sm font-semibold">Contact&nbsp;Us</Link>
+          <Link to="/aboutUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">About&nbsp;Us</Link>
+          <Link to="/contactUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">Contact&nbsp;Us</Link>
         </div>
         {/* Right icons */}
         <div className="flex justify-end space-x-4 w-full">
           <button onClick={togglerNavDrawer} className="lg:hidden">
-            <HiBars3BottomRight className="h-6 w-6 text-gray-700" />
+            <HiBars3BottomRight className="h-6 w-6 text-white" />
           </button>
           {user && user.role === "admin" && (
             <Link
               to="/admin"
-              className="block bg-teal-500 hover:bg-teal-600 text-white px-3 py-1 mx-2 rounded text-sm font-semibold"
+              className="block border border-white/30 bg-white/10 hover:bg-white/20 text-white px-3 py-1 mx-2 rounded-full text-sm font-semibold transition"
             >
               Admin
             </Link>
           )}
 
 
-          <Link to="/profile" className="hover:text-black">
-            <HiOutlineUser className="h-6 w-6 text-gray-700 " />
+          <Link to="/profile" className="hover:text-white/80">
+            <HiOutlineUser className="h-6 w-6 text-white " />
           </Link>
 
 
           {/* Cart button */}
           <button
             onClick={togglerCartOpen}
-            className="relative hover:text-black"
+            className="relative hover:text-white/80"
           >
-            <HiOutlineShoppingBag className="h-6 w-6 text-gray-700" />
+            <HiOutlineShoppingBag className="h-6 w-6 text-white" />
             {cartItemCount > 0 && (
               <span className="absolute -top-1 bg-rabbit-red text-white text-xs rounded-full px-2 py-0.5">
                 {cartItemCount}
