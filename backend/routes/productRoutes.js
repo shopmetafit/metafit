@@ -194,11 +194,11 @@ router.get("/", async (req, res) => {
     }
 
     if (category && category.toLocaleLowerCase() !== "all") {
-      query.category = category;
+      query.category = { $regex: category, $options: "i" };
     }
 
     if (brand) {
-      query.brand = { $in: brand.split(",") };
+      query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
     }
     if (material) {
       query.material = { $in: material.split(",") };
