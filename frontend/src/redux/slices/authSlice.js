@@ -3,9 +3,16 @@ import axios from "axios";
 // import { useReducer } from "react";
 
 // Retrieve user info and token from localStorage if available
-const userFormStorage = localStorage.getItem("userInfo")
-  ? JSON.parse(localStorage.getItem("userInfo"))
-  : null;
+let userFormStorage = null;
+try {
+  const userInfo = localStorage.getItem("userInfo");
+  if (userInfo) {
+    userFormStorage = JSON.parse(userInfo);
+  }
+} catch (error) {
+  console.error("Error parsing userInfo from localStorage", error);
+  localStorage.removeItem("userInfo");
+}
 
 // Check for an existing  guest ID in the localStorage or generate a new one
 const initialGuestId =

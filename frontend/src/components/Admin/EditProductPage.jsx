@@ -217,6 +217,28 @@ const EditProductPage = () => {
             className="w-full border border-gray-300 rounded-md p-2"
           />
         </div>
+        {/* Category */}
+        <div className="mb-6">
+          <label className="block font-semibold mb-2">Category</label>
+          <input
+            type="text"
+            name="category"
+            value={productData.category}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2"
+          />
+        </div>
+        {/* Brand */}
+        <div className="mb-6">
+          <label className="block font-semibold mb-2">Brand</label>
+          <input
+            type="text"
+            name="brand"
+            value={productData.brand}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2"
+          />
+        </div>
         {/* sizes */}
         <div className="mb-6">
           <label className="block font-semibold mb-2">
