@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters, setFilters } from "../redux/slices/productSlice";
 
 const CollectionPage = () => {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // Initialize with empty string
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid');
 
@@ -27,6 +27,11 @@ const CollectionPage = () => {
   useEffect(() => {
     dispatch(fetchProductsByFilters({ collection, ...queryParams }));
   }, [dispatch, collection, searchParams]);
+
+  useEffect(() => {
+    // Update searchTerm state when the 'search' query parameter changes in the URL
+    setSearchTerm(searchParams.get("search") || "");
+  }, [searchParams]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -91,14 +96,18 @@ const CollectionPage = () => {
           <div className="flex-1">
             <div className="flex flex-col sm:flex-row justify-between items-center mb-6 p-4 bg-white rounded-lg shadow-sm">
               <div className="flex-1 w-full sm:w-auto mb-4 sm:mb-0">
-                <div className="relative">
+                <form onSubmit={handleSearch} className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#0FA958]"
                   />
-                </div>
+                  {/* Optionally add a search button */}
+                  {/* <button type="submit" className="absolute right-0 top-0 h-full px-4 bg-[#0FA958] text-white rounded-r-lg">Search</button> */}
+                </form>
               </div>
               <div className="flex items-center gap-4">
                 <p className="text-gray-600 whitespace-nowrap">
