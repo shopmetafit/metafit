@@ -74,10 +74,20 @@ const FilterSidebar = () => {
     return acc;
   }, []);
   
+  const uniqueColors = allProducts.reduce((acc, product) => {
+    product.colors.forEach(color => {
+      if (color && !acc.includes(color)) {
+        acc.push(color);
+      }
+    });
+    return acc;
+  }, []);
+
   const [openSections, setOpenSections] = useState({
     category: true,
     price: true,
     brand: true,
+    color: true,
   });
 
   const [selectedCategory, setSelectedCategory] = useState(
@@ -90,6 +100,9 @@ const FilterSidebar = () => {
   const [selectedBrands, setSelectedBrands] = useState(
     searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
   );
+  const [selectedColors, setSelectedColors] = useState(
+    searchParams.get("color")?.split(',').filter(Boolean) || []
+  );
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category")?.toLowerCase() || "");
@@ -100,6 +113,9 @@ const FilterSidebar = () => {
     setSelectedBrands(
       searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
     );
+    setSelectedColors(
+      searchParams.get("color")?.split(',').filter(Boolean) || []
+    );
   }, [searchParams]);
 
   const handleBrandChange = (normalizedBrand) => {
@@ -109,6 +125,13 @@ const FilterSidebar = () => {
     setSelectedBrands(newSelectedBrands);
   };
   
+  const handleColorChange = (color) => {
+    const newSelectedColors = selectedColors.includes(color)
+      ? selectedColors.filter((c) => c !== color)
+      : [...selectedColors, color];
+    setSelectedColors(newSelectedColors);
+  };
+
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams);
     
@@ -125,6 +148,12 @@ const FilterSidebar = () => {
       params.set("brand", selectedBrands.join(","));
     } else {
       params.delete("brand");
+    }
+
+    if (selectedColors.length > 0) {
+      params.set("color", selectedColors.join(","));
+    } else {
+      params.delete("color");
     }
 
     setSearchParams(params);
@@ -233,6 +262,32 @@ const FilterSidebar = () => {
                   label={brand.displayName} 
                   checked={selectedBrands.includes(brand.normalizedName)}
                   onChange={() => handleBrandChange(brand.normalizedName)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Color Filter */}
+        <div className="mb-8">
+          <SectionHeader
+            title="Color"
+            isOpen={openSections.color}
+            toggle={() => toggleSection("color")}
+          />
+          {openSections.color && (
+            <div className="mt-4 flex flex-wrap gap-3">
+              {uniqueColors.map((color) => (
+                <button
+                  key={color}
+                  onClick={() => handleColorChange(color)}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                    selectedColors.includes(color)
+                      ? "ring-2 ring-black scale-110"
+                      : "border-gray-300 hover:scale-105"
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={color}
                 />
               ))}
             </div>

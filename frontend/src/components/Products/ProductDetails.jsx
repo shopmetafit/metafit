@@ -45,6 +45,13 @@ const ProductDetails = ({ productId }) => {
     if (action === "minus" && quantity > 1) setQuantity((prev) => prev - 1);
   };
 
+  const handleColorClick = (color, index) => {
+    setSelectedColor(color);
+    if (selectedProduct.images[index]) {
+      setMainImage(selectedProduct.images[index].url);
+    }
+  };
+
   const handleAddToCart = () => {
     setIsButtonDisabled(true);
     dispatch(
@@ -165,7 +172,7 @@ const ProductDetails = ({ productId }) => {
                       return (
                         <button
                           key={index}
-                          onClick={() => setSelectedColor(color)}
+                          onClick={() => handleColorClick(color, index)}
                           className={`w-8 h-8 rounded-full border-2 transition-transform ${
                             selectedColor === color
                               ? "ring-2 ring-black scale-110"

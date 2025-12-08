@@ -59,9 +59,8 @@ const EditProductPage = () => {
     // console.log("sd=",e.productData.value)
   };
 
-  const handleImageUpload = async (e) => {
+  const handleImageUpload = async (e, index) => {
     const file = e.target.files[0];
-    // console.log(file);
     const formData = new FormData();
     formData.append("image", file);
 
@@ -75,10 +74,11 @@ const EditProductPage = () => {
         }
       );
 
-      setProductData((prevData) => ({
-        ...prevData,
-        images: [...prevData.images, { url: data.imageUrl, altText: "" }],
-      }));
+      setProductData((prevData) => {
+        const newImages = [...prevData.images];
+        newImages[index] = { url: data.imageUrl, altText: "" };
+        return { ...prevData, images: newImages };
+      });
       setUploading(false);
     } catch (error) {
       console.log(error);
@@ -117,6 +117,14 @@ const EditProductPage = () => {
       ...prevData,
       images: prevData.images.filter((_, index) => index !== indexToDelete),
     }));
+  };
+
+  const handleDeleteColor = (indexToDelete) => {
+    setProductData((prevData) => {
+      const newColors = prevData.colors.filter((_, index) => index !== indexToDelete);
+      const newImages = prevData.images.filter((_, index) => index !== indexToDelete);
+      return { ...prevData, colors: newColors, images: newImages };
+    });
   };
 
   const handleSetPrimaryImage = (indexToSet) => {
@@ -257,65 +265,63 @@ const EditProductPage = () => {
             className="w-full border border-gray-300 rounded-md p-2"
           />
         </div>
-        {/* colors */}
         <div className="mb-6">
-          <label className="block font-semibold mb-2">
-            Colors(Comma-separated)
-          </label>
-          <input
-            type="text"
-            name="colors"
-            value={productData.colors.join(",")}
-            onChange={(e) =>
-              setProductData({
-                ...productData,
-                colors: e.target.value.split(",").map((color) => color.trim()),
-              })
-            }
-            className="w-full border border-gray-300 rounded-md p-2"
-          />
-        </div>
-        {/* image */}
-        <div className="mb-6">
-          <label className="block font-semibold mb-2">Upload Image</label>
-          <input type="file" onChange={handleImageUpload} />
-          {uploading && <p>Uploading Image..</p>}
-          <div className="flex gap-4 mt-4">
-            {productData.images.map((image, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={image.url}
-                  alt={image.altText || "Product Image"}
-                  className={`w-20 h-20 object-cover shadow-md ${
-                    image.isPrimary ? "border-4 border-blue-500" : ""
-                  }`}
-                />
-                <div className="absolute top-0 right-0 flex flex-col">
+          <label className="block font-semibold mb-2">Colors & Images</label>
+          {productData.colors.map((color, index) => (
+            <div key={index} className="flex items-center gap-4 mb-2">
+              <input
+                type="text"
+                value={color}
+                onChange={(e) => {
+                  const newColors = [...productData.colors];
+                  newColors[index] = e.target.value;
+                  setProductData({ ...productData, colors: newColors });
+                }}
+                className="w-1/3 border p-2 rounded"
+                placeholder="Enter color name"
+              />
+              <input
+                type="file"
+                onChange={(e) => handleImageUpload(e, index)}
+                className="w-1/3"
+              />
+              {productData.images[index] && (
+                <div className="relative">
+                  <img
+                    src={productData.images[index].url}
+                    alt={color}
+                    className="w-20 h-20 object-cover shadow-md"
+                  />
                   <button
                     type="button"
                     onClick={() => handleDeleteImage(index)}
-                    className="bg-red-500 text-white p-1 rounded-full text-xs"
+                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
                   >
                     X
                   </button>
-                  {!image.isPrimary && (
-                    <button
-                      type="button"
-                      onClick={() => handleSetPrimaryImage(index)}
-                      className="bg-green-500 text-white p-1 mt-1 rounded-full text-xs"
-                    >
-                      Set Primary
-                    </button>
-                  )}
                 </div>
-                {image.isPrimary && (
-                  <div className="absolute bottom-0 left-0 bg-blue-500 text-white text-xs px-1">
-                    Primary
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+              )}
+              <button
+                type="button"
+                onClick={() => handleDeleteColor(index)}
+                className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              setProductData({
+                ...productData,
+                colors: [...productData.colors, ""],
+              })
+            }
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          >
+            Add Color
+          </button>
         </div>
         
         {/* Extra Images */}
