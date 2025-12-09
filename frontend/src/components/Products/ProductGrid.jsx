@@ -98,25 +98,6 @@ const ProductGrid = ({ products, loading, error }) => {
                 )}
               </div>
             </Link>
-            {/* Color Swatches */}
-            {product.colors && product.colors.length > 0 && (
-              <div className="flex justify-center gap-2 mt-2">
-                {product.colors.map((color, index) => (
-                  <button
-                    key={index}
-                    onMouseEnter={() =>
-                      setHoveredImage({
-                        ...hoveredImage,
-                        [product._id]: product.images[index]?.url,
-                      })
-                    }
-                    className="w-6 h-6 rounded-full border"
-                    style={{ backgroundColor: color }}
-                    title={product.colorsName?.[index] || color}
-                  />
-                ))}
-              </div>
-            )}
             <button
               onClick={(e) => handleAddToCart(e, product)}
               className="w-full bg-teal-600 text-white py-1.5 px-3 rounded-lg hover:bg-teal-700 transition text-sm mt-2"

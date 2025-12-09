@@ -30,11 +30,9 @@ const Home = () => {
         const response = await axios.get(
           `${import.meta.env.VITE_BACKEND_URL}/api/products/best-seller`
         );
-        // console.log("hm",response.data)
-
         setBestSellerProduct(response.data);
       } catch (error) {
-        console.log(error);
+        
       }
     };
     fetchBestSeller();

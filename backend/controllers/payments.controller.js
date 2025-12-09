@@ -24,7 +24,6 @@ exports.createOrder = (req, res) => {
           message: " Something went wrong",
         });
       }
-      // console.log("pymco26", order);
       return res.status(200).json(order);
     });
   } catch (error) {

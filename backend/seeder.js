@@ -36,7 +36,6 @@ const seedData = async () => {
     await Product.insertMany(sampleProducts);
 
 
-    console.log("Products data saved successfully");
     process.exit();
   } catch (error) {
     console.error("error seeding the data ", error);

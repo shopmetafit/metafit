@@ -20,7 +20,6 @@ const CategoryGrid = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // console.log("search Term:", searchTerm);
     dispatch(setFilters({ search: searchTerm }));
     dispatch(fetchProductsByFilters({ search: searchTerm }));
     navigate(`/collections/all/?search=${searchTerm}`);
