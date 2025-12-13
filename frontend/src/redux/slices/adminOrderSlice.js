@@ -17,7 +17,7 @@ export const fetchAllOrders = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      rejectWithValue(error.response.data);
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -38,7 +38,7 @@ export const updateOrderStatus = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      rejectWithValue(error.response.data);
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -58,7 +58,7 @@ export const deleteOrder = createAsyncThunk(
       );
       return id;
     } catch (error) {
-      rejectWithValue(error.response.data);
+      return rejectWithValue(error.response.data);
     }
   }
 );
@@ -81,10 +81,10 @@ const adminOrderSlice = createSlice({
       })
       .addCase(fetchAllOrders.fulfilled, (state, action) => {
         state.loading = false;
-        state.orders = action.payload;
-        state.totalOrders = action.payload.length;
+        state.orders = action.payload || [];
+        state.totalOrders = action.payload ? action.payload.length : 0;
         // calculate total sales
-        const totalSales = action.payload.reduce((acc, order) => {
+        const totalSales = (action.payload || []).reduce((acc, order) => {
           return acc + order.totalPrice;
         }, 0);
         state.totalSales = totalSales;

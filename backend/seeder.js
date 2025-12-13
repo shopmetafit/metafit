@@ -12,10 +12,7 @@ mongoose.connect(process.env.MONGO_URI);
 // Function to send data
 const seedData = async () => {
   try {
-    // Clear existing data
-    await Product.deleteMany();
-    await User.deleteMany();
-    await Cart.deleteMany();
+  
 
     // create a default admin User
     const createdUser = await User.create({
