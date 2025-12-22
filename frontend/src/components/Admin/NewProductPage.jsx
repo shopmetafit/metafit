@@ -18,7 +18,7 @@ const NewProductPage = () => {
     brand: "",
     collection: "",
   });
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
 
   const handleChange = (e) => {
@@ -29,25 +29,37 @@ const NewProductPage = () => {
   };
 
   const handleFileChange = (e) => {
-    setImage(e.target.files[0]);
+    if (e.target.files) {
+      setImages([...e.target.files]);
+    }
+  };
+
+  const handleDeleteImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
 
-    let imageUrl = "";
-    if (image) {
-      const formData = new FormData();
-      formData.append("image", image);
+    const imageUrls = [];
+    if (images.length > 0) {
       try {
-        const config = {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        };
-        const { data } = await axios.post("http://localhost:9000/api/upload", formData, config);
-        imageUrl = data.imageUrl;
+        for (const image of images) {
+          const formData = new FormData();
+          formData.append("image", image);
+          const config = {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          };
+          const { data } = await axios.post(
+            `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+            formData,
+            config
+          );
+          imageUrls.push({ url: data.imageUrl, altText: form.name });
+        }
       } catch (error) {
         console.error(error);
         setUploading(false);
@@ -55,14 +67,16 @@ const NewProductPage = () => {
       }
     }
 
+    if (imageUrls.length > 0) {
+      imageUrls[0].isPrimary = true;
+    }
+
     const productData = {
       ...form,
       price: Number(form.price),
       discountPrice: Number(form.discountPrice),
       countInStock: Number(form.countInStock),
-      images: imageUrl
-        ? [{ url: imageUrl, altText: form.name, isPrimary: true }]
-        : [],
+      images: imageUrls,
     };
 
     await dispatch(createProduct(productData));
@@ -191,12 +205,31 @@ const NewProductPage = () => {
 
         {/* Image Upload */}
         <div className="mb-4">
-          <label className="block text-gray-700">Image</label>
+          <label className="block text-gray-700">Images</label>
           <input
             type="file"
             onChange={handleFileChange}
             className="w-full px-4 py-2 border rounded"
+            multiple
           />
+          <div className="flex gap-4 mt-4">
+            {images.map((image, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="Preview"
+                  className="w-20 h-20 object-cover shadow-md rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleDeleteImage(index)}
+                  className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Buttons */}

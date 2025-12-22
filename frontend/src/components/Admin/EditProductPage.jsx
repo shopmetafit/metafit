@@ -49,7 +49,21 @@ const EditProductPage = () => {
 
   useEffect(() => {
     if (selectedProduct) {
-      setProductData(selectedProduct);
+      const product = {
+        ...selectedProduct,
+        colors: selectedProduct.colors || [],
+        images: selectedProduct.images || [],
+        extraImages: selectedProduct.extraImages || [],
+      };
+
+      if (product.images.length > product.colors.length) {
+        const colorImageCount = product.colors.length;
+        const extra = product.images.slice(colorImageCount);
+        product.images = product.images.slice(0, colorImageCount);
+        product.extraImages = [...product.extraImages, ...extra];
+      }
+
+      setProductData(product);
     }
   }, [selectedProduct]);
 
@@ -139,8 +153,32 @@ const EditProductPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // console.log(productData);
-    dispatch(updateProduct({ id, productData }));
+
+    const newColors = [];
+    const colorImages = [];
+    const otherImages = [...productData.extraImages];
+
+    productData.colors.forEach((color, index) => {
+      const image = productData.images[index];
+      // Only process if there is an image for this color slot
+      if (image) {
+        if (color && color.trim() !== "") {
+          newColors.push(color);
+          colorImages.push(image);
+        } else {
+          // If color is empty, treat the image as an extra image
+          otherImages.push(image);
+        }
+      }
+    });
+
+    const dataToSubmit = {
+      ...productData,
+      colors: newColors,
+      images: [...colorImages, ...otherImages].map(img => ({...img, altText: productData.name})),
+    };
+    delete dataToSubmit.extraImages;
+    dispatch(updateProduct({ id, productData: dataToSubmit }));
     navigate("/admin/products");
   };
 
@@ -322,37 +360,37 @@ const EditProductPage = () => {
           >
             Add Color
           </button>
+
+          {/* Extra Images */}
+          <div className="mt-6">
+            <label className="block font-semibold mb-2">Upload Extra Images</label>
+            <input type="file" onChange={handleExtraImageUpload} />
+            {uploading && <p>Uploading Image..</p>}
+            <div className="flex gap-4 mt-4 overflow-x-auto">
+              {productData.extraImages.map((image, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={image.url}
+                    alt={image.altText || "Extra Image"}
+                    className="w-20 h-20 object-cover shadow-md rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProductData((prevData) => ({
+                        ...prevData,
+                        extraImages: prevData.extraImages.filter((_, i) => i !== index),
+                      }))
+                    }
+                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
+                  >
+                    X
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        
-        {/* Extra Images */}
-<div className="mb-6">
-  <label className="block font-semibold mb-2">Upload Extra Images</label>
-  <input type="file" onChange={handleExtraImageUpload} />
-  {uploading && <p>Uploading Image..</p>}
-  <div className="flex gap-4 mt-4 overflow-x-auto">
-    {productData.extraImages.map((image, index) => (
-      <div key={index} className="relative">
-        <img
-          src={image.url}
-          alt={image.altText || "Extra Image"}
-          className="w-20 h-20 object-cover shadow-md rounded"
-        />
-        <button
-          type="button"
-          onClick={() =>
-            setProductData((prevData) => ({
-              ...prevData,
-              extraImages: prevData.extraImages.filter((_, i) => i !== index),
-            }))
-          }
-          className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
-        >
-          X
-        </button>
-      </div>
-    ))}
-  </div>
-</div>
 
         <button
           type="submit"
