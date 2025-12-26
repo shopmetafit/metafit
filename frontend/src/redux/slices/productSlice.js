@@ -70,7 +70,7 @@ export const fetchProductDetails = createAsyncThunk(
     const response = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}/api/products/${id}`
     );
-    // console.log("ps51",response.data)
+    console.log("ps51",response.data)
     return response.data;
   }
 );

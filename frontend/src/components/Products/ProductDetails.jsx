@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaPlayCircle } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
 import { useParams } from "react-router-dom";
@@ -82,6 +83,30 @@ const ProductDetails = ({ productId }) => {
           <div className="flex flex-col md:flex-row gap-8">
             {/* Thumbnails */}
             <div className="hidden md:flex flex-col gap-4">
+              {/* Video with Custom Frame */}
+{/* Video Thumbnail (same size as image thumbnails) */}
+{selectedProduct?.videoUrl && (
+  <div
+    className={`relative w-20 h-20 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 group ${
+      mainImage === "video"
+        ? "ring-2 ring-black"
+        : "hover:ring-1 hover:ring-gray-400"
+    }`}
+    onClick={() => setMainImage("video")}
+  >
+    <video
+      src={selectedProduct.videoUrl}
+      poster={selectedProduct.images?.[0]?.url} // custom frame
+      muted
+      className="w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <FaPlayCircle className="text-white text-3xl" />
+    </div>
+  </div>
+)}
+
+
               {selectedProduct.images.map((image, index) => (
                 <img
                   key={index}
@@ -99,11 +124,20 @@ const ProductDetails = ({ productId }) => {
 
             {/* Main Image */}
             <div className="md:w-1/2">
-              <img
-                src={mainImage}
-                alt="Main Product"
-                className="w-full h-auto rounded-2xl shadow-md transition-transform duration-300 hover:scale-[1.02]"
-              />
+             {mainImage === "video" ? (
+    <video
+      src={selectedProduct.videoUrl}
+      controls
+      autoPlay
+      className="w-full h-auto rounded-2xl shadow-md"
+    />
+  ) : (
+    <img
+      src={mainImage}
+      alt="Main Product"
+      className="w-full h-auto rounded-2xl shadow-md transition-transform duration-300 hover:scale-[1.02]"
+    />
+  )}
               {/* Mobile thumbnails */}
               <div className="md:hidden flex overflow-x-auto gap-3 mt-4 scrollbar-hide">
                 {selectedProduct.images.map((image, index) => (

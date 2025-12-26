@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchProductDetails } from "../../redux/slices/productSlice";
@@ -36,10 +36,13 @@ const EditProductPage = () => {
       //   url: "https://picsum.photos/150?random=1",
       // },
     ],
+    videoUrl: "",
     extraImages: [],
   });
 
   const [uploading, setUploading] = useState(false);
+  const [videoFile, setVideoFile] = useState(null);
+  const videoInputRef = useRef(null);
 
   useEffect(() => {
     if (id) {
@@ -49,7 +52,9 @@ const EditProductPage = () => {
 
   useEffect(() => {
     if (selectedProduct) {
+      
       const product = {
+
         ...selectedProduct,
         colors: selectedProduct.colors || [],
         images: selectedProduct.images || [],
@@ -151,7 +156,27 @@ const EditProductPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleVideoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Video size should be less than 5MB");
+        e.target.value = "";
+        return;
+      }
+      setVideoFile(file);
+    }
+  };
+
+  const handleRemoveVideo = () => {
+    setVideoFile(null);
+    setProductData((prev) => ({ ...prev, videoUrl: "" }));
+    if (videoInputRef.current) {
+      videoInputRef.current.value = "";
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newColors = [];
@@ -172,13 +197,34 @@ const EditProductPage = () => {
       }
     });
 
+    let finalVideoUrl = productData.videoUrl;
+
+    if (videoFile) {
+      try {
+        setUploading(true);
+        const videoFormData = new FormData();
+        videoFormData.append("video", videoFile);
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/upload/video`,
+          videoFormData
+        );
+        finalVideoUrl = data.videoUrl;
+        setUploading(false);
+      } catch (error) {
+        console.error("Video upload failed", error);
+        setUploading(false);
+        return;
+      }
+    }
+
     const dataToSubmit = {
       ...productData,
       colors: newColors,
       images: [...colorImages, ...otherImages].map(img => ({...img, altText: productData.name})),
+      videoUrl: finalVideoUrl,
     };
     delete dataToSubmit.extraImages;
-    dispatch(updateProduct({ id, productData: dataToSubmit }));
+    await dispatch(updateProduct({ id, productData: dataToSubmit }));
     navigate("/admin/products");
   };
 
@@ -390,6 +436,34 @@ const EditProductPage = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Video Upload */}
+        <div className="mb-6">
+          <label className="block font-semibold mb-2">Product Video</label>
+          <input
+            type="file"
+            ref={videoInputRef}
+            accept="video/*"
+            onChange={handleVideoChange}
+            className="w-full border border-gray-300 rounded-md p-2"
+          />
+          {(videoFile || productData.videoUrl) && (
+            <div className="relative mt-4 w-64">
+              <video
+                src={videoFile ? URL.createObjectURL(videoFile) : productData.videoUrl}
+                controls
+                className="w-full rounded shadow"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveVideo}
+                className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
+              >
+                X
+              </button>
+            </div>
+          )}
         </div>
 
         <button

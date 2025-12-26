@@ -20,6 +20,8 @@ const NewProductPage = () => {
   });
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
+const [video, setVideo] = useState(null);
+const [videoUploading, setVideoUploading] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -38,51 +40,88 @@ const NewProductPage = () => {
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUploading(true);
-
-    const imageUrls = [];
-    if (images.length > 0) {
-      try {
-        for (const image of images) {
-          const formData = new FormData();
-          formData.append("image", image);
-          const config = {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          };
-          const { data } = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
-            formData,
-            config
-          );
-          imageUrls.push({ url: data.imageUrl, altText: form.name });
-        }
-      } catch (error) {
-        console.error(error);
-        setUploading(false);
-        return; // Or show an error message
+  const handleVideoChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Video size should be less than 5MB");
+        e.target.value = "";
+        return;
       }
+      setVideo(file);
     }
-
-    if (imageUrls.length > 0) {
-      imageUrls[0].isPrimary = true;
-    }
-
-    const productData = {
-      ...form,
-      price: Number(form.price),
-      discountPrice: Number(form.discountPrice),
-      countInStock: Number(form.countInStock),
-      images: imageUrls,
-    };
-
-    await dispatch(createProduct(productData));
-    setUploading(false);
-    navigate("/admin/products");
   };
+
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setUploading(true);
+
+  // ---------- IMAGE UPLOAD (same as before) ----------
+  const imageUrls = [];
+  if (images.length > 0) {
+    try {
+      for (const image of images) {
+        const formData = new FormData();
+        formData.append("image", image);
+
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+          formData
+        );
+
+        imageUrls.push({ url: data.imageUrl, altText: form.name });
+      }
+    } catch (error) {
+      console.error(error);
+      setUploading(false);
+      return;
+    }
+  }
+
+  if (imageUrls.length > 0) {
+    imageUrls[0].isPrimary = true;
+  }
+
+  // ---------- VIDEO UPLOAD (NEW) ----------
+  let videoUrl = "";
+  if (video) {
+    try {
+      setVideoUploading(true);
+
+      const videoFormData = new FormData();
+      videoFormData.append("video", video);
+
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/upload/video`,
+        videoFormData
+      );
+
+      videoUrl = data.videoUrl;
+      setVideoUploading(false);
+    } catch (error) {
+      console.error(error);
+      setUploading(false);
+      setVideoUploading(false);
+      return;
+    }
+  }
+
+  // ---------- FINAL PRODUCT DATA ----------
+  const productData = {
+    ...form,
+    price: Number(form.price),
+    discountPrice: Number(form.discountPrice),
+    countInStock: Number(form.countInStock),
+    images: imageUrls,
+    videoUrl: videoUrl, // 👈 ADD THIS
+  };
+
+  await dispatch(createProduct(productData));
+  setUploading(false);
+  navigate("/admin/products");
+};
+
 
   return (
     <div className="max-w-7xl mx-auto p-6">
@@ -231,6 +270,26 @@ const NewProductPage = () => {
             ))}
           </div>
         </div>
+
+        {/* Video Upload */}
+<div className="mb-4">
+  <label className="block text-gray-700">Product Video</label>
+  <input
+    type="file"
+    accept="video/*"
+    onChange={handleVideoChange}
+    className="w-full px-4 py-2 border rounded"
+  />
+
+  {video && (
+    <video
+      src={URL.createObjectURL(video)}
+      controls
+      className="mt-4 w-64 rounded shadow"
+    />
+  )}
+</div>
+
 
         {/* Buttons */}
         <div className="flex justify-end">

@@ -33,7 +33,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen }) => {
 
       {/* cart content with scrollable area */}
       <div className="flex-grow p-4 overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4">Your Cart</h2>
+        <h2 className="text-xl text-black font-semibold mb-4">Your Cart</h2>
         {cart && cart?.products?.length > 0 ? (
           <CartContents cart={cart} userId={userId} guestId={guestId} />
         ) : (
