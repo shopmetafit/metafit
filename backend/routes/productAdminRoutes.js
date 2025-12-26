@@ -34,7 +34,8 @@ router.post("/", protect, admin, async (req, res) => {
       collection,
       gender,
       images,
-      extraImages
+      extraImages,
+      videoUrl
     } = req.body;
     const newProducts = await Product.create({
       name,
@@ -51,6 +52,7 @@ router.post("/", protect, admin, async (req, res) => {
       gender,
       images,
       extraImages,
+      videoUrl,
       user: req.user._id,
     });
 

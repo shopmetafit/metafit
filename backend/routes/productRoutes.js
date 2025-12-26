@@ -185,6 +185,7 @@ router.get("/", async (req, res) => {
       material,
       brand,
       limit,
+      videoUrl
     } = req.query;
 
     let query = {};

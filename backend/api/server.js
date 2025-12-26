@@ -12,6 +12,7 @@ const adminRoutes = require("../routes/adminRoutes");
 const productAdminRoutes = require("../routes/productAdminRoutes");
 const adminOrderRoutes = require("../routes/adminOrderRoutes");
 const paymentRoutes = require("../routes/payments.routes");
+const videoUploadRoute = require("../routes/videoUpload");
 
 
 const app= express();
@@ -41,6 +42,13 @@ app.use("/api/admin/users",adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 
-app.listen(PORT,()=>{
-    console.log(`server is running on ${process.env.NODE_ENV=== 'production'? 'https': 'http'}://localhost:${PORT}`);
+
+
+
+
+app.use("/api/upload", videoUploadRoute);
+
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
