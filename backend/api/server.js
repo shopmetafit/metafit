@@ -21,7 +21,7 @@ app.use(cors({domain:["https://metafit-a5ll.vercel.app"]}));
 dotenv.config();
 const PORT=process.env.PORT || 3000;
 
-connectDB();
+connectDB(); 
 
 app.get("/",(req,res)=>{
 res.send("Welcome Mwellnessbazar Its API");    

@@ -6,6 +6,7 @@ import { createCheckout } from "../../redux/slices/checkoutSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
+// import { use } from "../../../../backend/utils/email";
 
 const CheckOut = () => {
   const dispatch = useDispatch();
@@ -58,7 +59,7 @@ const CheckOut = () => {
         }
       );
 
-      // console.log("cho60", response);
+      console.log("cho60", response);
       if (response.status === 201) {
         const handleFinalizeCheckout = async (checkoutId) => {
           try {
@@ -131,7 +132,20 @@ const CheckOut = () => {
             order_id: response.razorpay_order_id,
             payment_id: response.razorpay_payment_id,
             signature: response.razorpay_signature,
+            email: user.email,
+            products: cart.products,
+            totalAmount: cart.totalPrice,
+            firstName: shippingAddress.firstName,
+            lastName: shippingAddress.lastName,
+            address: shippingAddress.address,
+            city: shippingAddress.city,
+            postalCode: shippingAddress.postalCode,
+            country: shippingAddress.country,
+            phone: shippingAddress.phone,
+            paymentMethod: "Razorpay",
           };
+          console.log("cho139:option2", option2.firstName);
+          console.log("cho139:option2", option2.address);
           const verifyRes = await axios.post(
             `${import.meta.env.VITE_BACKEND_URL}/api/verifyPayment`,
             option2
@@ -391,4 +405,3 @@ const CheckOut = () => {
 };
 
 export default CheckOut;
-
