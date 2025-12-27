@@ -96,7 +96,6 @@ const ProductDetails = ({ productId }) => {
   >
     <video
       src={selectedProduct.videoUrl}
-      poster={selectedProduct.images?.[0]?.url} // custom frame
       muted
       className="w-full h-full object-cover"
     />
