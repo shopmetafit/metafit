@@ -11,8 +11,7 @@ const EditProductPage = () => {
 
   const navigate = useNavigate();
   const { selectedProduct, loading, error } = useSelector(
-    (state) => state.products
-  );
+    (state) => state.products);
   const [productData, setProductData] = useState({
     name: "",
     description: "",

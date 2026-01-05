@@ -41,25 +41,30 @@ const Home = () => {
   return (
     <div>
       <Hero />
-      <CategoryGrid />
-      <GenderCollectionSection />
-      <NewArrivals />
-      {/* best seller */}
-      <h2 className="text-3xl text-center font-bold mb-4">Best Seller</h2>
-      {bestSellerProduct ? (
-        <ProductDetails productId={bestSellerProduct._id} />
-      ) : (
-        <p className="text-center"> Loading best seller product...</p>
-      )}
-
-      <div>
-        <h2 className="text-3xl text-center font-bold mb-4">
-          Products of the people choice
-        </h2>
-        <ProductGrid products={products} loading={loading} error={error} />
+      <div className="container mx-auto px-4 py-8 space-y-12">
+        <CategoryGrid />
+        <GenderCollectionSection />
+        <NewArrivals />
+        {/* best seller */}
+        <div>
+          <h2 className="text-2xl md:text-3xl text-center font-bold mb-6">
+            Best Seller
+          </h2>
+          {bestSellerProduct ? (
+            <ProductDetails productId={bestSellerProduct._id} />
+          ) : (
+            <p className="text-center"> Loading best seller product...</p>
+          )}
+        </div>
+        <div>
+          <h2 className="text-2xl md:text-3xl text-center font-bold mb-6">
+            Products of the people choice
+          </h2>
+          <ProductGrid products={products} loading={loading} error={error} />
+        </div>
+        <FeaturedCollection />
+        <FeaturesSection />
       </div>
-      <FeaturedCollection />
-      <FeaturesSection />
     </div>
   );
 };
