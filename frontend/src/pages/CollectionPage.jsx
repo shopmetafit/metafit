@@ -41,7 +41,7 @@ const CollectionPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans pr-20">
       {/* Mobile filter button */}
       <div className="lg:hidden fixed bottom-4 right-4 z-20">
         <button

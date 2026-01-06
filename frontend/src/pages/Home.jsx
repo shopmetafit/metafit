@@ -39,9 +39,9 @@ const Home = () => {
   }, [dispatch]);
 
   return (
-    <div>
+    <div className="w-full  min-h-screen overflow-x-hidden ">
       <Hero />
-      <div className="container mx-auto px-4 py-8 space-y-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         <CategoryGrid />
         <GenderCollectionSection />
         <NewArrivals />
