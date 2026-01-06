@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleCredentialResponse, GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -138,10 +138,12 @@ const Login = () => {
 
           {/* Google Login Button */}
           <div className="mt-4 flex justify-center">
+            <GoogleOAuthProvider clientId={process.env.VITE_GOOGLE_OAUTH_KEY || ""}>
             <GoogleLogin
               onSuccess={handleGoogleLoginSuccess}
               onError={handleGoogleLoginError}
             />
+            </GoogleOAuthProvider>
           </div>
 
 
