@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,8 +13,8 @@ const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, guestId } = useSelector((state) => state.auth);
-  const { cart } = useSelector((state) => state.cart);
+  const { user, guestId } = useSelector((state) => state.auth || {});
+  const { cart } = useSelector((state) => state.cart || {});
 
   // Get redirect parameter and check if it's checkout or something
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
@@ -130,7 +130,7 @@ const Login = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-black text-white p-2 rounded-lg font-semibold hover: bg-gray-800 transition"
+            className="w-full bg-black text-white p-2 rounded-lg font-semibold hover:bg-gray-800 transition"
           >
             Sign in
           </button>
@@ -138,10 +138,24 @@ const Login = () => {
 
           {/* Google Login Button */}
           <div className="mt-4 flex justify-center">
+            {/* <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_OAUTH_KEY || ""}>
             <GoogleLogin
               onSuccess={handleGoogleLoginSuccess}
               onError={handleGoogleLoginError}
             />
+            </GoogleOAuthProvider> */}
+
+                <GoogleOAuthProvider
+                   clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}
+                >
+                   <GoogleLogin
+                    onSuccess={handleGoogleLoginSuccess}
+                    onError={handleGoogleLoginError}
+                   />
+                </GoogleOAuthProvider>
+
+
+
           </div>
 
 
@@ -169,5 +183,8 @@ const Login = () => {
     </div>
   );
 };
+
+
+console.log(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 export default Login;

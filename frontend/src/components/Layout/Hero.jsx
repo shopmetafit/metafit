@@ -6,7 +6,7 @@ const Hero = () => {
       <img
         src={heroImg}
         alt="Metafit"
-        className="w-full h-auto md:h-[600px] lg;h-[750px] object-cover"
+        className="w-full h-[400px] md:h-[600px] lg:h-[750px] object-cover"
       />
       <div className="absolute inset-0 bg-black bg-opacity-15 flex items-center justify-center">
         <div className="text-center text-cyan-600/80 p-6">

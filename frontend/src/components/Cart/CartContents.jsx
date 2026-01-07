@@ -29,7 +29,7 @@ const CartContents = ({ cart, userId, guestId }) => {
   };
 
   return (
-    <div>
+    <div className="text-black">
       {cart.products.map((product, index) => (
         <div
           key={index}
@@ -43,13 +43,13 @@ const CartContents = ({ cart, userId, guestId }) => {
             />
           </div>
 
-          <div>
+          <div className="text-black">
             <h3>{product.name}</h3>
             <p className="text-sm text-gray-500">
               size: {product.size} | color:{product.color}
             </p>
 
-            <div className="flex items-center mt-2">
+            <div className="flex text-black items-center mt-2">
               <button
                 onClick={() => {
                   handleAddCart(
