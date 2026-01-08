@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Facebook, Instagram, Linkedin, Phone, Menu, X } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Phone, Menu, X, MessageCircle } from 'lucide-react';
 
 const Topbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -99,8 +99,20 @@ const Topbar = () => {
             </a>
           </div>
 
-          {/* Right: Phone Button Only */}
-          <div className="flex items-center gap-2">
+          {/* Right: Phone Button + Chat Button */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Chat Button - Desktop */}
+            <a
+              href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-2 text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
+              <MessageCircle className="h-4 w-4 relative z-10" />
+              <span className="font-semibold text-sm relative z-10">WhatsApp</span>
+            </a>
+
             {/* Phone Button - Desktop */}
             <a
               href="tel:+919982498555"
@@ -178,14 +190,25 @@ const Topbar = () => {
               </a>
             </div>
 
-            {/* Contact Button - Mobile */}
-            <a
-              href="tel:+919982498555"
-              className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold"
-            >
-              <Phone className="h-5 w-5" />
-              <span>+91 998 249 8555</span>
-            </a>
+            {/* Contact Buttons - Mobile */}
+            <div className="space-y-3">
+              <a
+                href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-green-500 to-green-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
+              >
+                <MessageCircle className="h-5 w-5" />
+                <span>Chat on WhatsApp</span>
+              </a>
+              <a
+                href="tel:+919982498555"
+                className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-teal-600 hover:to-cyan-700 transition-all transform hover:scale-105"
+              >
+                <Phone className="h-5 w-5" />
+                <span>+91 998 249 8555</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

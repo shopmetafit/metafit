@@ -13,6 +13,7 @@ const productAdminRoutes = require("../routes/productAdminRoutes");
 const adminOrderRoutes = require("../routes/adminOrderRoutes");
 const paymentRoutes = require("../routes/payments.routes");
 const videoUploadRoute = require("../routes/videoUpload");
+const contactRoutes = require("../routes/contactRoutes");
 
 
 const app= express();
@@ -36,6 +37,7 @@ app.use("/api/cart",cartRoutes);
 app.use("/api/checkout",checkoutRoutes);
 app.use("/api/orders",orderRoutes);
 app.use("/api/upload",uploadRoutes);
+app.use("/api/contact",contactRoutes);
 
 //Admin
 app.use("/api/admin/users",adminRoutes);

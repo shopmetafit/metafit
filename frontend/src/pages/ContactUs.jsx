@@ -10,6 +10,8 @@ const ContactUs = () => {
   });
   const [hoveredCard, setHoveredCard] = useState(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const contactInfo = [
     {
@@ -41,13 +43,37 @@ const ContactUs = () => {
     }
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/contact/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to send message');
+      }
+
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+      }, 3000);
+    } catch (err) {
+      setError(err.message);
+      console.error('Error submitting contact form:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -168,12 +194,18 @@ const ContactUs = () => {
                     placeholder="Tell us more about your inquiry..."
                   />
                 </div>
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                    {error}
+                  </div>
+                )}
                 <button
                   onClick={handleSubmit}
-                  className="w-full bg-teal-600 text-white py-4 font-medium hover:bg-teal-700 transition-colors flex items-center justify-center gap-2"
+                  disabled={isLoading}
+                  className="w-full bg-teal-600 text-white py-4 font-medium hover:bg-teal-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <Send size={18} />
-                  Send Message
+                  {isLoading ? 'Sending...' : 'Send Message'}
                 </button>
               </div>
             )}

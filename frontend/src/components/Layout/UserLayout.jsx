@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Footer from "../common/Footer";
 import Header from "../common/Header";
+import WhatsAppChat from "../common/WhatsAppChat";
 
 const UserLayout = () => {
   return (
@@ -10,6 +11,7 @@ const UserLayout = () => {
         <Outlet/>
       </main>
       <Footer />
+      <WhatsAppChat />
     </>
   );
 };

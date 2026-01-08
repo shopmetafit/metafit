@@ -10,6 +10,7 @@ import heroImg from "../assets/products.webp";
 
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters, setFilters } from "../redux/slices/productSlice";
+import FAQSection from "./FAQ";
 
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState(""); // Initialize with empty string
@@ -118,6 +119,8 @@ const CollectionPage = () => {
             </div>
             
             <ProductGrid products={products} loading={loading} error={error} viewMode={viewMode} />
+          
+          <FAQSection/>
           </div>
         </div>
       </main>
