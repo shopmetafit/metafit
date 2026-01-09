@@ -21,14 +21,14 @@ const WhatsAppChat = () => {
       {isOpen && (
         <div className="absolute bottom-20 right-0 w-80 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp border border-teal-200">
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 flex justify-between items-center">
-            <div>
-              <div className="font-bold text-lg">Metafit Wellness</div>
-              <div className="text-xs text-green-100 flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-200 rounded-full animate-pulse"></div>
-                Usually replies instantly
-              </div>
-            </div>
+           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 flex justify-between items-center">
+             <div>
+               <div className="font-bold text-lg">Chat Support</div>
+               <div className="text-xs text-green-100 flex items-center gap-1">
+                 <div className="w-2 h-2 bg-green-200 rounded-full animate-pulse"></div>
+                 Usually replies instantly
+               </div>
+             </div>
             <button
               onClick={toggleChat}
               className="hover:bg-green-700 p-1 rounded-full transition-colors"
@@ -44,7 +44,7 @@ const WhatsAppChat = () => {
             <div className="mb-4">
               <div className="bg-green-100 text-green-800 p-3 rounded-lg text-sm max-w-xs">
                 <p className="font-semibold mb-2">Hi there!</p>
-                <p>We're here to help. Chat with us on WhatsApp to get quick answers about our wellness products and services.</p>
+                <p>We're here to help. Get quick answers about our wellness products and services.</p>
               </div>
             </div>
 
@@ -76,10 +76,10 @@ const WhatsAppChat = () => {
             <button
               onClick={handleWhatsAppClick}
               className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
-            >
+              >
               <Send className="h-4 w-4" />
-              Chat on WhatsApp
-            </button>
+              Start Chat
+              </button>
           </div>
         </div>
       )}

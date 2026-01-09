@@ -67,6 +67,20 @@ const productSchema = new mongoose.Schema(
       height: Number,
     },
     weight: Number,
+    variants: [
+      {
+        _id: false,
+        label: { type: String, required: true }, // e.g., "1 kg (Pack of 1)"
+        weight: { type: Number }, // weight in kg
+        quantity: { type: Number }, // pack size
+        price: { type: Number, required: true },
+        discountPrice: { type: Number },
+        stock: { type: Number, default: 0 },
+        sku: { type: String },
+        pricePerUnit: { type: String }, // e.g., "₹238.00 / kg"
+      },
+    ],
+    hasVariants: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

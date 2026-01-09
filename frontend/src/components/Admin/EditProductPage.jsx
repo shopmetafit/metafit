@@ -41,6 +41,8 @@ const EditProductPage = () => {
 
   const [uploading, setUploading] = useState(false);
   const [videoFile, setVideoFile] = useState(null);
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState([]);
   const videoInputRef = useRef(null);
 
   useEffect(() => {
@@ -68,6 +70,8 @@ const EditProductPage = () => {
       }
 
       setProductData(product);
+      setHasVariants(selectedProduct.hasVariants || false);
+      setVariants(selectedProduct.variants || []);
     }
   }, [selectedProduct]);
 
@@ -175,6 +179,23 @@ const EditProductPage = () => {
     }
   };
 
+  const addVariant = () => {
+    setVariants([
+      ...variants,
+      { label: "", weight: "", quantity: "", price: "", discountPrice: "", stock: "", sku: "", pricePerUnit: "" },
+    ]);
+  };
+
+  const updateVariant = (index, field, value) => {
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
+
+  const removeVariant = (index) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -221,6 +242,15 @@ const EditProductPage = () => {
       colors: newColors,
       images: [...colorImages, ...otherImages].map(img => ({...img, altText: productData.name})),
       videoUrl: finalVideoUrl,
+      hasVariants: hasVariants,
+      variants: hasVariants ? variants.map(v => ({
+        ...v,
+        price: Number(v.price),
+        discountPrice: v.discountPrice ? Number(v.discountPrice) : undefined,
+        weight: v.weight ? Number(v.weight) : undefined,
+        quantity: v.quantity ? Number(v.quantity) : undefined,
+        stock: Number(v.stock),
+      })) : [],
     };
     delete dataToSubmit.extraImages;
     await dispatch(updateProduct({ id, productData: dataToSubmit }));
@@ -435,6 +465,126 @@ const EditProductPage = () => {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Variants Section */}
+        <div className="mb-6 p-4 border rounded bg-gray-50">
+          <div className="flex items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hasVariants}
+                onChange={(e) => setHasVariants(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="font-semibold">Has Variants (Different sizes/weights)</span>
+            </label>
+          </div>
+
+          {hasVariants && (
+            <div>
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  + Add Variant
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {variants.map((variant, index) => (
+                  <div key={index} className="p-4 border rounded bg-white">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 text-sm">Label (e.g., "1 kg (Pack of 1)")</label>
+                        <input
+                          type="text"
+                          value={variant.label}
+                          onChange={(e) => updateVariant(index, "label", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Weight (kg)</label>
+                        <input
+                          type="number"
+                          value={variant.weight}
+                          onChange={(e) => updateVariant(index, "weight", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          step="0.1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Quantity (Pack size)</label>
+                        <input
+                          type="number"
+                          value={variant.quantity}
+                          onChange={(e) => updateVariant(index, "quantity", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Price</label>
+                        <input
+                          type="number"
+                          value={variant.price}
+                          onChange={(e) => updateVariant(index, "price", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Discount Price</label>
+                        <input
+                          type="number"
+                          value={variant.discountPrice}
+                          onChange={(e) => updateVariant(index, "discountPrice", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Stock</label>
+                        <input
+                          type="number"
+                          value={variant.stock}
+                          onChange={(e) => updateVariant(index, "stock", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">SKU</label>
+                        <input
+                          type="text"
+                          value={variant.sku}
+                          onChange={(e) => updateVariant(index, "sku", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Price Per Unit (e.g., "₹238/kg")</label>
+                        <input
+                          type="text"
+                          value={variant.pricePerUnit}
+                          onChange={(e) => updateVariant(index, "pricePerUnit", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(index)}
+                      className="mt-2 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                    >
+                      Remove Variant
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Video Upload */}

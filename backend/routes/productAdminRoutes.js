@@ -35,7 +35,9 @@ router.post("/", protect, admin, async (req, res) => {
       gender,
       images,
       extraImages,
-      videoUrl
+      videoUrl,
+      hasVariants,
+      variants
     } = req.body;
     const newProducts = await Product.create({
       name,
@@ -53,6 +55,8 @@ router.post("/", protect, admin, async (req, res) => {
       images,
       extraImages,
       videoUrl,
+      hasVariants: hasVariants || false,
+      variants: variants || [],
       user: req.user._id,
     });
 
@@ -82,7 +86,9 @@ router.put("/:id", protect, admin, async (req, res) => {
       videoUrl,
       gender,
       images,
-      extraImages
+      extraImages,
+      hasVariants,
+      variants
     } = req.body;
     const product = await Product.findById(req.params.id);
     console.log(product);
@@ -104,6 +110,8 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.images = images || product.images;
       product.extraImages = extraImages || product.extraImages;
       product.sku = sku || product.sku;
+      product.hasVariants = hasVariants !== undefined ? hasVariants : product.hasVariants;
+      product.variants = variants !== undefined ? variants : product.variants;
 
       //   save the  updated product
       const updatedProduct = await product.save();

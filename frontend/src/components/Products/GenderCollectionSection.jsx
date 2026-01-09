@@ -38,7 +38,7 @@ const GenderCollectionSection = () => {
               <img
                 src={item.image}
                 alt={item.title}
-                className="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover rounded-lg transition-transform group-hover:scale-105"
+                className="w-full h-[300px] md:h-[400px] lg:h-[500px] object-cover rounded-lg"
               />
             </Link>
             <div className="absolute bottom-4 left-4 right-4 bg-white bg-opacity-90 px-4 py-3 rounded shadow-md">

@@ -87,9 +87,9 @@ const CollectionPage = () => {
           </p>
         </div>
 
-        <div className="flex items-start gap-8">
+        <div className="flex gap-8">
           {/* Sidebar for desktop */}
-          <aside className="hidden lg:block lg:w-80 lg:min-w-[320px]">
+          <aside className="hidden lg:block lg:w-80 lg:min-w-[320px] lg:sticky lg:top-6 lg:self-start">
             <FilterSidebar />
           </aside>
 

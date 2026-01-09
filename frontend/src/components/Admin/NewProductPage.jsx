@@ -20,8 +20,10 @@ const NewProductPage = () => {
   });
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
-const [video, setVideo] = useState(null);
-const [videoUploading, setVideoUploading] = useState(false);
+  const [video, setVideo] = useState(null);
+  const [videoUploading, setVideoUploading] = useState(false);
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState([]);
 
   const handleChange = (e) => {
     setForm({
@@ -50,6 +52,23 @@ const [videoUploading, setVideoUploading] = useState(false);
       }
       setVideo(file);
     }
+  };
+
+  const addVariant = () => {
+    setVariants([
+      ...variants,
+      { label: "", weight: "", quantity: "", price: "", discountPrice: "", stock: "", sku: "", pricePerUnit: "" },
+    ]);
+  };
+
+  const updateVariant = (index, field, value) => {
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
+
+  const removeVariant = (index) => {
+    setVariants(variants.filter((_, i) => i !== index));
   };
 
 
@@ -108,19 +127,28 @@ const [videoUploading, setVideoUploading] = useState(false);
   }
 
   // ---------- FINAL PRODUCT DATA ----------
-  const productData = {
-    ...form,
-    price: Number(form.price),
-    discountPrice: Number(form.discountPrice),
-    countInStock: Number(form.countInStock),
-    images: imageUrls,
-    videoUrl: videoUrl, // 👈 ADD THIS
-  };
+   const productData = {
+     ...form,
+     price: Number(form.price),
+     discountPrice: Number(form.discountPrice),
+     countInStock: Number(form.countInStock),
+     images: imageUrls,
+     videoUrl: videoUrl,
+     hasVariants: hasVariants,
+     variants: hasVariants ? variants.map(v => ({
+       ...v,
+       price: Number(v.price),
+       discountPrice: v.discountPrice ? Number(v.discountPrice) : undefined,
+       weight: v.weight ? Number(v.weight) : undefined,
+       quantity: v.quantity ? Number(v.quantity) : undefined,
+       stock: Number(v.stock),
+     })) : [],
+   };
 
-  await dispatch(createProduct(productData));
-  setUploading(false);
-  navigate("/admin/products");
-};
+   await dispatch(createProduct(productData));
+   setUploading(false);
+   navigate("/admin/products");
+  };
 
 
   return (
@@ -272,24 +300,143 @@ const [videoUploading, setVideoUploading] = useState(false);
         </div>
 
         {/* Video Upload */}
-<div className="mb-4">
-  <label className="block text-gray-700">Product Video</label>
-  <input
-    type="file"
-    accept="video/*"
-    onChange={handleVideoChange}
-    className="w-full px-4 py-2 border rounded"
-  />
+        <div className="mb-4">
+          <label className="block text-gray-700">Product Video</label>
+          <input
+            type="file"
+            accept="video/*"
+            onChange={handleVideoChange}
+            className="w-full px-4 py-2 border rounded"
+          />
 
-  {video && (
-    <video
-      src={URL.createObjectURL(video)}
-      controls
-      className="mt-4 w-64 rounded shadow"
-    />
-  )}
-</div>
+          {video && (
+            <video
+              src={URL.createObjectURL(video)}
+              controls
+              className="mt-4 w-64 rounded shadow"
+            />
+          )}
+        </div>
 
+        {/* Variants Section */}
+        <div className="mb-4 p-4 border rounded bg-gray-50">
+          <div className="flex items-center gap-4 mb-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={hasVariants}
+                onChange={(e) => setHasVariants(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <span className="text-gray-700 font-semibold">Has Variants (Different sizes/weights)</span>
+            </label>
+          </div>
+
+          {hasVariants && (
+            <div>
+              <div className="mb-4">
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                >
+                  + Add Variant
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {variants.map((variant, index) => (
+                  <div key={index} className="p-4 border rounded bg-white">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-gray-700 text-sm">Label (e.g., "1 kg (Pack of 1)")</label>
+                        <input
+                          type="text"
+                          value={variant.label}
+                          onChange={(e) => updateVariant(index, "label", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Weight (kg)</label>
+                        <input
+                          type="number"
+                          value={variant.weight}
+                          onChange={(e) => updateVariant(index, "weight", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          step="0.1"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Quantity (Pack size)</label>
+                        <input
+                          type="number"
+                          value={variant.quantity}
+                          onChange={(e) => updateVariant(index, "quantity", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Price</label>
+                        <input
+                          type="number"
+                          value={variant.price}
+                          onChange={(e) => updateVariant(index, "price", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Discount Price</label>
+                        <input
+                          type="number"
+                          value={variant.discountPrice}
+                          onChange={(e) => updateVariant(index, "discountPrice", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Stock</label>
+                        <input
+                          type="number"
+                          value={variant.stock}
+                          onChange={(e) => updateVariant(index, "stock", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">SKU</label>
+                        <input
+                          type="text"
+                          value={variant.sku}
+                          onChange={(e) => updateVariant(index, "sku", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-gray-700 text-sm">Price Per Unit (e.g., "₹238/kg")</label>
+                        <input
+                          type="text"
+                          value={variant.pricePerUnit}
+                          onChange={(e) => updateVariant(index, "pricePerUnit", e.target.value)}
+                          className="w-full px-3 py-2 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(index)}
+                      className="mt-2 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600"
+                    >
+                      Remove Variant
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Buttons */}
         <div className="flex justify-end">
