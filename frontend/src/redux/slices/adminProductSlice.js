@@ -21,18 +21,31 @@ export const fetchAdminProducts = createAsyncThunk(
 //Async thunk to create a new product
 export const createProduct = createAsyncThunk(
   "adminProducts/createProduct",
-  async (productData) => {
-    const USER_TOKEN = `Bearer ${localStorage.getItem("userToken")}`;
-    const response = await axios.post(
-      `${API_URL}/api/admin/products`,
-      productData,
-      {
-        headers: {
-          Authorization: USER_TOKEN,
-        },
+  async (productData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("userToken");
+
+      if (!token) {
+        return rejectWithValue("Admin not logged in");
       }
-    );
-    return response.data;
+
+      const response = await axios.post(
+        `${API_URL}/api/admin/products`,
+        productData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message
+      );
+    }
   }
 );
 

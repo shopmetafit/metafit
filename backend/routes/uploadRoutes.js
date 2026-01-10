@@ -2,6 +2,7 @@ const express = require("express");
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
 const streamifier = require("streamifier");
+const { processProductImage } = require("../utils/imageProcessor");
 
 require("dotenv").config();
 const router = express.Router();
@@ -18,10 +19,12 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+// Initial upload to get URL
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    if (!req.file) { // upload ka data ko req.file se access kar sakate he
-      res.status(404).json({ message: "No file uploaded" });
+    console.log(req.files);
+    if (!req.files) { // upload ka data ko req.file se access kar sakate he
+      return res.status(404).json({ message: "No file uploaded" });
     }
 
     // function to handle the stream upload to cloudinary
@@ -47,6 +50,55 @@ router.post("/", upload.single("image"), async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Process product image - remove background and add logo
+router.post("/process-product", upload.single("image"), async (req, res) => {
+  try {
+    console.log("req.file:", req.file);
+    console.log("req.body:", req.body);
+    
+    if (!req.file) {
+      return res.status(400).json({ message: "Image file is required" });
+    }
+
+    const { logoUrl } = req.body;
+    const logoUrlToUse = logoUrl || process.env.DEFAULT_LOGO_URL;
+
+    if (!logoUrlToUse) {
+      return res.status(400).json({ message: "Logo URL is required" });
+    }
+
+    // Process the image using file buffer
+    const processedImageBuffer = await processProductImage(req.file.buffer, logoUrlToUse);
+
+    // Upload processed image to cloudinary
+    const streamUpload = (fileBuffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { resource_type: "auto", format: "png" },
+          (error, result) => {
+            if (result) {
+              resolve(result);
+            } else {
+              reject(error);
+            }
+          }
+        );
+        streamifier.createReadStream(fileBuffer).pipe(stream);
+      });
+    };
+
+    const processedResult = await streamUpload(processedImageBuffer);
+
+    res.json({
+      processedImageUrl: processedResult.secure_url,
+      message: "Product image processed successfully",
+    });
+  } catch (error) {
+    console.error("Processing error:", error);
+    res.status(500).json({ message: "Failed to process image", error: error.message });
   }
 });
 

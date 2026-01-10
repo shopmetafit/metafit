@@ -16,10 +16,10 @@ const WhatsAppChat = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 font-sans">
+    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 font-sans">
       {/* Chat Popup */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-80 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp border border-teal-200">
+        <div className="absolute bottom-20 right-0 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp border border-teal-200 max-w-[calc(100vw-48px)]">
           {/* Header */}
            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 flex justify-between items-center">
              <div>

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { useDispatch, useSelector } from "react-redux";
 
@@ -10,13 +10,14 @@ import {
 
 const ProductManagement = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const { products, loading, error } = useSelector(
     (state) => state.adminProducts
   );
 
   useEffect(() => {
     dispatch(fetchAdminProducts());
-  }, [dispatch]);
+  }, [dispatch, location]);
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete the Product?")) {

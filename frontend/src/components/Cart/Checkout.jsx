@@ -13,6 +13,8 @@ const CheckOut = () => {
 
   const { cart, loading, error } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+console.log(user);
+
   const navigate = useNavigate();
   const [checkoutId, setCheckoutId] = useState(null);
   const [shippingAddress, setShippingAddress] = useState({

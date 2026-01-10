@@ -136,11 +136,21 @@ const ProductDetails = ({ productId }) => {
                         className="w-full h-auto rounded-2xl shadow-md"
                         />
                         ) : (
-                        <img
-                        src={mainImage}
-                        alt={selectedProduct.name}
-                        className="w-full h-[500px] object-cover rounded-2xl shadow-md"
-                        />
+                        <div className="relative w-full h-[500px] rounded-2xl shadow-md overflow-hidden">
+                          <img
+                          src={mainImage}
+                          alt={selectedProduct.name}
+                          className="w-full h-full object-cover"
+                          />
+                          {/* Logo Watermark */}
+                          <div className="absolute top-6 right-6 bg-white bg-opacity-85 rounded-xl p-4 backdrop-blur-sm shadow-lg">
+                            <img
+                              src="https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png"
+                              alt="Metafit Wellness"
+                              className="h-24 object-contain"
+                            />
+                          </div>
+                        </div>
                         )}
                             {/* Mobile thumbnails */}
                             <div className="md:hidden flex overflow-x-auto gap-3 mt-4 scrollbar-hide">
@@ -330,15 +340,15 @@ const ProductDetails = ({ productId }) => {
                                             <td className="py-2 font-medium">Brand</td>
                                             <td className="py-2">{selectedProduct.brand}</td>
                                         </tr>
-                                        <tr>
+                                        {/* <tr>
                                             <td className="py-2 font-medium">Material</td>
                                             <td className="py-2">{selectedProduct.material}</td>
-                                        </tr>
+                                        </tr> */}
                                     </tbody>
                                 </table>
                             </div>
 
-                            {/* Video */}
+                            {/* Video
                             {selectedProduct?.videoUrl && (
                                 <div className="mt-8">
                                     <h3 className="text-lg font-semibold mb-3">Product Video</h3>
@@ -347,7 +357,7 @@ const ProductDetails = ({ productId }) => {
                                         iframeClassName="w-full aspect-video rounded-xl shadow-md"
                                     />
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     </div>
 

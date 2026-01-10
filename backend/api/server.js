@@ -17,8 +17,9 @@ const contactRoutes = require("../routes/contactRoutes");
 
 
 const app= express();
+app.use(cors({domain:["https://metafit-a5ll.vercel.app", "http://localhost:5173"]}));
 app.use(express.json());
-app.use(cors({domain:["https://metafit-a5ll.vercel.app"]}));
+app.use(express.urlencoded({ extended: true }));
 
 dotenv.config();
 const PORT=process.env.PORT || 3000;

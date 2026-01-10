@@ -126,8 +126,9 @@ router.post("/google-login", async (req, res) => {
     });
 
     // console.log("userRou135", ticket);
-
+    console.log(ticket)
     const payload = ticket.getPayload(); // contains user info
+    console.log(payload)
     const { email, name, picture } = payload;
 
     // console.log(`useRou142${email}  nam${name} picture${picture} `);

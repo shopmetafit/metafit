@@ -3,10 +3,13 @@ import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { createProduct } from "../../redux/slices/adminProductSlice";
 import axios from "axios";
+import { useImageProcessor } from "../../hooks/useImageProcessor";
+import { toast } from "sonner";
 
 const NewProductPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { processProductImage, loading: processingImage } = useImageProcessor();
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -24,6 +27,7 @@ const NewProductPage = () => {
   const [videoUploading, setVideoUploading] = useState(false);
   const [hasVariants, setHasVariants] = useState(false);
   const [variants, setVariants] = useState([]);
+  const [processingImageIndices, setProcessingImageIndices] = useState(new Set());
 
   const handleChange = (e) => {
     setForm({
@@ -70,84 +74,148 @@ const NewProductPage = () => {
   const removeVariant = (index) => {
     setVariants(variants.filter((_, i) => i !== index));
   };
+  const handleProcessImage = async (index) => {
+    setProcessingImageIndices(prev => new Set([...prev, index]));
 
-
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setUploading(true);
-
-  // ---------- IMAGE UPLOAD (same as before) ----------
-  const imageUrls = [];
-  if (images.length > 0) {
     try {
-      for (const image of images) {
-        const formData = new FormData();
-        formData.append("image", image);
+      const image = images[index];
 
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
-          formData
-        );
+      const formData = new FormData();
+      formData.append("image", image);
 
-        imageUrls.push({ url: data.imageUrl, altText: form.name });
-      }
-    } catch (error) {
-      console.error(error);
-      setUploading(false);
-      return;
-    }
-  }
-
-  if (imageUrls.length > 0) {
-    imageUrls[0].isPrimary = true;
-  }
-
-  // ---------- VIDEO UPLOAD (NEW) ----------
-  let videoUrl = "";
-  if (video) {
-    try {
-      setVideoUploading(true);
-
-      const videoFormData = new FormData();
-      videoFormData.append("video", video);
-
+      // 🚀 ONE STEP: upload + process
       const { data } = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/upload/video`,
-        videoFormData
+        `${import.meta.env.VITE_BACKEND_URL}/api/upload/process-product`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
-      videoUrl = data.videoUrl;
-      setVideoUploading(false);
+      if (!data?.processedImageUrl) {
+        throw new Error("Background removal failed");
+      }
+
+      // 🔥 Replace image with URL object (NOT File)
+      const updatedImages = [...images];
+      updatedImages[index] = {
+        url: data.processedImageUrl,
+        altText: form.name,
+      };
+
+      setImages(updatedImages);
+      toast.success("Background removed successfully ✅");
     } catch (error) {
       console.error(error);
-      setUploading(false);
-      setVideoUploading(false);
-      return;
+      toast.error(error.response?.data?.message || "Image processing failed ❌");
+    } finally {
+      setProcessingImageIndices(prev => {
+        const s = new Set(prev);
+        s.delete(index);
+        return s;
+      });
     }
-  }
+  };
 
-  // ---------- FINAL PRODUCT DATA ----------
-   const productData = {
-     ...form,
-     price: Number(form.price),
-     discountPrice: Number(form.discountPrice),
-     countInStock: Number(form.countInStock),
-     images: imageUrls,
-     videoUrl: videoUrl,
-     hasVariants: hasVariants,
-     variants: hasVariants ? variants.map(v => ({
-       ...v,
-       price: Number(v.price),
-       discountPrice: v.discountPrice ? Number(v.discountPrice) : undefined,
-       weight: v.weight ? Number(v.weight) : undefined,
-       quantity: v.quantity ? Number(v.quantity) : undefined,
-       stock: Number(v.stock),
-     })) : [],
-   };
 
-   await dispatch(createProduct(productData));
-   setUploading(false);
-   navigate("/admin/products");
+
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+
+    // ---------- IMAGE UPLOAD ----------
+    const imageUrls = [];
+    if (images.length > 0) {
+      try {
+        for (const image of images) {
+          // Check if image is already processed (has url property)
+          if (image instanceof File) {
+            // It's a raw File, upload it
+            const formData = new FormData();
+            formData.append("image", image);
+
+            const { data } = await axios.post(
+              `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+              formData
+            );
+
+            imageUrls.push({ url: data.imageUrl, altText: form.name });
+          } else {
+            // It's already processed, just use the URL
+            imageUrls.push({ url: image.url, altText: image.altText || form.name });
+          }
+        }
+      } catch (error) {
+        console.error(error);
+        setUploading(false);
+        return;
+      }
+    }
+
+    if (imageUrls.length > 0) {
+      imageUrls[0].isPrimary = true;
+    }
+
+    // ---------- VIDEO UPLOAD (NEW) ----------
+    let videoUrl = "";
+    if (video) {
+      try {
+        setVideoUploading(true);
+
+        const videoFormData = new FormData();
+        videoFormData.append("video", video);
+
+        const { data } = await axios.post(
+          `${import.meta.env.VITE_BACKEND_URL}/api/upload/video`,
+          videoFormData
+        );
+
+        videoUrl = data.videoUrl;
+        setVideoUploading(false);
+      } catch (error) {
+        console.error(error);
+        setUploading(false);
+        setVideoUploading(false);
+        return;
+      }
+    }
+
+    // ---------- FINAL PRODUCT DATA ----------
+    const productData = {
+      ...form,
+      price: Number(form.price),
+      discountPrice: form.discountPrice ? Number(form.discountPrice) : undefined,
+      countInStock: Number(form.countInStock),
+      images: imageUrls,
+      videoUrl,
+      ...(hasVariants && {
+        variants: variants.map(v => ({
+          label: v.label,
+          price: Number(v.price),
+          discountPrice: v.discountPrice ? Number(v.discountPrice) : undefined,
+          weight: v.weight ? Number(v.weight) : undefined,
+          quantity: v.quantity ? Number(v.quantity) : undefined,
+          stock: v.stock !== "" ? Number(v.stock) : 0,
+          sku: v.sku || "",
+          pricePerUnit: v.pricePerUnit || "",
+        }))
+      })
+    };
+
+
+    try {
+      await dispatch(createProduct(productData)).unwrap();
+      toast.success("Product created successfully ✅");
+      navigate("/admin/products");
+    } catch (error) {
+      console.error("Create product error:", error);
+      toast.error(error || "Product creation failed ❌");
+    } finally {
+      setUploading(false);
+    }
+
   };
 
 
@@ -279,24 +347,42 @@ const NewProductPage = () => {
             className="w-full px-4 py-2 border rounded"
             multiple
           />
-          <div className="flex gap-4 mt-4">
-            {images.map((image, index) => (
-              <div key={index} className="relative">
+          <div className="flex gap-4 mt-4 flex-wrap">
+            {images.map((image, index) => {
+              // Handle both File objects and processed image objects
+              const imageSrc = image instanceof File 
+                ? URL.createObjectURL(image) 
+                : image.url;
+              
+              return (
+              <div key={index} className="relative group">
                 <img
-                  src={URL.createObjectURL(image)}
+                  src={imageSrc}
                   alt="Preview"
-                  className="w-20 h-20 object-cover shadow-md rounded"
+                  className="w-24 h-24 object-cover shadow-md rounded"
                 />
-                <button
-                  type="button"
-                  onClick={() => handleDeleteImage(index)}
-                  className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full text-xs"
-                >
-                  X
-                </button>
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded flex flex-col gap-1 items-center justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handleProcessImage(index)}
+                    disabled={processingImageIndices.has(index)}
+                    className="bg-teal-600 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-teal-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  >
+                    {processingImageIndices.has(index) ? "Processing..." : "Remove BG"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(index)}
+                    className="bg-red-500 text-white px-2 py-1 rounded text-xs font-semibold hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-            ))}
+            );
+            })}
           </div>
+          <p className="text-sm text-gray-600 mt-2">Hover over image to remove background and add logo</p>
         </div>
 
         {/* Video Upload */}
