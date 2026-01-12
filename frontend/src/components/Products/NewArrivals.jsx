@@ -15,7 +15,6 @@ const NewArrivals = () => {
   const [newArrivals, setNewArrivals] = useState([]);
 
   useEffect(() => {
-    
     const fetchNewArrivals = async () => {
       try {
         const response = await axios.get(
@@ -37,10 +36,8 @@ const NewArrivals = () => {
 
   const scroll = (direction) => {
     const scrollAmount = direction === "left" ? -300 : 300;
-    // console.log("124, ", scrollRef);
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
-  // updates scroll button
 
   const updateScrollButtons = () => {
     const container = scrollRef.current;
@@ -50,20 +47,12 @@ const NewArrivals = () => {
         container.scrollWidth > leftScroll + container.clientWidth;
       setCanScrollLeft(leftScroll > 0);
       setCanScrollRight(rightScrollable);
-      // console.log("52",rightScrollable);
     }
-      // console.log({
-      //   scrollLeft: container.scrollLeft,
-      //   clientWidth: container.clientWidth,
-      //   containerScrollerWidth: container.scrollWidth,
-      //   OFFSETLEFT: container.offsetLeft,
-      // });
   };
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
     const x = e.pageX - scrollRef.current.offsetLeft;
-    
     const walk = x - startX;
     scrollRef.current.scrollLeft = scrollLeft - walk;
   };
@@ -73,8 +62,6 @@ const NewArrivals = () => {
   };
 
   useEffect(() => {
-    
-    // console.log("NewA46", scrollRef);
     const container = scrollRef.current;
     if (container) {
       container.addEventListener("scroll", updateScrollButtons);
@@ -86,10 +73,9 @@ const NewArrivals = () => {
   return (
     <section className="py-16 px-4 lg:px-0">
       <div className="container mx-auto text-center mb-10 relative">
-        <h2 className="text 3xl  font-bold mb-4 ">Explore new arrival</h2>
-        <p className="text-lg  text-gray-600 mb-8">
-          Discover the latest styles straight off the runway, freshly added to
-          keep your wardrobe on the cutting edge of fashion
+        <h2 className="text-3xl font-bold mb-4">New Arrivals</h2>
+        <p className="text-lg text-gray-600 mb-8">
+          Discover the latest wellness products freshly added to our collection
         </p>
 
         {/* scroll Buttons */}
@@ -133,22 +119,40 @@ const NewArrivals = () => {
         {newArrivals.map((product) => (
           <div
             key={product._id}
-            className="min-w-[80%] sm:min-w-[50%] md:min-w-[40%] lg:min-w-[30%] relative"
+            className="min-w-[80%] sm:min-w-[50%] md:min-w-[40%] lg:min-w-[28%] group flex-shrink-0"
           >
-            <Link to={`/product/${product._id}`}>
-              <img
-                src={product.images[0]?.url}
-                alt={product.images[0]?.altText || product.name}
-                className="w-full h-[300px]  sm:h-[400px] lg:h-[500px] object-cover object-top rounded-lg"
-                draggable="false"
-              />
+            <Link to={`/product/${product._id}`} className="block">
+              <div className="relative overflow-hidden rounded-xl shadow-lg bg-gray-100 aspect-square">
+                <img
+                  src={product.images[0]?.url || "https://via.placeholder.com/400x400?text=No+Image"}
+                  alt={product.images[0]?.altText || product.name}
+                  className="w-full aspect-square object-contain bg-white p-4 group-hover:scale-110 transition-transform duration-300"
+                  draggable="false"
+                />
+                
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                  <h4 className="font-semibold text-white text-sm mb-2 line-clamp-2">{product.name}</h4>
+                  <p className="text-teal-300 font-bold text-lg">₹{product.discountPrice || product.price}</p>
+                </div>
+              </div>
+              
+              {/* Product Info Below */}
+              <div className="mt-4">
+                <h4 className="font-semibold text-gray-900 text-sm mb-2 line-clamp-2 group-hover:text-teal-600 transition-colors">{product.name}</h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-gray-900">₹{product.discountPrice || product.price}</span>
+                  {product.price && product.discountPrice && (
+                    <>
+                      <span className="text-sm text-gray-500 line-through">₹{product.price}</span>
+                      <span className="text-xs font-bold bg-red-500 text-white px-2 py-1 rounded">
+                        {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
             </Link>
-            <div className="absolute  bottom-0  left-0 right-0 bg-opacity-50 backdrop-blur-md text-white p-4 rounded-b-lg">
-              <Link to={`/product/${product._id}`} className="block">
-                <h4 className="font-medium">{product.name}</h4>
-                <p className="mt-1">{product.price}</p>
-              </Link>
-            </div>
           </div>
         ))}
       </div>

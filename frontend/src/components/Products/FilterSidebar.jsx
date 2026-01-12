@@ -212,12 +212,16 @@ const FilterSidebar = () => {
                     {children}
                   </div>
                 )}
-                renderThumb={({ props }) => (
-                  <div
-                    {...props}
-                    className="h-5 w-5 bg-white rounded-full shadow-md border-2 border-[#0FA958] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0FA958]"
-                  />
-                )}
+                renderThumb={({ props: thumbProps }) => {
+                  const { key, ...rest } = thumbProps;
+                  return (
+                    <div
+                      key={key}
+                      {...rest}
+                      className="h-5 w-5 bg-white rounded-full shadow-md border-2 border-[#0FA958] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0FA958]"
+                    />
+                  );
+                }}
               />
               <div className="flex justify-between mt-4 text-sm text-gray-600">
                 <span>₹{priceValues[0]}</span>

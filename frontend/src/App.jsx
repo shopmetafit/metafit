@@ -37,7 +37,7 @@ const App = () => {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<UserLayout />}>
-             <Route index element={<Navigate to="/collections/all" replace />} />
+             <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="profile" element={<Profile />} />

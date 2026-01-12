@@ -219,14 +219,12 @@ const NewProductPage = () => {
       if (imageUrls.length === 0) {
         toast.warning("No images uploaded, but product will be created");
       }
-      console.log("Submitting product data:", productData);
       await dispatch(createProduct(productData)).unwrap();
       toast.success("Product created successfully ✅");
       navigate("/admin/products");
     } catch (error) {
       console.error("Create product error:", error);
-      const errorMessage = error?.message || error?.payload || JSON.stringify(error) || "Product creation failed";
-      toast.error(errorMessage);
+      toast.error(error || "Product creation failed ❌");
     } finally {
       setUploading(false);
     }

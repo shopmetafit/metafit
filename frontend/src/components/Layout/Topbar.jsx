@@ -73,17 +73,17 @@ const Topbar = () => {
           <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
             <a href="/" className="group flex items-center gap-3">
               <div className="relative">
-                {/* Main M Logo */}
-                <div className="w-14 h-14 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3">
-                  <span className="text-white font-black text-2xl">M</span>
-                </div>
-                {/* Animated Dot */}
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
-                  <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
-                </div>
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-              </div>
+                 {/* Main M Logo */}
+                 <div className="w-14 h-14 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3">
+                   <span className="text-white font-black text-2xl">M</span>
+                 </div>
+                 {/* Animated Dot */}
+                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
+                   <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
+                 </div>
+                 {/* Glow Effect */}
+                 <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
+               </div>
               
               {/* Text */}
               <div className="relative">
@@ -144,26 +144,26 @@ const Topbar = () => {
         <div className="md:hidden bg-white border-t-2 border-teal-400 shadow-xl animate-slideDown">
           <div className="container mx-auto py-6 px-4">
             {/* Center Logo - Mobile */}
-            <div className="mb-6 flex justify-center">
-              <a href="/" className="group flex items-center gap-3">
-                <div className="relative">
-                  <div className="w-16 h-16 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
-                    <span className="text-white font-black text-3xl">M</span>
-                  </div>
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
-                    <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight">
-                    Wellness
-                  </div>
-                  <div className="text-base font-bold text-teal-600">
-                    Bazaar
-                  </div>
-                </div>
-              </a>
-            </div>
+             <div className="mb-6 flex justify-center">
+               <a href="/" className="group flex items-center gap-3">
+                 <div className="relative">
+                   <div className="w-16 h-16 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
+                     <span className="text-white font-black text-3xl">M</span>
+                   </div>
+                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
+                     <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
+                   </div>
+                 </div>
+                 <div>
+                   <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight">
+                     Wellness
+                   </div>
+                   <div className="text-base font-bold text-teal-600">
+                     Bazaar
+                   </div>
+                 </div>
+               </a>
+             </div>
 
             {/* Social Links - Mobile */}
             <div className="flex justify-center gap-3 mb-4">
