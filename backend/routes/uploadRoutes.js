@@ -22,9 +22,9 @@ const upload = multer({ storage });
 // Initial upload to get URL
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    console.log(req.files);
-    if (!req.files) { // upload ka data ko req.file se access kar sakate he
-      return res.status(404).json({ message: "No file uploaded" });
+    console.log("req.file:", req.file);
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
     // function to handle the stream upload to cloudinary
@@ -39,7 +39,6 @@ router.post("/", upload.single("image"), async (req, res) => {
         });
         //Use streamifier to convert file buffer to a stream
         streamifier.createReadStream(fileBuffer).pipe(stream);
-        // console.log("upload39",fileBuffer);
       });
     };
     // call the streamUpload function
@@ -48,8 +47,8 @@ router.post("/", upload.single("image"), async (req, res) => {
     //Respond with the uploaded image URL
     res.json({ imageUrl: result.secure_url });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Upload error:", error);
+    res.status(500).json({ message: "Server error uploading image" });
   }
 });
 

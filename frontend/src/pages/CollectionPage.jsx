@@ -36,22 +36,28 @@ const CollectionPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    dispatch(setFilters({ search: searchTerm }));
-    dispatch(fetchProductsByFilters({ search: searchTerm }));
-    navigate(`/collections/all/?search=${searchTerm}`);
+    const params = new URLSearchParams(searchParams);
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    navigate(`/collections/all/?${params.toString()}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pr-20">
       {/* Mobile filter button */}
-      <div className="lg:hidden fixed bottom-4 right-4 z-20">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="bg-[#0FA958] text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-transform transform hover:scale-105"
-        >
-          <FaFilter size={20} />
-        </button>
-      </div>
+      {!isSidebarOpen && (
+        <div className="lg:hidden fixed bottom-4 right-50 z-50">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="bg-[#0FA958] text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-transform transform hover:scale-105"
+          >
+            <FaFilter size={20} />
+          </button>
+        </div>
+      )}
 
       {/* Sidebar for mobile */}
       {isSidebarOpen && (

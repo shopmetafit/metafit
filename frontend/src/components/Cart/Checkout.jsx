@@ -205,6 +205,11 @@ console.log(user);
     }
 
     if (cart && cart.products.length > 0) {
+      localStorage.setItem(
+  `shippingAddress_${user.email}`,
+  JSON.stringify(shippingAddress)
+);
+
       const res = await dispatch(
         createCheckout({
           checkoutItems: cart.products,
@@ -229,6 +234,20 @@ console.log(user);
   if (!cart || !cart.products || cart.products.length === 0) {
     return <p>Your cart is empty</p>;
   }
+
+useEffect(() => {
+  if (!user?.email) return;
+
+  const savedAddress = localStorage.getItem(
+    `shippingAddress_${user.email}`
+  );
+
+  if (savedAddress) {
+    setShippingAddress(JSON.parse(savedAddress));
+  }
+}, [user]);
+
+
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-19 tracking-tighter ">
@@ -258,7 +277,7 @@ console.log(user);
                     firstName: e.target.value,
                   });
                 }}
-                className="w-full p-2 border rounded"
+                className="w-60 p-2 border rounded"
                 required
               />
             </div>
@@ -273,7 +292,7 @@ console.log(user);
                     lastName: e.target.value,
                   });
                 }}
-                className="w-full p-2 border rounded"
+                className="w-60 p-2 border rounded"
                 required
               />
             </div>
@@ -305,7 +324,7 @@ console.log(user);
                     city: e.target.value,
                   });
                 }}
-                className="w-full p-2 border rounded"
+                className="w-60 p-2 border rounded"
                 required
               />
             </div>
@@ -320,7 +339,7 @@ console.log(user);
                     postalCode: e.target.value,
                   });
                 }}
-                className="w-full p-2 border rounded"
+                className="w-60 p-2 border rounded"
                 required
               />
             </div>
@@ -336,7 +355,7 @@ console.log(user);
                   country: e.target.value,
                 });
               }}
-              className="w-full p-2 border rounded"
+              className="w-80 p-2 border rounded"
               required
             />
           </div>
@@ -351,7 +370,7 @@ console.log(user);
                   phone: e.target.value,
                 });
               }}
-              className="w-full p-2 border rounded"
+              className="w-80 p-2 border rounded"
               required
             />
           </div>
@@ -360,6 +379,17 @@ console.log(user);
             className="w-full bg-black text-white py-3 rounded"
           >
             Continue to Payment
+          </button>
+
+          <button
+                type="button"
+                onClick={() => {
+                  const saved = localStorage.getItem(`shippingAddress_${user.email}`);
+                if (saved) setShippingAddress(JSON.parse(saved));
+                }}
+             className="text-sm text-blue-600 underline mb-4"
+          >
+              Use saved address
           </button>
         </form>
       </div>
@@ -381,11 +411,11 @@ console.log(user);
                 />
                 <div>
                   <h3 className="text-md">{product.name}</h3>
-                  <p className="text-gray-500">Size:{product.size}</p>
-                  <p className="text-gray-500">Color:{product.color}</p>
+                  <p className="text-gray-500">Size: {product.size}</p>
+                  <p className="text-gray-500">Color: {product.color}</p>
                 </div>
               </div>
-              <p className="text-xl">Rs{product.price?.toLocaleString()}</p>
+              <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
             </div>
           ))}
         </div>

@@ -136,12 +136,23 @@ const NewProductPage = () => {
             const formData = new FormData();
             formData.append("image", image);
 
-            const { data } = await axios.post(
-              `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
-              formData
-            );
-
-            imageUrls.push({ url: data.imageUrl, altText: form.name });
+            try {
+              const { data } = await axios.post(
+                `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
+              );
+              imageUrls.push({ url: data.imageUrl, altText: form.name });
+              toast.success("Image uploaded successfully");
+            } catch (uploadError) {
+              // If image upload fails, skip this image and continue
+              console.error("Image upload failed:", uploadError);
+              toast.error(`Failed to upload image: ${uploadError.response?.data?.message || uploadError.message}`);
+            }
           } else {
             // It's already processed, just use the URL
             imageUrls.push({ url: image.url, altText: image.altText || form.name });
@@ -149,8 +160,7 @@ const NewProductPage = () => {
         }
       } catch (error) {
         console.error(error);
-        setUploading(false);
-        return;
+        toast.error("Error processing images");
       }
     }
 
@@ -206,12 +216,17 @@ const NewProductPage = () => {
 
 
     try {
+      if (imageUrls.length === 0) {
+        toast.warning("No images uploaded, but product will be created");
+      }
+      console.log("Submitting product data:", productData);
       await dispatch(createProduct(productData)).unwrap();
       toast.success("Product created successfully ✅");
       navigate("/admin/products");
     } catch (error) {
       console.error("Create product error:", error);
-      toast.error(error || "Product creation failed ❌");
+      const errorMessage = error?.message || error?.payload || JSON.stringify(error) || "Product creation failed";
+      toast.error(errorMessage);
     } finally {
       setUploading(false);
     }

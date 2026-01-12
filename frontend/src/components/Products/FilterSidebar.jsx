@@ -112,6 +112,9 @@ const FilterSidebar = () => {
   const applyFilters = () => {
     const params = new URLSearchParams(searchParams);
     
+    // Clear search term when applying filters (category, price, brand)
+    params.delete("search");
+    
     if (selectedCategory) {
       params.set("category", selectedCategory);
     } else {
@@ -131,7 +134,13 @@ const FilterSidebar = () => {
   };
 
   const resetFilters = () => {
-    setSearchParams({});
+    const params = new URLSearchParams();
+    // Keep search if it exists, clear only filters
+    const searchTerm = searchParams.get("search");
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    }
+    setSearchParams(params);
   };
 
   const toggleSection = (section) => {
@@ -143,8 +152,8 @@ const FilterSidebar = () => {
   const MAX = 100000;
 
   return (
-    <div className="bg-white w-full lg:w-80 lg:min-w-[320px] h-full flex flex-col p-6 shadow-lg font-sans">
-      <div className="flex-grow overflow-y-auto pr-4 -mr-4">
+<div className="bg-white w-full lg:w-80 lg:min-w-[320px] h-screen flex flex-col p-6 shadow-lg font-sans">
+<div className="flex-grow overflow-y-auto overscroll-contain scrollbar-custom pr-4 -mr-4">
         {/* Category Section */}
         <div className="mb-8">
           <SectionHeader
