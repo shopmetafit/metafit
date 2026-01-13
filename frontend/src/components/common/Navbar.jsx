@@ -226,7 +226,7 @@ const Navbar = () => {
       {/* Navbar */}
       <nav className="container mx-auto flex items-center justify-between py-4 px-6 text-white bg-gradient-to-r from-[#0FB7A3] via-[#0DA28E] to-[#0A8271] rounded-b-3xl shadow-lg border border-white/10">
         {/* Center tagline */}
-        <div className="absolute left-1/2 transform -translate-x-1/2 text-center">
+        <div className="absolute left-1/2 transform -translate-x-1/2 text-center pointer-events-none">
           <h1 className="hidden md:inline-block text-lg md:text-xl font-semibold text-white tracking-[0.35em] uppercase drop-shadow">
             From Ancient Healing to AI Living
           </h1>
@@ -235,12 +235,17 @@ const Navbar = () => {
         <div className="hidden lg:flex flex-nowrap  space-x-4 items-center">
           <Link to="/aboutUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">About&nbsp;Us</Link>
           <Link to="/contactUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">Contact&nbsp;Us</Link>
+        
         </div>
-        {/* Right icons */}
-        <div className="flex justify-end space-x-4 w-full">
+        <div>
           <button onClick={togglerNavDrawer} className="lg:hidden">
             <HiBars3BottomRight className="h-6 w-6 text-white" />
           </button>
+        </div>
+        {
+        /* Right icons */}
+        <div className="flex justify-end space-x-4 w-full">
+          
           {user && user.role === "admin" && (
             <Link
               to="/admin"
@@ -281,7 +286,7 @@ const Navbar = () => {
         className={`fixed bg-gradient-to-b from-white to-gray-50 top-0 left-0
   w-3/4 sm:w-1/2 md:w-1/3 h-full
   shadow-2xl rounded-r-2xl border-r border-gray-200
-  transform transition-transform duration-300 ease-in-out z-50
+  transform transition-transform duration-300 ease-in-out 
   ${navDrawerOpen ? "translate-x-0" : "-translate-x-full"}
   overflow-y-auto`}
       >

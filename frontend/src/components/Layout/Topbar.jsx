@@ -100,13 +100,23 @@ const Topbar = () => {
           </div>
 
           {/* Right: Phone Button + Chat Button */}
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2 md:gap-3 md:w-auto lg:w-auto ">
             {/* Chat Button - Desktop */}
             <a
               href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-2 text-white bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
+                  className="
+                    hidden md:flex
+                    md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2
+                    lg:static lg:translate-y-0
+                    items-center gap-2 text-white
+                    bg-gradient-to-r from-green-500 to-green-600
+                    hover:from-green-600 hover:to-green-700
+                    px-5 py-2 rounded-full shadow-lg hover:shadow-xl
+                    transition-all duration-300 transform hover:scale-105
+                    group relative overflow-hidden
+                  "
             >
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
               <MessageCircle className="h-4 w-4 relative z-10" />
