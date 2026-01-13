@@ -43,29 +43,31 @@ const Topbar = () => {
 
             {/* Social Icons - Desktop */}
             <div className="hidden lg:flex items-center gap-2">
-              <a
-                href="https://www.facebook.com/profile.php?id=61565468193885"
-                className="group p-2 rounded-full bg-white hover:bg-blue-50 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110"
-                aria-label="Facebook"
+               <a
+                href="https://www.facebook.com/mwellnessbazaar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-110 shadow-lg"
               >
-                <Facebook className="h-4 w-4 text-blue-600" fill="currentColor" />
+                <Facebook className="h-5 w-5" />
               </a>
               
-              <a
-                href="https://www.instagram.com/metafitwellness/?igsh=NDl0ZzlzYzdrY2tk"
-                className="group p-2 rounded-full bg-white hover:bg-pink-50 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110"
-                aria-label="Instagram"
+                <a
+                href="https://www.instagram.com/mwellnessbazaar"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center text-white hover:from-pink-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-110 shadow-lg"
               >
-                <Instagram className="h-4 w-4 text-pink-600" />
+                <Instagram className="h-5 w-5" />
               </a>
-              
-              <a
+
+              {/* <a
                 href="https://www.linkedin.com/company/meta-fit-wellness/"
                 className="group p-2 rounded-full bg-white hover:bg-blue-50 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-4 w-4 text-blue-700" fill="currentColor" />
-              </a>
+              </a> */}
             </div>
           </div>
 
@@ -178,26 +180,26 @@ const Topbar = () => {
             {/* Social Links - Mobile */}
             <div className="flex justify-center gap-3 mb-4">
               <a
-                href="https://www.facebook.com/profile.php?id=61565468193885"
+                href="https://www.facebook.com/mwellnessbazaar"
                 className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md"
                 aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5 text-blue-600" fill="currentColor" />
               </a>
               <a
-                href="https://www.instagram.com/metafitwellness/?igsh=NDl0ZzlzYzdrY2tk"
+                href="https://www.instagram.com/mwellnessbazaar"
                 className="p-3 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors shadow-md"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5 text-pink-600" />
               </a>
-              <a
+              {/* <a
                 href="https://www.linkedin.com/company/meta-fit-wellness/"
                 className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="h-5 w-5 text-blue-700" fill="currentColor" />
-              </a>
+              </a> */}
             </div>
 
             {/* Contact Buttons - Mobile */}

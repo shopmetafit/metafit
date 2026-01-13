@@ -31,7 +31,7 @@ const Footer = () => {
   return (
     <footer className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="h-10 w-10 bg-gradient-to-br from-[#047ca8] to-[#06b6d4] rounded-lg flex items-center justify-center shadow-lg">
@@ -39,15 +39,15 @@ const Footer = () => {
               </div>
               <h3 className="text-lg font-bold text-white">Newsletter</h3>
             </div>
-            <p className="text-sm text-slate-300 mb-4 leading-relaxed">
+            <p className="text-sm text-slate-300 mb-4 leading-relaxed mt-20">
               Be the first to hear about new products, exclusive events, and special offers.
             </p>
-            <div className="bg-gradient-to-r from-amber-400/20 to-orange-400/20 border border-amber-400/40 p-3 rounded-lg mb-4 backdrop-blur">
+            <div className="bg-gradient-to-r from-amber-400/20 to-orange-400/20 border mt-20 border-amber-400/40 p-3 rounded-lg mb-4 backdrop-blur">
               <p className="text-xs font-semibold text-amber-100 mb-0">
                 ✨ Sign up to get exclusive 10% off on your first order
               </p>
             </div>
-            <div className="relative">
+            {/* <div className="relative">
               <input
                 type="email"
                 value={email}
@@ -61,7 +61,7 @@ const Footer = () => {
               >
                 Subscribe Now
               </button>
-            </div>
+            </div> */}
             {isSubscribed && (
               <p className="text-emerald-300 text-xs mt-2 flex items-center animate-pulse">
                 <Check className="h-4 w-4 mr-2" /> Successfully subscribed!
@@ -141,7 +141,7 @@ const Footer = () => {
             <p className="text-xs text-slate-300 font-medium mb-3">Follow us on social media</p>
             <div className="flex items-center space-x-3 mb-6">
               <a
-                href="https://www.facebook.com/profile.php?id=61565468193885"
+                href="https://www.facebook.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-110 shadow-lg"
@@ -149,21 +149,21 @@ const Footer = () => {
                 <Facebook className="h-5 w-5" />
               </a>
               <a
-                href="https://www.instagram.com/metafitwellness/"
+                href="https://www.instagram.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center text-white hover:from-pink-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-110 shadow-lg"
               >
                 <Instagram className="h-5 w-5" />
               </a>
-              <a
+              {/* <a
                 href="https://www.linkedin.com/company/meta-fit-wellness/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-110 shadow-lg"
               >
                 <Linkedin className="h-5 w-5" />
-              </a>
+              </a> */}
             </div>
 
             <div className="space-y-4">

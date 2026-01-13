@@ -232,6 +232,49 @@ const ContactUs = () => {
           </div>
         </div>
       </section>
+
+      {/* SEO Content Section */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-800 mb-8">Contact M Wellness Bazar - Get in Touch with Our Wellness Experts</h2>
+          
+          <div className="space-y-5 text-gray-700 leading-relaxed">
+            <p>
+              At M Wellness Bazar, we believe in building strong relationships with our customers through open communication and responsive support. Whether you have questions about our premium wellness products, need personalized recommendations, want to explore partnership opportunities, or have feedback about your experience, our dedicated team is here to help. We're committed to providing exceptional customer service and ensuring that every interaction with M Wellness Bazar reflects our dedication to your wellness journey and satisfaction.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Reach Out to Our Wellness Experts</h3>
+            <p>
+              Our knowledgeable team of wellness specialists is available to assist you with personalized product recommendations tailored to your specific health needs and goals. Whether you're looking for immunity-boosting supplements, Ayurvedic remedies, fitness accessories, or skincare solutions, our experts can guide you toward the perfect products for your wellness journey. We pride ourselves on our deep understanding of wellness products and our ability to help customers make informed decisions. Contact us directly via phone, email, or our convenient contact form, and let us help you discover the products that will transform your health.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Multiple Ways to Connect</h3>
+            <p>
+              We understand that different customers prefer different communication methods. That's why M Wellness Bazar offers multiple convenient ways to get in touch. Call us at 9982498555 for immediate assistance available 24/7, send us an email at info@metafitwellness.com with your questions, or visit our office located at 808, Silver Residency, Near Petrol Pump, Thoor, Udaipur, Rajasthan 313001. Each contact method is monitored by our dedicated team who respond promptly to ensure your questions are answered and your concerns are addressed. We typically respond to all email inquiries within 24 hours, ensuring you get the support you need in a timely manner.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Customer Service Excellence at M Wellness Bazar</h3>
+            <p>
+              Your satisfaction is our top priority, and we've built our customer service approach around understanding and exceeding your expectations. Whether you're experiencing issues with an order, need help tracking a shipment, have questions about product ingredients or usage, or want to return a product, our customer service team handles every situation with professionalism and care. We maintain our industry-leading 98% satisfaction rate because we genuinely listen to our customers and work to resolve any issues promptly. We believe that exceptional customer service is a key part of the wellness experience, and we're committed to making your interaction with us smooth and satisfying.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Partnerships and Business Inquiries</h3>
+            <p>
+              If you're interested in partnering with M Wellness Bazar as a vendor, brand, or collaborator, we'd love to hear from you. We're always looking for new suppliers of authentic wellness products, manufacturers of premium supplements, and partners who share our commitment to quality and authenticity. Our partnership program is designed to be mutually beneficial, supporting the growth of ethical wellness brands while expanding our customers' access to premium products. We carefully evaluate all partnership opportunities to ensure they align with our quality standards and mission to provide only the best wellness solutions.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Feedback and Suggestions</h3>
+            <p>
+              Your feedback is invaluable to us as we continuously work to improve M Wellness Bazar and enhance your wellness shopping experience. Whether you have suggestions for new products, feedback about our platform, ideas for how we can serve you better, or want to share your success story, we want to hear from you. We regularly review customer feedback to identify trends, improve our services, and expand our product offerings. Your voice helps shape the future of M Wellness Bazar, and we're grateful for every customer who takes the time to share their thoughts and experiences with us.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Wellness Resources and Support</h3>
+            <p>
+              Beyond just selling products, M Wellness Bazar is your comprehensive wellness resource center. We provide detailed product information, ingredient descriptions, usage guidelines, and educational content about various wellness topics to empower you to make informed decisions. Our blog features articles about nutrition, fitness, mental wellness, Ayurvedic practices, and holistic health approaches. When you contact us, we don't just answer your immediate question—we provide education and guidance to help you achieve optimal wellness. Our team is committed to being your trusted partner in your health journey, and we're here to support you every step of the way. Reach out to M Wellness Bazar today and experience the difference that expert guidance and premium wellness products can make in your life.
+            </p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

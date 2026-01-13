@@ -166,6 +166,49 @@ const AboutUs = () => {
         </div>
       </section>
 
+      {/* SEO Content Section */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-gray-800 mb-8">About M Wellness Bazar - Leading Wellness Marketplace in India</h2>
+          
+          <div className="space-y-5 text-gray-700 leading-relaxed">
+            <p>
+              M Wellness Bazar is a premier digital wellness marketplace dedicated to transforming how Indians access premium health and wellness products. Founded with the vision of making authentic, high-quality wellness solutions accessible to everyone, we have established ourselves as a trusted platform that bridges the gap between traditional healing wisdom and modern health science. Our curated collection brings together thousands of authentic wellness products, from Ayurvedic supplements and herbal remedies to modern nutritional supplements, fitness accessories, and holistic health solutions.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Our Journey to Excellence</h3>
+            <p>
+              Since our inception, M Wellness Bazar has been committed to revolutionizing the wellness industry by prioritizing quality, authenticity, and customer satisfaction above all else. We understand that the wellness market can be overwhelming, with countless products claiming extraordinary benefits. That's why we've built a rigorous verification system to ensure every product on our platform meets pharmaceutical-grade standards and represents genuine value. Our team of wellness experts meticulously curates each product category to ensure that customers receive only the best solutions for their health needs, whether they're seeking immunity-boosting supplements, skincare products, fitness gear, or traditional Ayurvedic remedies.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Commitment to Quality and Authenticity</h3>
+            <p>
+              At M Wellness Bazar, quality is not negotiable. Every wellness product in our collection undergoes rigorous testing and verification processes to ensure authenticity and efficacy. We partner exclusively with verified vendors and certified manufacturers who share our commitment to excellence. Our strict quality assurance protocols mean that you can shop with complete confidence, knowing that you're investing in genuine, high-quality products. We maintain transparent relationships with our suppliers, ensuring complete traceability from manufacturer to your doorstep. This dedication to authenticity has earned us the trust of over 10,000 active customers who rely on us for their wellness needs.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Diverse Product Categories for Complete Wellness</h3>
+            <p>
+              Our comprehensive marketplace features over 500 premium wellness products across multiple categories. From ancient Ayurvedic formulations that have been trusted for centuries to cutting-edge nutritional supplements backed by modern science, M Wellness Bazar offers something for every wellness journey. Whether you're interested in boosting immunity, managing stress, improving skin health, enhancing fitness performance, or supporting overall well-being, our expertly curated collections provide solutions backed by both traditional knowledge and scientific research. Each product category is carefully organized with detailed descriptions, ingredient information, and customer reviews to help you make informed decisions.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Customer-Centric Shopping Experience</h3>
+            <p>
+              We've designed M Wellness Bazar with your convenience in mind. Our user-friendly platform features advanced filtering options, personalized recommendations, and detailed product information to make your shopping experience seamless. With fast shipping, free delivery options on qualifying purchases, and a hassle-free return policy, we ensure that your wellness journey is smooth and satisfying. Our knowledgeable customer support team is always ready to assist you with product recommendations or any questions about our wellness solutions. We maintain a 98% customer satisfaction rate because we genuinely care about your health outcomes.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Building a Wellness Community</h3>
+            <p>
+              Beyond just selling products, M Wellness Bazar is building a thriving community of health-conscious individuals committed to achieving optimal wellness. We regularly share valuable content about nutrition, fitness, mental wellness, and holistic health practices through our blog and social media channels. Our mission is to empower customers with knowledge so you can make informed decisions about your health. We believe that true wellness comes from understanding your body's needs and choosing products that genuinely support your goals.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Why Choose M Wellness Bazar?</h3>
+            <p>
+              Choose M Wellness Bazar and join thousands of satisfied customers who have transformed their wellness journeys with our premium products. We combine the wisdom of traditional healing practices with the rigor of modern science, offering a unique marketplace that truly understands wellness. Our commitment to authenticity, quality, and customer satisfaction makes us the most trusted name in wellness retail. Whether you're just beginning your wellness journey or are a seasoned health enthusiast, M Wellness Bazar is your ultimate destination for all premium wellness products.
+            </p>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 };

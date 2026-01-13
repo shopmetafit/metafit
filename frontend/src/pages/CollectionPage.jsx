@@ -127,6 +127,47 @@ const CollectionPage = () => {
             <ProductGrid products={products} loading={loading} error={error} viewMode={viewMode} />
           
           <FAQSection/>
+
+          {/* SEO Content Section */}
+          <section className="mt-16 mb-12 p-8 bg-white rounded-lg shadow-sm border border-gray-200">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6">Welcome to M Wellness Bazar - Your Premium Wellness Destination</h2>
+            
+            <div className="space-y-4 text-gray-700 leading-relaxed">
+              <p>
+                At M Wellness Bazar, we believe that true wellness is a journey, not a destination. Our carefully curated collection of premium wellness products is designed to support your path to vibrant health, blending ancient healing wisdom with modern scientific innovation. Whether you're looking to boost your immunity, enhance your energy levels, or create a comprehensive wellness routine, our collection offers something for everyone.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Why Choose M Wellness Bazar Products?</h3>
+              <p>
+                We understand that the wellness market is flooded with countless options, making it challenging to find products you can truly trust. That's why M Wellness Bazar has dedicated itself to sourcing only the highest quality, authentic wellness products from trusted suppliers worldwide. Every product in our collection undergoes rigorous quality checks to ensure it meets our strict standards for purity, potency, and effectiveness. We believe in transparency, which is why we provide detailed information about each product's sourcing, ingredients, and benefits.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Our Comprehensive Product Range</h3>
+              <p>
+                Our collection spans multiple wellness categories to address various health needs. From energy-boosting supplements and nutritional powerhouses to skincare products infused with natural ingredients, stress-relief solutions, and fitness accessories - we've got you covered. Whether you're interested in Ayurvedic remedies passed down through generations, modern superfoods, or scientifically-formulated nutritional supplements, our diverse range ensures you'll find exactly what your body needs. Each category is thoughtfully organized to make your shopping experience smooth and enjoyable.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Quality Assurance & Authenticity Guarantee</h3>
+              <p>
+                We stand behind every product we sell. All our wellness products are 100% authentic and sourced directly from manufacturers or authorized distributors. We never compromise on quality, and we never sell counterfeit or substandard items. Our commitment to authenticity means you can purchase with complete confidence, knowing that you're investing in your health with genuine, high-quality products. Additionally, we maintain strict hygiene standards in our warehousing and packaging to ensure your products arrive in perfect condition.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Fast & Free Shipping on Your Wellness Purchases</h3>
+              <p>
+                We understand that when you're ready to start your wellness journey, you don't want to wait. That's why we offer fast shipping on all orders, with free shipping options available for qualifying purchases. Our efficient logistics network ensures your products reach you quickly, safely, and in pristine condition. We partner with reliable shipping providers to guarantee timely delivery across the country. With our user-friendly tracking system, you'll always know exactly where your order is.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Personalized Wellness Shopping Experience</h3>
+              <p>
+                Shopping for wellness products has never been easier. Our advanced filtering system allows you to refine products by category, price range, brand, and more. Whether you're a wellness expert or just beginning your health journey, our intuitive platform makes discovering the perfect products simple. Browse customer reviews and ratings to learn from others' experiences, and don't hesitate to reach out to our knowledgeable customer support team if you need personalized recommendations. We're here to help you make informed decisions for your health.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-2">Join the M Wellness Bazar Community</h3>
+              <p>
+                Becoming an M Wellness Bazar customer means joining a community of health-conscious individuals committed to improving their well-being. Stay updated with our latest wellness tips, product launches, and exclusive offers. Our blog and social media channels are packed with valuable content about nutrition, fitness, mental wellness, and holistic health practices. We believe in empowering our customers with knowledge so you can make the best choices for your wellness journey. Start exploring our collection today and discover why thousands of wellness enthusiasts trust M Wellness Bazar for their premium wellness needs.
+              </p>
+            </div>
+          </section>
           </div>
         </div>
       </main>
