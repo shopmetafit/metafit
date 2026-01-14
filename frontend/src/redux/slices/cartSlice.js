@@ -13,7 +13,7 @@ const saveCartToStorage = (cart) => {
 };
 
 // Fetch a cart for a user or guest
-const fetchCart = createAsyncThunk(
+export const fetchCart = createAsyncThunk(
   "cart/fetchCart",
   async ({ userId, guestId }, { rejectWithValue }) => {
     try {
