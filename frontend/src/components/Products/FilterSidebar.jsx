@@ -189,7 +189,7 @@ const FilterSidebar = () => {
             toggle={() => toggleSection("price")}
           />
           {openSections.price && (
-            <div className="mt-6 px-2">
+            <div className="mt-6 relative px-2">
               <Range
                 values={priceValues}
                 step={STEP}
@@ -251,9 +251,8 @@ const FilterSidebar = () => {
             </div>
           )}
         </div>
-        </div>
         
-      <div className="pt-6 border-t border-gray-200">
+        <div className="pt-6 border-t border-gray-200">
         <div className="flex flex-col space-y-3">
           <button 
             onClick={applyFilters}
@@ -268,9 +267,11 @@ const FilterSidebar = () => {
             Reset
           </button>
         </div>
-      </div>
-    </div>
-  );
+        </div>
+        </div>
+
+        </div>
+        );
 };
 
 // Helper component for section headers

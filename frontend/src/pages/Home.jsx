@@ -357,10 +357,10 @@ const Home = () => {
                      <p className="text-gray-900 font-bold mb-2">✓ Competitive Pricing</p>
                      <p className="text-gray-700 text-sm">Our direct sourcing model allows us to offer the best prices on premium wellness products across India.</p>
                    </div>
-                   <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg">
+                   {/* <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg">
                      <p className="text-gray-900 font-bold mb-2">✓ Fast & Free Shipping</p>
                      <p className="text-gray-700 text-sm">Get free nationwide shipping on orders over ₹500 with delivery in 5-7 business days. Track your order in real-time.</p>
-                   </div>
+                   </div> */}
                    <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg">
                      <p className="text-gray-900 font-bold mb-2">✓ Expert Customer Support</p>
                      <p className="text-gray-700 text-sm">Our wellness experts are available 24/7 to answer your questions and provide personalized product recommendations.</p>
@@ -418,10 +418,10 @@ const Home = () => {
                      <p className="font-bold text-gray-900 mb-2">Q: Are all products on M Wellness Bazaar authentic?</p>
                      <p className="text-gray-700 text-sm">A: Yes, absolutely. We source products directly from manufacturers and authorized distributors. Every product undergoes quality verification before being listed on our platform.</p>
                    </div>
-                   <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded">
+                   {/* <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded">
                      <p className="font-bold text-gray-900 mb-2">Q: What is the delivery time for orders?</p>
                      <p className="text-gray-700 text-sm">A: We offer free nationwide shipping on orders over ₹500 with typical delivery in 5-7 business days. Express delivery options are also available in select cities.</p>
-                   </div>
+                   </div> */}
                    <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-5 rounded">
                      <p className="font-bold text-gray-900 mb-2">Q: Can I return products if not satisfied?</p>
                      <p className="text-gray-700 text-sm">A: Yes, M Wellness Bazaar offers a 10-day money-back guarantee. If you&apos;re not satisfied with any product, return it within 10 days for a full refund.</p>
