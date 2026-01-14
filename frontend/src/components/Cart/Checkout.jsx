@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createCheckout } from "../../redux/slices/checkoutSlice";
+import { mergeCart, fetchCart } from "../../redux/slices/cartSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ const CheckOut = () => {
 
   const { cart, loading, error } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
+  const [isCartLoaded, setIsCartLoaded] = useState(false);
 console.log(user);
 
   const navigate = useNavigate();
@@ -27,12 +29,62 @@ console.log(user);
     phone: "",
   });
 
+  //  Reset cart loaded state when user changes (login/logout)
+  useEffect(() => {
+    if (user && user._id) {
+      setIsCartLoaded(false);
+    }
+  }, [user?._id]);
+
+  //  Merge guest cart with user cart after login
+  useEffect(() => {
+    if (user && user._id && !isCartLoaded) {
+      const guestId = localStorage.getItem("guestId");
+      
+      // First try to merge guest cart if it exists
+      if (guestId) {
+        dispatch(mergeCart({ guestId, user }))
+          .then((result) => {
+            console.log("Cart merged successfully", result);
+            setIsCartLoaded(true);
+          })
+          .catch((err) => {
+            console.log("Cart merge failed, fetching user cart from server", err);
+            // If merge fails, fetch from server instead
+            dispatch(fetchCart({ userId: user._id }))
+              .then(() => {
+                console.log("User cart fetched from server");
+                setIsCartLoaded(true);
+              })
+              .catch((fetchErr) => {
+                console.log("Failed to fetch user cart", fetchErr);
+                setIsCartLoaded(true);
+              });
+          });
+      } else {
+        // No guest cart, just fetch user cart from server
+        dispatch(fetchCart({ userId: user._id }))
+          .then(() => {
+            console.log("User cart fetched from server");
+            setIsCartLoaded(true);
+          })
+          .catch((err) => {
+            console.log("Failed to fetch user cart", err);
+            setIsCartLoaded(true);
+          });
+      }
+    } else if (!user && !isCartLoaded) {
+      // Guest user, mark as loaded
+      setIsCartLoaded(true);
+    }
+  }, [user, dispatch, isCartLoaded]);
+
   //  ensure cart is not loaded before proceeding
   useEffect(() => {
-    if (!cart || !cart.products || cart.products.length === 0) {
+    if (isCartLoaded && (!cart || !cart.products || cart.products.length === 0)) {
       navigate("/");
     }
-  }, [cart, navigate]);
+  }, [cart, navigate, isCartLoaded]);
 
   const loadScript = useCallback((src) => {
     return new Promise((resolve) => {
@@ -229,25 +281,34 @@ console.log(user);
     // setCheckoutId(123); //Set checkout ID if checkout was successful
   };
 
-  if (loading) return <p> Loading cart...</p>;
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const savedAddress = localStorage.getItem(
+      `shippingAddress_${user.email}`
+    );
+
+    if (savedAddress) {
+      setShippingAddress(JSON.parse(savedAddress));
+    }
+  }, [user]);
+
+  // Show loading state while cart is being synced from server
+  if (loading || !isCartLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading cart...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (error) return <p> Error: {error}</p>;
   if (!cart || !cart.products || cart.products.length === 0) {
     return <p>Your cart is empty</p>;
   }
-
-useEffect(() => {
-  if (!user?.email) return;
-
-  const savedAddress = localStorage.getItem(
-    `shippingAddress_${user.email}`
-  );
-
-  if (savedAddress) {
-    setShippingAddress(JSON.parse(savedAddress));
-  }
-}, [user]);
-
-
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-19 tracking-tighter ">

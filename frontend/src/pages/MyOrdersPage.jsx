@@ -7,17 +7,47 @@ const MyOrdersPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { orders, loading, error } = useSelector((state) => state.orders);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
+    // Check if user is authenticated before fetching orders
+    const token = localStorage.getItem("userToken");
+    if (!token || !user) {
+      navigate("/login");
+      return;
+    }
+    
     dispatch(fetchUserOrders());
-  }, [dispatch]);
+  }, [dispatch, navigate, user]);
 
   const handleRowClick = (orderId) => {
     navigate(`/order/${orderId}`);
   };
 
-  if (loading) return <p className="p-4">Loading your orders...</p>;
-  if (error) return <p className="p-4 text-red-500">Error: {error}</p>;
+  if (loading) return (
+    <div className="p-4 flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
+        <p className="text-gray-600">Loading your orders...</p>
+      </div>
+    </div>
+  );
+  if (error) {
+    return (
+      <div className="p-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700 font-semibold">Error loading orders</p>
+          <p className="text-red-600 text-sm mt-1">{error}</p>
+          <button 
+            onClick={() => dispatch(fetchUserOrders())}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">

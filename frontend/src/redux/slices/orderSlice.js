@@ -7,17 +7,23 @@ export const fetchUserOrders = createAsyncThunk(
   "orders/fetchUserOrders",
   async (_, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("userToken");
+      
+      if (!token) {
+        return rejectWithValue({ message: "User not authenticated" });
+      }
+      
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/orders/my-orders`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
@@ -27,17 +33,23 @@ export const fetchOrderDetails = createAsyncThunk(
   "orders/fetchOrderDetails",
   async (orderId, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("userToken");
+      
+      if (!token) {
+        return rejectWithValue({ message: "User not authenticated" });
+      }
+      
       const response = await axios.get(
         `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || { message: error.message });
     }
   }
 );
@@ -64,7 +76,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchUserOrders.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message;
+        state.error = action.payload?.message || "Failed to fetch orders";
       })
       .addCase(fetchOrderDetails.pending, (state) => {
         state.loading = true;
@@ -76,7 +88,7 @@ const orderSlice = createSlice({
       })
       .addCase(fetchOrderDetails.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.message;
+        state.error = action.payload?.message || "Failed to fetch order details";
       });
   },
 });
