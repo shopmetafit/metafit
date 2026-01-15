@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createCheckout } from "../../redux/slices/checkoutSlice";
 import { mergeCart, fetchCart } from "../../redux/slices/cartSlice";
+import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
@@ -128,7 +129,25 @@ console.log(user);
                 },
               }
             );
-            navigate("/order-confirmation");
+            
+            console.log("✓ Checkout finalized successfully");
+            
+            // Refresh orders after successful payment
+            dispatch(fetchUserOrders()).catch(err => {
+              console.error("Failed to fetch orders:", err);
+            });
+            
+            // Clear cart after successful order
+            dispatch({ type: 'Cart/clearCart' });
+            
+            // Clear guestId from localStorage so a new one is generated on next add to cart
+            localStorage.removeItem("guestId");
+            
+            // Wait a moment and then navigate to confirmation page
+            setTimeout(() => {
+              console.log("✓ Navigating to order-confirmation page");
+              navigate("/order-confirmation");
+            }, 500);
             // return response
           } catch (error) {
             console.log(error);
@@ -200,30 +219,42 @@ console.log(user);
           };
           console.log("cho139:option2", option2.firstName);
           console.log("cho139:option2", option2.address);
-          const verifyRes = await axios.post(
-            `${import.meta.env.VITE_BACKEND_URL}/api/verifyPayment`,
-            option2
-          );
-
-          // console.log("cho139:verifyRes", verifyRes);
-
-          if (verifyRes.data.success) {
-            handlePaymentSuccess(
-              {
-                order_id: response.razorpay_order_id,
-                payment_id: response.razorpay_payment_id,
-                signature: response.razorpay_signature,
-              },
-              checkoutId
+          try {
+            const verifyRes = await axios.post(
+              `${import.meta.env.VITE_BACKEND_URL}/api/verifyPayment`,
+              option2
             );
-          } else {
-            alert("Payment verification failed");
+
+            console.log("cho139:verifyRes", verifyRes);
+
+            if (verifyRes.data.success) {
+              handlePaymentSuccess(
+                {
+                  order_id: response.razorpay_order_id,
+                  payment_id: response.razorpay_payment_id,
+                  signature: response.razorpay_signature,
+                },
+                checkoutId
+              );
+            } else {
+              toast.error("Payment verification failed: " + (verifyRes.data.message || "Unknown error"));
+            }
+          } catch (verifyError) {
+            console.error("Verification error:", verifyError);
+            toast.error("Payment verification failed. Please contact support.");
           }
-        },
+          },
+        modal: {
+          ondismiss: function() {
+            console.log("Payment cancelled by user");
+            toast.error("Payment cancelled");
+          }
+        }
       });
       paymentObject.open();
     } catch (error) {
-      console.log(error);
+      console.error("Payment error:", error);
+      toast.error(error?.message || "Payment processing failed");
     }
   };
 

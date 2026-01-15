@@ -67,13 +67,18 @@ const safeAddress = address || {};
   // console.log("buyerShippingInfo", buyerShippingInfo);
 
 
-  // Build product list HTML
-  const productList = products
-    .map(
-      (p) =>
-        `<li>${p.name} - ₹${p.price} (Size: ${p.size}, Color: ${p.color})</li>`
-    )
-    .join("");
+  // Build product list HTML - safely handle products array
+  let productList = "";
+  if (Array.isArray(products) && products.length > 0) {
+    productList = products
+      .map(
+        (p) =>
+          `<li>${p.name} - ₹${p.price} (Size: ${p.size || "N/A"}, Color: ${p.color || "N/A"})</li>`
+      )
+      .join("");
+  } else {
+    productList = "<li>Products information not available</li>";
+  }
 
   try {
     // ---------------- BUYER EMAIL ----------------
@@ -179,21 +184,32 @@ const safeAddress = address || {};
       `,
     };
 
-    // Send both emails in parallel
-    await Promise.all([
-      transporter.sendMail(buyerMailOptions),
-      transporter.sendMail(sellerMailOptions),
-    ]);
+    // Send emails with better error handling
+    try {
+      await transporter.sendMail(buyerMailOptions);
+      console.log("✓ Buyer email sent successfully");
+    } catch (emailErr) {
+      console.error("✗ Failed to send buyer email:", emailErr.message);
+      // Don't throw - continue processing even if email fails
+    }
+
+    try {
+      await transporter.sendMail(sellerMailOptions);
+      console.log("✓ Seller email sent successfully");
+    } catch (emailErr) {
+      console.error("✗ Failed to send seller email:", emailErr.message);
+      // Don't throw - continue processing even if email fails
+    }
 
     return res.status(200).json({
       success: true,
-      message: "Payment verified, buyer & seller notified",
+      message: "Payment verified successfully",
     });
   } catch (err) {
-    console.error("Error sending emails:", err);
+    console.error("✗ Error in verifyPayment:", err);
     return res.status(500).json({
       success: false,
-      message: "Payment verified but failed to send emails",
+      message: "Payment verification failed",
       error: err.message,
     });
   }

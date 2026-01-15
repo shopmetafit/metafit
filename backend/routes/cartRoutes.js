@@ -22,30 +22,39 @@ const getCart = async (userId, guestId) => {
 router.post("/", async (req, res) => {
   const { productId, quantity, size, color, guestId, userId } = req.body;
 
+  console.log("🛒 POST /api/cart - Adding to cart");
+  console.log(`   productId: ${productId}, quantity: ${quantity}, userId: ${userId}, guestId: ${guestId}`);
+  console.log(`   size: ${size}, color: ${color}`);
+
   try {
     const product = await Product.findById(productId);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     // determine whether a user logged in or guest
     let cart = await getCart(userId, guestId);
+    
     //  if cart exists , update it
     if (cart) {
       const productIndex = cart.products.findIndex(
         (p) =>
-          p.productId.toString() === productId
+          p.productId.toString() === productId &&
+          p.size === size &&
+          p.color === color
       );
       if (productIndex > -1) {
-        // if product already exist , update the quantity
+        // if product already exist with same size/color, update the quantity
+        console.log(`✓ Updating quantity for product ${productId}: ${cart.products[productIndex].quantity} + ${quantity}`);
         cart.products[productIndex].quantity += quantity;
       } else {
-        //  add new product
+        // add new product (different size/color or new product)
+        console.log(`✓ Adding new product ${productId} to cart with size: ${size}, color: ${color}`);
         cart.products.push({
           productId,
           name: product.name,
           image: product.images[0].url,
           price: product.discountPrice,
-          size,
-          color,
+          size: size || null,
+          color: color || null,
           quantity,
         });
       }
@@ -59,6 +68,7 @@ router.post("/", async (req, res) => {
       return res.status(200).json(cart);
     } else {
       // create a new cart for the user or guest
+      console.log(`✓ Creating new cart for userId: ${userId || "guest"}`);
       const newCart = await Cart.create({
         user: userId ? userId : undefined,
         guestId: guestId ? guestId : "guest_" + new Date().getTime(),
@@ -68,10 +78,12 @@ router.post("/", async (req, res) => {
             name: product.name,
             image: product.images[0].url,
             price: product.discountPrice,
+            size: size || null,
+            color: color || null,
             quantity,
           },
         ],
-        totalPrice: product.price * quantity,
+        totalPrice: product.discountPrice * quantity,
       });
       return res.status(201).json(newCart);
     }
@@ -89,7 +101,16 @@ router.put("/", async (req, res) => {
 
   try {
     let cart = await getCart(userId, guestId);
-    if (!cart) return res.status(404).json({ message: " Cart not found" });
+    
+    // If cart not found, it means it was cleared after order - return empty cart
+    if (!cart) {
+      return res.status(200).json({ 
+        products: [], 
+        totalPrice: 0,
+        message: "Cart was cleared after order completion"
+      });
+    }
+    
     const productIndex = cart.products.findIndex(
       (p) => p.productId.toString() === productId
     );
@@ -109,11 +130,11 @@ router.put("/", async (req, res) => {
       await cart.save();
       return res.status(201).json(cart);
     } else {
-      res.status(404).json({ message: " Product not found in cart" });
+      return res.status(404).json({ message: "Product not found in cart" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: " Server Error" });
+    res.status(500).json({ message: "Server Error", error: error.message });
   }
 });
 
@@ -125,7 +146,15 @@ router.delete("/", async (req, res) => {
   const { productId, size, color, guestId, userId } = req.body;
   try {
     let cart = await getCart(userId, guestId);
-    if (!cart) return res.status(404).json({ message: " Cart not found" });
+    
+    // If cart not found, return empty cart (already cleared after order)
+    if (!cart) {
+      return res.status(200).json({ 
+        products: [], 
+        totalPrice: 0,
+        message: "Cart was already cleared"
+      });
+    }
     const productIndex = cart.products.findIndex(
       (p) =>
         p.productId.toString() === productId &&
@@ -191,7 +220,7 @@ router.post("/merge", protect, async (req, res) => {
       }
 
       if (userCart) {
-        //Merge guest cart into user cart
+        //Merge guest cart into user cart - only add new products, don't duplicate
         guestCart.products.forEach((guestItem) => {
           const productIndex = userCart.products.findIndex(
             (item) =>
@@ -199,11 +228,11 @@ router.post("/merge", protect, async (req, res) => {
               item.size === guestItem.size &&
               item.color === guestItem.color
           );
-          if (productIndex > -1) {
-            userCart.products[productIndex].quantity += guestItem.quantity;
-          } else {
+          // Only add if product doesn't already exist in user cart
+          if (productIndex === -1) {
             userCart.products.push(guestItem);
           }
+          // If product already exists, skip it (don't duplicate or add quantities)
         });
 
         userCart.totalPrice = userCart.products.reduce(
@@ -218,6 +247,8 @@ router.post("/merge", protect, async (req, res) => {
         } catch (error) {
           console.error("Error deleting guest cart", error);
         }
+        
+        console.log("✓ Cart merged successfully");
         res.status(200).json(userCart);
       } else {
         // if user has no existing cart, assign the guest cart to user

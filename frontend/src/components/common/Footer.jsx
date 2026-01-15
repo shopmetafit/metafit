@@ -75,29 +75,12 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
+                <a href="/collections/all" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
                   <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Protein Bite
+                  Explore our Products
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Respyr Device
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Super Food
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Metafit Product
-                </a>
-              </li>
+             
             </ul>
           </div>
 
@@ -107,29 +90,18 @@ const Footer = () => {
             </h3>
             <ul className="space-y-3">
               <li>
-                <a href="/contact" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
+                <a href="/contactus" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
                   <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
                   Contact us
                 </a>
               </li>
               <li>
-                <a href="/about" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
+                <a href="/aboutus" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
                   <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
                   About us
                 </a>
               </li>
-              <li>
-                <a href="#" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Ayurvedic Products
-                </a>
-              </li>
-              <li>
-                <a href="/faq" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  FAQ
-                </a>
-              </li>
+             
             </ul>
           </div>
 

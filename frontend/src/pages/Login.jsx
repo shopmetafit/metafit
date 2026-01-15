@@ -22,15 +22,29 @@ const Login = () => {
   // console.log("Login20",user);
 
   useEffect(() => {
-    if (user)
-      if (cart?.products.length > 0 && guestId) {
-        dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? "/checkout" : "/");
-        });
+    if (user) {
+      const guestIdFromStorage = localStorage.getItem("guestId");
+      const hasGuestCart = cart?.products && cart.products.length > 0;
+      
+      // Only merge if we have a guest cart and a guestId
+      if (hasGuestCart && guestIdFromStorage) {
+        console.log("Merging guest cart to user account");
+        dispatch(mergeCart({ guestId: guestIdFromStorage, user }))
+          .then(() => {
+            console.log("Cart merge completed");
+            navigate(isCheckoutRedirect ? "/checkout" : "/");
+          })
+          .catch((err) => {
+            console.error("Cart merge failed:", err);
+            // Still navigate even if merge fails
+            navigate(isCheckoutRedirect ? "/checkout" : "/");
+          });
       } else {
+        // No guest cart to merge, just navigate
         navigate(isCheckoutRedirect ? "/checkout" : "/");
       }
-  }, [user, guestId, cart, navigate, isCheckoutRedirect, dispatch]);
+    }
+  }, [user, navigate, isCheckoutRedirect, dispatch]);
 
   // const handleSubmit = (e) => {
   //   e.preventDefault();
