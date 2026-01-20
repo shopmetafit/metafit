@@ -1,4 +1,3 @@
-// Register.jsx
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { registerUser, sendOTP, verifyOTP } from "../redux/slices/authSlice";
@@ -45,7 +44,9 @@ const Register = () => {
   // Focus first OTP input when shown
   useEffect(() => {
     if (showOtpInput && otpInputRefs.current[0]) {
-      otpInputRefs.current[0].focus();
+      setTimeout(() => {
+        otpInputRefs.current[0].focus();
+      }, 100);
     }
   }, [showOtpInput]);
 
@@ -195,18 +196,20 @@ const Register = () => {
   };
 
   return (
-    <div className="flex">
-      <div className="w-full flex flex-col justify-center items-center p-4 md:p-8">
+    <div className="flex min-h-screen bg-gray-50">
+      <div className="w-full flex flex-col justify-center items-center p-3 sm:p-4 md:p-8">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-md bg-white p-6 md:p-8 rounded-lg border shadow-sm"
+          className="w-full max-w-sm sm:max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg border shadow-sm mx-2 sm:mx-4"
         >
-          <div className="flex justify-center mb-6">
-            <h2 className="text-xl font-medium">M Wellness Bazaar</h2>
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-medium">M Wellness Bazaar</h2>
           </div>
           
-          <h2 className="text-2xl font-bold text-center mb-6">Hey There!</h2>
-          <p className="text-center mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">
+            Hey There!
+          </h2>
+          <p className="text-center text-sm sm:text-base mb-4 sm:mb-6 px-2">
             {!showOtpInput 
               ? "Create your account" 
               : "Verify your phone number"
@@ -215,49 +218,57 @@ const Register = () => {
 
           {!showOtpInput ? (
             <>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold mb-2">Name *</label>
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                  Name *
+                </label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="Enter your name"
                   required
                 />
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-semibold mb-2">Email *</label>
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                  Email *
+                </label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="Enter your email address"
                   required
                 />
               </div>
               
-              <div className="mb-4">
-                <label className="block text-sm font-semibold mb-2">Password *</label>
+              <div className="mb-3 sm:mb-4">
+                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                  Password *
+                </label>
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
                   placeholder="Enter your password"
                   required
                 />
               </div>
               
-              <div className="mb-6">
-                <label className="block text-sm font-semibold mb-2">Phone Number *</label>
+              <div className="mb-4 sm:mb-6">
+                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
+                  Phone Number *
+                </label>
                 <div className="flex gap-2">
-                  <div className="flex items-center px-3 border rounded bg-gray-50">
+                  <div className="flex items-center px-2 sm:px-3 border rounded bg-gray-50 text-xs sm:text-sm">
                     <span className="text-gray-600">+91</span>
                   </div>
                   <input
@@ -265,29 +276,29 @@ const Register = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="flex-1 p-2 border rounded"
+                    className="flex-1 p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
                     placeholder="10-digit mobile number"
                     maxLength="10"
                     required
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-1 sm:mt-2">
                   We'll send a verification code to this number
                 </p>
               </div>
             </>
           ) : (
-            <div className="mb-6">
-              <div className="text-center mb-4">
+            <div className="mb-4 sm:mb-6">
+              <div className="text-center mb-3 sm:mb-4">
                 <p className="text-sm text-gray-600">
                   Enter the 6-digit OTP sent to +91 {formData.phone}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 mt-1 sm:mt-2">
                   OTP expires in: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
                 </p>
               </div>
               
-              <div className="flex justify-center gap-2 mb-4">
+              <div className="flex justify-center gap-1 sm:gap-2 mb-3 sm:mb-4">
                 {Array.from({ length: 6 }).map((_, index) => (
                   <input
                     key={index}
@@ -296,25 +307,25 @@ const Register = () => {
                     value={otp[index] || ""}
                     onChange={(e) => handleOtpChange(e.target.value, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
-                    className="w-12 h-12 text-center text-lg border rounded-lg focus:border-blue-500 focus:outline-none"
+                    className="w-10 h-10 sm:w-12 sm:h-12 text-center text-base sm:text-lg border rounded-lg focus:border-black focus:outline-none focus:ring-2 focus:ring-black"
                     maxLength="1"
                     inputMode="numeric"
                   />
                 ))}
               </div>
               
-              <div className="text-center">
+              <div className="text-center mb-3 sm:mb-4">
                 <button
                   type="button"
                   onClick={handleResendOtp}
                   disabled={timer > 0 || isSendingOtp}
-                  className={`text-sm ${timer > 0 || isSendingOtp ? 'text-gray-400 cursor-not-allowed' : 'text-blue-500 hover:text-blue-700'}`}
+                  className={`text-xs sm:text-sm ${timer > 0 || isSendingOtp ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:text-gray-700 font-medium'}`}
                 >
                   {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
                 </button>
               </div>
               
-              <p className="text-xs text-gray-500 text-center mt-4">
+              <p className="text-xs text-gray-500 text-center mt-2 sm:mt-4 px-2">
                 Didn't receive OTP? Check if the number is correct or try resend
               </p>
             </div>
@@ -323,11 +334,11 @@ const Register = () => {
           <button
             type="submit"
             disabled={isSendingOtp || isVerifying || otpLoading || otpVerifying}
-            className="w-full bg-black text-white p-2 rounded-lg font-semibold hover:bg-gray-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-black text-white p-2 sm:p-3 text-sm sm:text-base rounded-lg font-semibold hover:bg-gray-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
           >
             {(isSendingOtp || otpLoading) ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                 </svg>
@@ -335,7 +346,7 @@ const Register = () => {
               </span>
             ) : (isVerifying || otpVerifying) ? (
               <span className="flex items-center justify-center">
-                <svg className="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-white" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                 </svg>
@@ -354,17 +365,17 @@ const Register = () => {
                 setOtp("");
                 setOtpSent(false);
               }}
-              className="w-full mt-4 p-2 border rounded-lg font-semibold hover:bg-gray-50 transition"
+              className="w-full mt-3 sm:mt-4 p-2 sm:p-3 text-sm sm:text-base border rounded-lg font-semibold hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-black"
             >
               Change Phone Number
             </button>
           )}
 
-          <p className="mt-6 text-center text-sm">
+          <p className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
             Already have an account?{" "}
             <Link 
               to={`/login?redirect=${encodeURIComponent(redirect)}`} 
-              className="text-blue-500 hover:text-blue-700"
+              className="text-black hover:text-gray-700 font-medium"
             >
               Login
             </Link>
