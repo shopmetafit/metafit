@@ -14,7 +14,7 @@ const adminOrderRoutes = require("../routes/adminOrderRoutes");
 const paymentRoutes = require("../routes/payments.routes");
 const videoUploadRoute = require("../routes/videoUpload");
 const contactRoutes = require("../routes/contactRoutes");
-
+const otpRoutes = require("../routes/otpRoutes").default;
 
 const app= express();
 app.use(cors({domain:["https://metafit-a5ll.vercel.app", "http://localhost:5173"]}));
@@ -40,11 +40,12 @@ app.use("/api/orders",orderRoutes);
 app.use("/api/upload",uploadRoutes);
 app.use("/api/contact",contactRoutes);
 
+
 //Admin
 app.use("/api/admin/users",adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
-
+app.use("/api/auth", otpRoutes);
 
 
 

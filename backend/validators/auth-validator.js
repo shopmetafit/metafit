@@ -18,6 +18,13 @@ const registerSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters long")
     .max(35, "Name must be at least 3 characters long"),
+  phone: z
+    .string({ required_error: "Phone number is required" })
+    .trim()
+    .regex(
+      /^\+?[1-9]\d{1,14}$/,
+      "Invalid phone number format. It should be in E.164 format."
+    ),
 });
 
 module.exports = registerSchema;

@@ -10,14 +10,15 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
-
+      
     },
     password: { type: String, minLength: 6 },
     role: { type: String, enum: ["customer", "admin","owner"], default: "customer" },
-    avatar: { type: String }, // ✅ added for Google picture
-    googleId: { type: String }, // ✅ store Google ID if needed later
+    avatar: { type: String },
+    googleId: { type: String },
+    phone: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 //password hash middleware

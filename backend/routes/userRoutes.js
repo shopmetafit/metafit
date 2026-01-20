@@ -15,13 +15,13 @@ const client = new OAuth2Client(process.env.GOOGLE_OAUTH_KEY);
 // @desc Register a new user
 // access Public
 router.post("/register",validate(registerSchema), async (req, res) => {
-  const { name, email, password } = req.body;
-  // console.log("dsf",name);
+  const { name, email, password , phone} = req.body;
+  console.log(req.body);
   try {
     // Registration logic
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "User already exists" });
-    user = new User({ name, email, password });
+    user = new User({ name, email, password , phone });
     await user.save();
     // res.status(201).json({
     //     user:{
