@@ -34,7 +34,7 @@ const ProductGrid = ({ products, loading, error }) => {
     return <p className="text-center text-red-600 py-10">Error: {error}</p>;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
       {products && products.length > 0 ? (
         products.map((product, index) => (
           <div
@@ -93,7 +93,7 @@ const ProductGrid = ({ products, loading, error }) => {
                           ₹{product.discountPrice}
                         </p>
                         {product.price && product.discountPrice && (
-                          <span className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded-full">
+                          <span className="text-white text-[10px] font-bold bg-red-500 rounded-full w-12 h-12 flex items-center justify-center whitespace-nowrap">
                             {Math.round(
                               ((product.price - product.discountPrice) /
                                 product.price) *
