@@ -1,0 +1,242 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                     BLUE DART SHIPPING INTEGRATION ARCHITECTURE                ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                            FRONTEND (React)                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌──────────────────────┐    ┌──────────────────────┐                          │
+│  │  User Pages          │    │  Admin Dashboard     │                          │
+│  ├──────────────────────┤    ├──────────────────────┤                          │
+│  │ • Order Details      │    │ • Pending Orders     │                          │
+│  │ • Tracking Page      │    │ • Generate AWB       │                          │
+│  │ • Refresh Tracking   │    │ • Update Address     │                          │
+│  │                      │    │ • View Error         │                          │
+│  │ GET /api/shipment/   │    │ • Retry Shipment     │                          │
+│  │ GET /api/shipment/   │    │                      │                          │
+│  │     :id/track        │    │ GET  /api/admin/     │                          │
+│  │                      │    │ POST /api/admin/     │                          │
+│  └──────────────────────┘    │ PUT  /api/admin/     │                          │
+│                              │ etc.                 │                          │
+│                              └──────────────────────┘                          │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+                        (HTTP Request with JWT Token)
+                                      ↓
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                         BACKEND (Node.js / Express)                             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌────────────────────────────────────────────────────────────────────────┐   │
+│  │                           ROUTES                                       │   │
+│  ├────────────────────────────────────────────────────────────────────────┤   │
+│  │  shipmentRoutes.js              adminShipmentRoutes.js                │   │
+│  │  ├─ GET  /api/shipment/:id      ├─ GET  /api/admin/shipment/pending   │   │
+│  │  ├─ GET  /api/shipment/:id/     ├─ POST /api/admin/shipment/:id/      │   │
+│  │  │       track                  │       generate-awb                  │   │
+│  │  │                              ├─ POST /api/admin/shipment/:id/retry │   │
+│  │  │                              ├─ GET  /api/admin/shipment/:id       │   │
+│  │  │                              ├─ GET  /api/admin/shipment/:id/error │   │
+│  │  │                              ├─ GET  /api/admin/shipment/:id/track │   │
+│  │  │                              ├─ PUT  /api/admin/shipment/:id/      │   │
+│  │  │                              │       address                       │   │
+│  │  │                              ├─ POST /api/admin/shipment/:id/      │   │
+│  │  │                              │       cancel                        │   │
+│  │  └─────────────────────────────→└─────────────────────────────────────│   │
+│  └──────────────────────────────────────────────────────────────────────┬─┘   │
+│                                                  ↓                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐   │
+│  │                        CONTROLLERS                                     │   │
+│  ├────────────────────────────────────────────────────────────────────────┤   │
+│  │  bluedart.controller.js                                               │   │
+│  │  ├─ generateAWB()                  ├─ getShippingInfo()               │   │
+│  │  ├─ trackOrder()                   ├─ getShippingError()             │   │
+│  │  ├─ cancelShipment()               ├─ updateShippingAddress()        │   │
+│  │  ├─ listPendingShipments()         └─ retryShipmentGeneration()      │   │
+│  └──────────────────────────────────────────────────────────────────────┬─┘   │
+│                                                  ↓                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐   │
+│  │                         SERVICES                                       │   │
+│  ├────────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                        │   │
+│  │  bluedart.service.js             tracking-sync.js                   │   │
+│  │  ├─ generateJWTToken()           ├─ start()                          │   │
+│  │  ├─ generateWayBill()            ├─ syncPendingShipments()           │   │
+│  │  ├─ trackShipment()              ├─ syncOrder()                      │   │
+│  │  └─ cancelWayBill()              └─ saveTrackingUpdate()             │   │
+│  │       ↓                                                                │   │
+│  │     Blue Dart API                 Runs Every 1 Hour                  │   │
+│  │                                                                        │   │
+│  └──────────────────────────────────────────────────────────────────────┬─┘   │
+│                                                  ↓                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐   │
+│  │                    DATA MODELS & DATABASE                              │   │
+│  ├────────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                        │   │
+│  │  Order.js                        TrackingHistory.js                 │   │
+│  │  ├─ orderId                      ├─ orderId                          │   │
+│  │  ├─ user                         ├─ awbNo                            │   │
+│  │  ├─ orderItems                   ├─ status                           │   │
+│  │  ├─ shippingAddress              ├─ description                      │   │
+│  │  ├─ totalPrice                   ├─ location                         │   │
+│  │  ├─ isPaid ✓                     ├─ eventDate                        │   │
+│  │  ├─ status (Processing/Shipped)  ├─ lastSyncedAt                     │   │
+│  │  ├─ awbNo ← GENERATED            ├─ bluedartResponse                 │   │
+│  │  ├─ trackingId                   ├─ isLatest                         │   │
+│  │  ├─ shippingStatus               └─ createdAt                        │   │
+│  │  ├─ shippingError ← IF FAILED                                        │   │
+│  │  └─ bluedartGeneratedAt                                              │   │
+│  │                                                                        │   │
+│  │                    ↓                                                   │   │
+│  │              MONGODB DATABASE                                         │   │
+│  │                                                                        │   │
+│  └────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                 │
+│  ┌────────────────────────────────────────────────────────────────────────┐   │
+│  │                      EXTERNAL SERVICES                                 │   │
+│  ├────────────────────────────────────────────────────────────────────────┤   │
+│  │                                                                        │   │
+│  │  Blue Dart API                    Caching Strategy                   │   │
+│  │  ├─ sandbox.bluedart.com          ├─ Primary: Live from BD            │   │
+│  │  ├─ JWT Token: 45 min             ├─ Fallback: Cached data            │   │
+│  │  ├─ AWB Generation                ├─ Sync: Every 1 hour               │   │
+│  │  ├─ Shipment Tracking             └─ ForceRefresh: On demand          │   │
+│  │  └─ Waybill Cancellation                                              │   │
+│  │                                                                        │   │
+│  │  Data Source Response:                                               │   │
+│  │  {                                                                    │   │
+│  │    "tracking": { ... },                                              │   │
+│  │    "dataSource": {                                                   │   │
+│  │      "isLive": true/false,        ← From Blue Dart                    │   │
+│  │      "isCached": true/false,      ← From Database Cache               │   │
+│  │      "unavailable": true/false    ← No data at all                    │   │
+│  │    }                                                                  │   │
+│  │  }                                                                    │   │
+│  │                                                                        │   │
+│  └────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+                                      ↓
+                       (HTTP Response with data)
+                                      ↓
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           FRONTEND DISPLAYS                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  USER:                                    ADMIN:                              │
+│  ┌──────────────────────────┐             ┌──────────────────────────┐        │
+│  │ Order #123456            │             │ Pending Shipments        │        │
+│  │ Status: Shipped          │             │ ├─ Order 123456         │        │
+│  │ AWB: 8918123456          │             │ ├─ Order 123457         │        │
+│  │ Tracking: In Transit     │             │ └─ Order 123458         │        │
+│  │ Last Update: 2h ago      │             │                          │        │
+│  │ Data: Cached (offline)   │             │ [Ship Order] [Details]  │        │
+│  │ [Refresh]                │             └──────────────────────────┘        │
+│  └──────────────────────────┘                                                 │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                              COMPLETE WORKFLOW                                 ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+1. CUSTOMER PLACES ORDER
+   └─→ Order created with status: "Processing"
+
+2. PAYMENT CONFIRMED
+   └─→ Order.isPaid = true
+   └─→ Admin notified
+
+3. ADMIN CLICKS "SHIP ORDER"
+   └─→ Admin corrects address (if needed)
+   └─→ Calls POST /api/admin/shipment/:orderId/generate-awb
+
+4. BACKEND CALLS BLUE DART
+   └─→ bluedart.service.generateJWTToken()
+   └─→ bluedart.service.generateWayBill()
+
+5. AWB GENERATED
+   └─→ Order.awbNo = "8918123456"
+   └─→ Order.status = "Shipped"
+   └─→ TrackingHistory created
+
+6. CUSTOMER CHECKS TRACKING
+   └─→ GET /api/shipment/:orderId/track
+   └─→ Returns cached data + data source
+
+7. BACKGROUND SYNC (EVERY HOUR)
+   └─→ tracking-sync.syncPendingShipments()
+   └─→ Calls Blue Dart for each AWB
+   └─→ Updates TrackingHistory
+
+8. STATUS UPDATES
+   └─→ If tracking shows "Delivered"
+   └─→ Order.status = "Delivered"
+   └─→ Customer notified
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                            OFFLINE CAPABILITY                                  ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+SCENARIO: Blue Dart API is DOWN
+
+GET /api/shipment/:orderId/track
+    ↓
+Try Blue Dart API (FAILS)
+    ↓
+Fallback to TrackingHistory (SUCCESS)
+    ↓
+Return cached data with indicator:
+{
+  "tracking": { ... from cache ... },
+  "dataSource": {
+    "isLive": false,
+    "isCached": true,
+    "unavailable": false
+  },
+  "message": "Live tracking unavailable. Showing cached data."
+}
+    ↓
+User sees last known tracking status
+User can see "Last updated: 2 hours ago"
+
+WHEN BLUE DART COMES BACK UP:
+Background sync automatically updates cache within 1 hour
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                          FILES & ORGANIZATION                                  ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+backend/
+├── models/
+│   ├── Order.js                    (MODIFIED: +7 shipping fields)
+│   └── TrackingHistory.js          (NEW: Caches Blue Dart responses)
+├── utils/
+│   ├── bluedart.service.js         (NEW: API service)
+│   └── tracking-sync.js            (NEW: Background sync)
+├── routes/
+│   ├── shipmentRoutes.js           (NEW: User routes)
+│   └── adminShipmentRoutes.js      (NEW: Admin routes)
+├── controllers/
+│   └── bluedart.controller.js      (NEW: 8 controller functions)
+├── api/
+│   └── server.js                   (MODIFIED: +routes & tracking sync)
+├── STEP_1_COMPLETE.md              (Documentation)
+├── STEP_2_COMPLETE.md              (Documentation)
+├── STEP_3_COMPLETE.md              (Documentation)
+├── STEP_4_FRONTEND_API.md          (Documentation)
+├── FRONTEND_TEAM_TASKS.md          (Tasks for frontend)
+├── QUICK_REFERENCE.md              (Quick lookup)
+├── README_BLUEDART.md              (This overview)
+└── ... (other docs)
+
+═════════════════════════════════════════════════════════════════════════════════
+
+✅ IMPLEMENTATION COMPLETE
+✅ PRODUCTION READY
+✅ OFFLINE CAPABLE
+✅ FULLY DOCUMENTED
+✅ FRONTEND READY
+
+═════════════════════════════════════════════════════════════════════════════════

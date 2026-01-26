@@ -1,0 +1,252 @@
+{
+  "info": {
+    "name": "Blue Dart Shipping Integration Tests",
+    "description": "Complete testing flow from order creation to tracking",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Cart Items",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"PRODUCT_ID\",\n  \"quantity\": 2,\n  \"size\": \"M\",\n  \"color\": \"red\",\n  \"price\": 999\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9000/api/cart",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "cart"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Create Checkout Session",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"checkoutItems\": [\n    {\n      \"productId\": \"PRODUCT_ID\",\n      \"name\": \"Test Product\",\n      \"image\": \"https://example.com/image.jpg\",\n      \"price\": 999,\n      \"quantity\": 2,\n      \"size\": \"M\",\n      \"color\": \"red\"\n    }\n  ],\n  \"shippingAddress\": {\n    \"address\": \"123 Customer Street\",\n    \"city\": \"Mumbai\",\n    \"postalCode\": \"400001\",\n    \"country\": \"IN\"\n  },\n  \"paymentMethod\": \"razorpay\",\n  \"totalPrice\": 1998\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9000/api/checkout",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "checkout"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Mark Checkout as Paid",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"paymentStatus\": \"paid\",\n  \"paymentDetails\": {\n    \"razorpay_payment_id\": \"pay_test_123\",\n    \"razorpay_order_id\": \"order_test_123\",\n    \"razorpay_signature\": \"sig_test_123\"\n  }\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9000/api/checkout/CHECKOUT_ID/pay",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "checkout",
+            "CHECKOUT_ID",
+            "pay"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Finalize Checkout (Creates Order)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": {
+          "raw": "http://localhost:9000/api/checkout/CHECKOUT_ID/finalize",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "checkout",
+            "CHECKOUT_ID",
+            "finalize"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Generate AWB (Create Shipping)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"consigneeName\": \"Rajesh Kumar\",\n  \"consigneePhone\": \"9876543210\",\n  \"consigneeEmail\": \"rajesh@example.com\",\n  \"weight\": \"1.5\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:9000/api/shipment/ORDER_ID/generate-awb",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "shipment",
+            "ORDER_ID",
+            "generate-awb"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Get Shipping Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/shipment/ORDER_ID",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "shipment",
+            "ORDER_ID"
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Track Shipment",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/shipment/ORDER_ID/track",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "shipment",
+            "ORDER_ID",
+            "track"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Cancel Shipment (Optional)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer YOUR_TOKEN"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:9000/api/shipment/ORDER_ID/cancel",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "9000",
+          "path": [
+            "api",
+            "shipment",
+            "ORDER_ID",
+            "cancel"
+          ]
+        }
+      }
+    }
+  ]
+}

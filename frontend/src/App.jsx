@@ -30,6 +30,12 @@ import ShippingPolicy from "./pages/ShippingPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import PricingPolicy from "./pages/PricingPolicy";
 
+
+import BlogList from "./components/Blog/BlogList";
+import BlogDetail from "./components/Blog/BlogDetail";
+import BlogEditor from "./components/Admin/BlogEditor";
+import BlogDashboard from "./components/Admin/BlogDashboard";
+
 const App = () => {
   return (
     <Provider store={store}>
@@ -57,6 +63,9 @@ const App = () => {
             />
             <Route path="order/:id" element={<OrderDetailsPage />} />
             <Route path="my-orders" element={<MyOrdersPage />} />
+            <Route path="blog" element={<BlogList />} />
+            <Route path="blog/:slug" element={<BlogDetail />} />
+          
           </Route>
           <Route
             path="/admin"
@@ -72,6 +81,10 @@ const App = () => {
             <Route path="products/new" element={<NewProductPage />} />
             <Route path="products/:id/edit" element={<EditProductPage />} />
             <Route path="orders" element={<OrderManagement />} />
+         <Route path="blogs" element={<BlogDashboard />} />
+            <Route path="blogs/create" element={<BlogEditor />} />
+            <Route path="blogs/:id" element={<BlogEditor />} />
+         
           </Route>
         </Routes>
       </BrowserRouter>

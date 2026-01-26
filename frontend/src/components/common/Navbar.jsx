@@ -234,6 +234,8 @@ const Navbar = () => {
         {/* Desktop navigation */}
         <div className="hidden lg:flex flex-nowrap  space-x-4 items-center">
           <Link to="/aboutUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">About&nbsp;Us</Link>
+                    <Link to="/blog" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">Blog</Link>
+
           <Link to="/contactUs" className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/10 hover:bg-white/20 text-sm font-semibold text-white transition">Contact&nbsp;Us</Link>
         
         </div>
@@ -303,6 +305,8 @@ const Navbar = () => {
           </h2>
           <nav className="space-y-6 mt-6">
             <Link to="/aboutUs" className="block text-gray-600 hover:text-black">About Us</Link>
+                      <Link to="/blog" className="block text-gray-600 hover:text-black">Blog</Link>
+
             <Link to="/contactUs" className="block text-gray-600 hover:text-black">Contact Us</Link>
           </nav>
         </div>

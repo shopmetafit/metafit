@@ -74,6 +74,31 @@ const orderSchema = new mongoose.Schema(
       enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
       default: "Processing",
     },
+    // Blue Dart Shipping
+    courier: {
+      type: String,
+      default: "bluedart",
+    },
+    awbNo: {
+      type: String,
+      default: null,
+    },
+    trackingId: {
+      type: String,
+      default: null,
+    },
+    shippingStatus: {
+      type: String,
+      default: "Pending", // Pending, In-Transit, Delivered, Failed
+    },
+    shippingError: {
+      type: String,
+      default: null, // Error message if shipping fails
+    },
+    bluedartGeneratedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

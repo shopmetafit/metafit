@@ -1,0 +1,188 @@
+.shipping-details {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.shipping-details.loading,
+.shipping-details.error,
+.shipping-details.info {
+  text-align: center;
+  color: #666;
+  padding: 30px 20px;
+}
+
+.shipping-details.loading {
+  color: #666;
+}
+
+.shipping-details.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.shipping-details.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.shipping-section {
+  margin-bottom: 30px;
+}
+
+.shipping-section:last-child {
+  margin-bottom: 0;
+}
+
+.shipping-section h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #007bff;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-row label {
+  color: #666;
+  font-weight: 600;
+  min-width: 150px;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.info-row span {
+  color: #333;
+  font-size: 14px;
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+  padding-left: 15px;
+}
+
+.info-row .awb-number {
+  font-family: monospace;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.info-row .status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status.processing {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.shipped {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status.delivered {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.cancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.info-row .shipping-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.shipping-status.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.shipping-status.in-transit {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.shipping-status.delivered {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.shipping-status.failed {
+  background: #f8d7da;
+  color: #842029;
+}
+
+.error-row {
+  background: #fff5f5;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.error-row label {
+  color: #721c24;
+}
+
+.error-text {
+  color: #721c24 !important;
+}
+
+@media (max-width: 768px) {
+  .shipping-details {
+    padding: 15px;
+  }
+
+  .shipping-section h3 {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .info-row {
+    flex-direction: column;
+    padding: 10px 0;
+  }
+
+  .info-row label {
+    min-width: auto;
+    margin-bottom: 4px;
+    color: #666;
+  }
+
+  .info-row span {
+    text-align: left;
+    padding-left: 0;
+  }
+
+  .info-row .awb-number,
+  .info-row .status,
+  .info-row .shipping-status {
+    display: inline-block;
+    margin-top: 4px;
+  }
+}

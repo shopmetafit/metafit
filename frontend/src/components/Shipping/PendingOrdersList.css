@@ -1,0 +1,327 @@
+.pending-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.pending-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.pending-header h2 {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.pending-count {
+  margin: 8px 0 0 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.orders-table thead {
+  background: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.orders-table th {
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.orders-table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.orders-table tbody tr:hover {
+  background: #f8f9fa;
+}
+
+.order-id {
+  font-family: monospace;
+  color: #007bff;
+  font-weight: 600;
+}
+
+.customer-info {
+  text-align: left;
+}
+
+.customer-name {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.customer-email {
+  color: #666;
+  font-size: 12px;
+}
+
+.amount {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.shipped {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-badge.delivered {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-badge.failed {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.address {
+  max-width: 150px;
+}
+
+.address-text {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.action {
+  text-align: center;
+}
+
+.btn-ship {
+  padding: 8px 16px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.btn-ship:hover {
+  background: #0056b3;
+}
+
+.btn-ship:active {
+  transform: scale(0.98);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid #eee;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-numbers {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination-number {
+  padding: 6px 10px;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+  min-width: 36px;
+}
+
+.pagination-number:hover {
+  background: #f8f9fa;
+}
+
+.pagination-number.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.loading-state,
+.empty-state,
+.error-state {
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+}
+
+.loading-state {
+  font-size: 16px;
+}
+
+.empty-state p,
+.error-state p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.error-message {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.error-message strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  .orders-table {
+    font-size: 12px;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 10px;
+  }
+
+  .order-id {
+    font-size: 11px;
+  }
+
+  .customer-email {
+    display: none;
+  }
+
+  .address {
+    max-width: 100px;
+  }
+
+  .address-text {
+    font-size: 12px;
+  }
+
+  .btn-ship {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .pagination {
+    gap: 5px;
+    padding: 15px;
+  }
+
+  .pagination-btn,
+  .pagination-number {
+    padding: 6px 8px;
+    font-size: 12px;
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .pending-header {
+    padding: 15px;
+  }
+
+  .pending-header h2 {
+    font-size: 16px;
+  }
+
+  .orders-table {
+    font-size: 11px;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 8px;
+  }
+
+  .customer-name {
+    font-size: 12px;
+  }
+
+  .address-text {
+    display: none;
+  }
+
+  .btn-ship {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pagination-btn,
+  .pagination-number {
+    width: 100%;
+  }
+
+  .pagination-numbers {
+    width: 100%;
+    justify-content: center;
+  }
+}
