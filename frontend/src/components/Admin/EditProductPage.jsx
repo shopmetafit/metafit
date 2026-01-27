@@ -27,6 +27,7 @@ const EditProductPage = () => {
     collections: "",
     material: "",
     gender: "",
+    priority: 0,
     images: [
       // {
       //   url: "https://picsum.photos/150?random=1",
@@ -314,6 +315,20 @@ const EditProductPage = () => {
             />
           </div>
         </div>
+            {/* Priority */}
+<div className="mb-6">
+  <label className="block font-semibold mb-2">Priority</label>
+  <input
+    type="number"
+    name="priority"
+    value={productData.priority}
+    onChange={handleChange}
+    className="w-full border border-gray-300 rounded-md p-2"
+  />
+  <p className="text-gray-500 text-sm mt-1">
+    Higher number = higher display priority
+  </p>
+</div>
 
 
         {/* count in stock */}

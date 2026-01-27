@@ -190,29 +190,13 @@ router.get("/", async (req, res) => {
 
     let query = {};
     // Filter logic
-    if (collection && collection.toLocaleLowerCase() !== "all") {
-      query.collection = collection;
-    }
-
-    if (category && category.toLocaleLowerCase() !== "all") {
-      query.category = { $regex: category, $options: "i" };
-    }
-
-    if (brand) {
-      query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
-    }
-    if (material) {
-      query.material = { $in: material.split(",") };
-    }
-    if (size) {
-      query.sizes = { $in: size.split(",") };
-    }
-    if (color) {
-      query.colors = { $in: [color] };
-    }
-    if (gender) {
-      query.gender = gender;
-    }
+    if (collection && collection.toLowerCase() !== "all") query.collection = collection;
+    if (category && category.toLowerCase() !== "all") query.category = { $regex: category, $options: "i" };
+    if (brand) query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
+    if (material) query.material = { $in: material.split(",") };
+    if (size) query.sizes = { $in: size.split(",") };
+    if (color) query.colors = { $in: [color] };
+    if (gender) query.gender = gender;
     if (minPrice || maxPrice) {
       query.discountPrice = {};
       if (minPrice) query.discountPrice.$gte = Number(minPrice);
@@ -226,7 +210,8 @@ router.get("/", async (req, res) => {
     }
 
     // sort logic
-    let sort = {};
+    let sort = { priority: -1 }; // <-- default: higher priority first
+
     if (sortBy) {
       switch (sortBy) {
         case "priceAsc":
@@ -238,22 +223,26 @@ router.get("/", async (req, res) => {
         case "popularity":
           sort = { rating: -1 };
           break;
+        case "priority":
+          sort = { priority: -1 }; // explicitly sort by priority
+          break;
         default:
           break;
       }
     }
 
-    //  Fetch products and apply sorting and limit
+    // Fetch products, apply sorting & limit
     let products = await Product.find(query)
       .sort(sort)
       .limit(Number(limit) || 0);
+
     res.json(products);
-    // console.log("PR231", products);
   } catch (error) {
     console.error(error);
     res.status(500).send("Server Error");
   }
 });
+
 
 // @route get/api/products/best-seller
 // @desc Retrieve the products with higher rating

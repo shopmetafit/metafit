@@ -88,10 +88,12 @@ router.put("/:id", protect, admin, async (req, res) => {
       images,
       extraImages,
       hasVariants,
-      variants
+      variants,
+      priority,
     } = req.body;
+
     const product = await Product.findById(req.params.id);
-    console.log(product);
+
     if (product) {
       // update product fields
       product.name = name || product.name;
@@ -113,7 +115,8 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.hasVariants = hasVariants !== undefined ? hasVariants : product.hasVariants;
       product.variants = variants !== undefined ? variants : product.variants;
 
-      //   save the  updated product
+      product.priority = priority ?? product.priority; // <-- update priority here
+
       const updatedProduct = await product.save();
       res.json(updatedProduct);
     } else {

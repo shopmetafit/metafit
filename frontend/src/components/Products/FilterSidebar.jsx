@@ -102,17 +102,37 @@ const FilterSidebar = () => {
     );
   }, [searchParams]);
 
+  const handleCategoryChange = (normalizedCategory) => {
+    const newCategory = selectedCategory === normalizedCategory ? "" : normalizedCategory;
+    setSelectedCategory(newCategory);
+    
+    // Apply filters directly
+    const params = new URLSearchParams(searchParams);
+    params.delete("search");
+    
+    if (newCategory) {
+      params.set("category", newCategory);
+    } else {
+      params.delete("category");
+    }
+
+    if (selectedBrands.length > 0) {
+      params.set("brand", selectedBrands.join(","));
+    } else {
+      params.delete("brand");
+    }
+
+    setSearchParams(params);
+  };
+
   const handleBrandChange = (normalizedBrand) => {
     const newSelectedBrands = selectedBrands.includes(normalizedBrand)
       ? selectedBrands.filter((b) => b !== normalizedBrand)
-      : [...selectedBrands, normalizedBrand];
+      : [normalizedBrand]; // Only one brand can be selected
     setSelectedBrands(newSelectedBrands);
-  };
-
-  const applyFilters = () => {
-    const params = new URLSearchParams(searchParams);
     
-    // Clear search term when applying filters (category, price, brand)
+    // Apply filters directly
+    const params = new URLSearchParams(searchParams);
     params.delete("search");
     
     if (selectedCategory) {
@@ -121,11 +141,8 @@ const FilterSidebar = () => {
       params.delete("category");
     }
 
-    params.set("minPrice", priceValues[0]);
-    params.set("maxPrice", priceValues[1]);
-
-    if (selectedBrands.length > 0) {
-      params.set("brand", selectedBrands.join(","));
+    if (newSelectedBrands.length > 0) {
+      params.set("brand", newSelectedBrands.join(","));
     } else {
       params.delete("brand");
     }
@@ -167,7 +184,7 @@ const FilterSidebar = () => {
                 <div
                   key={category.normalizedName}
                   className={`flex items-center p-3 -ml-3 rounded-lg cursor-pointer transition-colors duration-200 ${selectedCategory === category.normalizedName ? 'bg-green-100' : 'hover:bg-gray-50'}`}
-                  onClick={() => setSelectedCategory(category.normalizedName)}
+                  onClick={() => handleCategoryChange(category.normalizedName)}
                 >
                   <div className={`mr-4 text-lg ${selectedCategory === category.normalizedName ? 'text-[#0FA958]' : 'text-gray-500'}`}>
                     {categoryIcons[category.normalizedName] || <FaTags />}
@@ -253,20 +270,12 @@ const FilterSidebar = () => {
         </div>
         
         <div className="pt-6 border-t border-gray-200">
-        <div className="flex flex-col space-y-3">
-          <button 
-            onClick={applyFilters}
-            className="w-full bg-[#0FA958] text-white py-3 rounded-lg font-semibold text-base hover:bg-green-700 transition-colors duration-300 shadow-sm"
-          >
-            Apply Filters
-          </button>
           <button 
             onClick={resetFilters}
             className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold text-base hover:bg-gray-300 transition-colors duration-300"
           >
-            Reset
+            Reset Filters
           </button>
-        </div>
         </div>
         </div>
 

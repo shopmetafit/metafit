@@ -34,6 +34,11 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+     priority: {
+     type: Number,
+     default: 0,
+     },
+
     isPublished: {
       type: Boolean,
       default: false,
