@@ -138,8 +138,16 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.cart = action.payload;
-        saveCartToStorage(action.payload);
+        // Ensure all items have price field
+        const cart = action.payload;
+        if (cart.products) {
+          cart.products = cart.products.map(p => ({
+            ...p,
+            price: p.price || 0,
+          }));
+        }
+        state.cart = cart;
+        saveCartToStorage(cart);
       })
       .addCase(fetchCart.rejected, (state,action) => {
         state.loading = false;
@@ -150,8 +158,16 @@ const cartSlice = createSlice({
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.cart = action.payload;
-        saveCartToStorage(action.payload);
+        // Ensure all items have price field
+        const cart = action.payload;
+        if (cart.products) {
+          cart.products = cart.products.map(p => ({
+            ...p,
+            price: p.price || 0,
+          }));
+        }
+        state.cart = cart;
+        saveCartToStorage(cart);
       })
       .addCase(updateCartItemQuantity.rejected, (state,action) => {
         state.loading = false;

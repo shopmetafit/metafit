@@ -51,6 +51,10 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    deliveryCharge: {
+      type: Number,
+      default: 100,
+    },
     isPaid: {
       type: Boolean,
       default: false,
@@ -104,5 +108,19 @@ const orderSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Method to calculate delivery charge based on city
+orderSchema.methods.calculateDeliveryCharge = function () {
+  const city = this.shippingAddress?.city?.toLowerCase();
+  return city === "udaipur" ? 60 : 100;
+};
+
+// Pre-save hook to auto-calculate delivery charge
+orderSchema.pre("save", function (next) {
+  if (!this.deliveryCharge) {
+    this.deliveryCharge = this.calculateDeliveryCharge();
+  }
+  next();
+});
 
 module.exports = mongoose.model("order", orderSchema);

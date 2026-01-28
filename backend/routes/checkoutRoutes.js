@@ -18,6 +18,10 @@ router.post("/", protect, async (req, res) => {
   }
 
   try {
+    // Calculate delivery charge based on city
+    const city = shippingAddress?.city?.toLowerCase();
+    const deliveryCharge = city === "udaipur" ? 60 : 100;
+
     // create a new checkout session
     const newCheckout = await Checkout.create({
       user: req.user._id,
@@ -25,6 +29,7 @@ router.post("/", protect, async (req, res) => {
       shippingAddress,
       paymentMethod,
       totalPrice,
+      deliveryCharge,
       paymentStatus: "Pending",
       isPaid: false,
     });
@@ -80,6 +85,7 @@ router.post("/:id/finalize", protect, async (req, res) => {
         shippingAddress: checkout.shippingAddress,
         paymentMethod: checkout.paymentMethod,
         totalPrice: checkout.totalPrice,
+        deliveryCharge: checkout.deliveryCharge,
         isPaid: true,
         paidAt: checkout.paidAt,
         isDelivered: false,

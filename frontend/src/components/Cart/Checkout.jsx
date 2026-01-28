@@ -288,27 +288,31 @@ console.log(user);
     }
 
     if (cart && cart.products.length > 0) {
-      localStorage.setItem(
-  `shippingAddress_${user.email}`,
-  JSON.stringify(shippingAddress)
-);
+       localStorage.setItem(
+    `shippingAddress_${user.email}`,
+    JSON.stringify(shippingAddress)
+    );
 
-      const res = await dispatch(
-        createCheckout({
-          checkoutItems: cart.products,
-          shippingAddress,
-          paymentMethod: "Razorpay",
-          totalPrice: cart.totalPrice,
-        })
-      );
-      // console.log("chekout165", res);
-      if (res.payload && res.payload._id) {
-        // console.log("cho20", res.payload);
-        setCheckoutId(res.payload._id); //Set checkout ID if checkout was successful
+       // Calculate delivery charge
+       const deliveryCharge = shippingAddress.city?.toLowerCase() === "udaipur" ? 60 : 100;
+       const totalWithDelivery = cart.totalPrice + deliveryCharge;
 
-        handleRazorpayPayment(cart.totalPrice, res.payload._id);
-      }
-    }
+       const res = await dispatch(
+         createCheckout({
+           checkoutItems: cart.products,
+           shippingAddress,
+           paymentMethod: "Razorpay",
+           totalPrice: totalWithDelivery,
+         })
+       );
+       // console.log("chekout165", res);
+       if (res.payload && res.payload._id) {
+         // console.log("cho20", res.payload);
+         setCheckoutId(res.payload._id); //Set checkout ID if checkout was successful
+
+         handleRazorpayPayment(totalWithDelivery, res.payload._id);
+       }
+     }
     // setCheckoutId(123); //Set checkout ID if checkout was successful
   };
 
@@ -513,15 +517,15 @@ console.log(user);
         </div>
         <div className="flex justify-between items-center text-lg mb-4">
           <p>Sub Total</p>
-          <p>{cart.totalPrice.toLocaleString()}</p>
+          <p>Rs {cart.totalPrice.toLocaleString()}</p>
         </div>
         <div className="flex justify-between items-center text-lg">
           <p>Shipping</p>
-          <p>Free</p>
+          <p>Rs {shippingAddress.city?.toLowerCase() === "udaipur" ? "60" : "100"}</p>
         </div>
         <div className="flex justify-between items-center text-lg mb-4 border-t pt-4">
           <p>Total</p>
-          <p>Rs {cart.totalPrice?.toLocaleString()}</p>
+          <p>Rs {(cart.totalPrice + (shippingAddress.city?.toLowerCase() === "udaipur" ? 60 : 100))?.toLocaleString()}</p>
         </div>
       </div>
     </div>
