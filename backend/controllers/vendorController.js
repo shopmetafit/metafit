@@ -28,20 +28,26 @@ const registerVendor = async (req, res) => {
     } = req.body;
 
     // Validation
-    if (!companyName || !gstNo || !panNo || !bankDetails || !pickupAddress) {
+    if (!companyName || !bankDetails || !pickupAddress) {
       return res
         .status(400)
         .json({ message: "Missing required fields" });
     }
 
-    // Validate GST format (15 digit)
-    if (!/^\d{15}$/.test(gstNo.replace(/\D/g, ""))) {
+    // Validate GST format - only if provided
+    // Format: 2 digits (state) + 10 alphanumeric (PAN) + 1 digit + Z + 1 alphanumeric
+    if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
       return res.status(400).json({ message: "Invalid GST number format" });
     }
 
-    // Validate PAN format (10 character)
-    if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
+    // Validate PAN format (10 character) - only if provided
+    if (panNo && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
       return res.status(400).json({ message: "Invalid PAN format" });
+    }
+
+    // Validate account number - only numbers
+    if (bankDetails.accountNumber && !/^\d+$/.test(bankDetails.accountNumber)) {
+      return res.status(400).json({ message: "Account number must contain only digits" });
     }
 
     // Create vendor profile
