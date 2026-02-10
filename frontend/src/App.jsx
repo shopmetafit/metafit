@@ -35,6 +35,16 @@ import BlogList from "./components/Blog/BlogList";
 import BlogDetail from "./components/Blog/BlogDetail";
 import BlogEditor from "./components/Admin/BlogEditor";
 import BlogDashboard from "./components/Admin/BlogDashboard";
+import VendorLayout from "./components/Vendor/VendorLayout";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorProducts from "./pages/VendorProducts";
+import VendorOrders from "./pages/VendorOrders";
+import VendorEarnings from "./pages/VendorEarnings";
+import VendorRegistrationForm from "./pages/VendorRegistrationForm";
+import AdminVendorManagement from "./pages/AdminVendorManagement";
+import VendorApprovalStatus from "./pages/VendorApprovalStatus";
+import VendorAddProductPage from "./pages/VendorAddProductPage";
+import ProductApprovalPage from "./components/Admin/ProductApprovalPage";
 
 const App = () => {
   return (
@@ -63,30 +73,53 @@ const App = () => {
             />
             <Route path="order/:id" element={<OrderDetailsPage />} />
             <Route path="my-orders" element={<MyOrdersPage />} />
+            <Route path="become-vendor" element={<VendorRegistrationForm />} />
+            <Route path="vendor/approval-status" element={<VendorApprovalStatus />} />
             <Route path="blog" element={<BlogList />} />
             <Route path="blog/:slug" element={<BlogDetail />} />
           
           </Route>
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoutes role="admin">
+                  <AdminLayout />
+                </ProtectedRoutes>
+              }
+            >
+              <Route index element={<AdminHomePage />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="vendors" element={<AdminVendorManagement />} />
+              <Route path="products" element={<ProductManagement />} />
+              <Route path="products/new" element={<NewProductPage />} />
+              <Route path="products/:id/edit" element={<EditProductPage />} />
+              <Route path="product-approvals" element={<ProductApprovalPage />} />
+              <Route path="orders" element={<OrderManagement />} />
+              <Route path="blogs" element={<BlogDashboard />} />
+              <Route path="blogs/create" element={<BlogEditor />} />
+              <Route path="blogs/:id" element={<BlogEditor />} />
+          
+            </Route>
+
+          {/* Vendor Routes */}
           <Route
-            path="/admin"
+            path="/vendor"
             element={
-              <ProtectedRoutes role="admin">
-                <AdminLayout />
+              <ProtectedRoutes role="vendor">
+                <VendorLayout />
               </ProtectedRoutes>
             }
           >
-            <Route index element={<AdminHomePage />} />
-            <Route path="users" element={<UserManagement />} />
-            <Route path="products" element={<ProductManagement />} />
-            <Route path="products/new" element={<NewProductPage />} />
-            <Route path="products/:id/edit" element={<EditProductPage />} />
-            <Route path="orders" element={<OrderManagement />} />
-         <Route path="blogs" element={<BlogDashboard />} />
-            <Route path="blogs/create" element={<BlogEditor />} />
-            <Route path="blogs/:id" element={<BlogEditor />} />
-         
+            <Route path="dashboard" element={<VendorDashboard />} />
+            <Route path="products" element={<VendorProducts />} />
+            <Route path="products/new" element={<VendorAddProductPage />} />
+            <Route path="products/:id/edit" element={<VendorProducts />} />
+            <Route path="orders" element={<VendorOrders />} />
+            <Route path="earnings" element={<VendorEarnings />} />
           </Route>
-        </Routes>
+
+
+          </Routes>
       </BrowserRouter>
     </Provider>
   );

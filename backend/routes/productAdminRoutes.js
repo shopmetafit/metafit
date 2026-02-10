@@ -1,6 +1,14 @@
 const express = require("express");
 const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
+const {
+  getPendingProducts,
+  approveProduct,
+  rejectProduct,
+  getVendorProductsAdmin,
+  bulkApproveProducts,
+  getApprovalStats,
+} = require("../controllers/productApprovalController");
 
 const router = express.Router();
 //@ GET / api/admin/products
@@ -146,4 +154,27 @@ router.delete("/:id", protect, admin, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
+// ========================
+// Product Approval Routes
+// ========================
+
+// Get pending products
+router.get("/pending", protect, admin, getPendingProducts);
+
+// Get approval stats
+router.get("/approval/stats", protect, admin, getApprovalStats);
+
+// Get vendor's products (admin view)
+router.get("/vendor/:vendorId/products", protect, admin, getVendorProductsAdmin);
+
+// Approve single product
+router.put("/:id/approve", protect, admin, approveProduct);
+
+// Reject single product
+router.put("/:id/reject", protect, admin, rejectProduct);
+
+// Bulk approve products
+router.put("/bulk/approve", protect, admin, bulkApproveProducts);
+
 module.exports = router;

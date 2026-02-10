@@ -57,6 +57,32 @@ const productSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      // Populated for vendor products, null for admin-created products
+    },
+    createdBy: {
+      type: String,
+      enum: ["ADMIN", "VENDOR"],
+      default: "ADMIN",
+    },
+    productApprovalStatus: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      // Admin user who approved the product
+    },
+    approvedAt: {
+      type: Date,
+    },
+    rejectionReason: {
+      type: String,
+    },
     metaTile: {
       type: String,
     },

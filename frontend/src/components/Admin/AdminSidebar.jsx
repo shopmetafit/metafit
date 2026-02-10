@@ -1,8 +1,9 @@
-import { FaBoxOpen, FaClipboardList, FaSignOutAlt, FaStore, FaUser, FaBlog } from "react-icons/fa";
+import { FaBoxOpen, FaClipboardList, FaSignOutAlt, FaStore, FaUser, FaBlog, FaCheckCircle } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { clearCart } from "../../redux/slices/cartSlice";
 import { logout } from "../../redux/slices/authSlice";
+import { CircleUserRoundIcon } from "lucide-react";
 
 const AdminSidebar = () => {
    const navigate= useNavigate();
@@ -32,6 +33,21 @@ const AdminSidebar = () => {
           <FaUser />
         <span>User</span>
         </NavLink>
+
+
+          <NavLink
+          to="/admin/vendors"
+          className={(isActive) => {
+            isActive
+              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
+              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
+          }}
+        >
+          <CircleUserRoundIcon />
+        <span>Vendor Managment </span>
+        </NavLink>
+
+
         <NavLink
           to="/admin/products"
           className={(isActive) => {
@@ -42,6 +58,18 @@ const AdminSidebar = () => {
         >
           <FaBoxOpen />
         <span>Edit Products</span>
+        </NavLink>
+
+        <NavLink
+          to="/admin/product-approvals"
+          className={(isActive) => {
+            isActive
+              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
+              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
+          }}
+        >
+          <FaCheckCircle />
+        <span>Product Approvals</span>
         </NavLink>
         <NavLink
           to="/admin/orders"

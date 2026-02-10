@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Facebook, Instagram, Linkedin, Phone, Menu, X, MessageCircle } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { Facebook, Instagram, Linkedin, Phone, Menu, X, MessageCircle, Store, CheckCircle } from 'lucide-react';
+import useVendorStatus from '../../hooks/useVendorStatus';
 
 const Topbar = () => {
+  const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const { hasApplication, isPending } = useVendorStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -101,8 +107,28 @@ const Topbar = () => {
             </a>
           </div>
 
-          {/* Right: Phone Button + Chat Button */}
+          {/* Right: Vendor Button + Phone Button + Chat Button */}
           <div className="flex items-center gap-2 md:gap-3 md:w-auto lg:w-auto ">
+            {/* Become Vendor Button - Desktop */}
+            {user?.role !== "vendor" && !hasApplication && (
+              <button
+                onClick={() => {
+                  if (!user) {
+                    navigate("/login");
+                  } else {
+                    navigate("/become-vendor");
+                  }
+                }}
+                className="hidden lg:flex items-center gap-2 text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
+                <Store className="h-4 w-4 relative z-10" />
+                <span className="font-semibold text-sm relative z-10">Become Vendor</span>
+              </button>
+            )}
+
+
+
             {/* Chat Button - Desktop */}
             <a
               href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
@@ -204,6 +230,25 @@ const Topbar = () => {
 
             {/* Contact Buttons - Mobile */}
             <div className="space-y-3">
+              {/* Become Vendor Button - Mobile */}
+              {user?.role !== "vendor" && !hasApplication && (
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/login");
+                    } else {
+                      navigate("/become-vendor");
+                    }
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
+                >
+                  <Store className="h-5 w-5" />
+                  <span>Become a Vendor</span>
+                </button>
+              )}
+
+
               <a
                 href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
                 target="_blank"

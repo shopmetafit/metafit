@@ -1,21 +1,48 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MyOrdersPage from "./MyOrdersPage";
 import { useNavigate } from "react-router-dom";
 import { clearCart } from "../redux/slices/cartSlice";
 import { logout } from "../redux/slices/authSlice";
+import axios from "axios";
+import { Store, Loader, CheckCircle } from "lucide-react";
+import useVendorStatus from "../hooks/useVendorStatus";
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
+  const { hasApplication, isPending, isApproved } = useVendorStatus();
+
+  const [vendor, setVendor] = useState(null);
+  const [loadingVendor, setLoadingVendor] = useState(false);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
+    } else if (user.role === "vendor") {
+      // Fetch vendor profile if user is vendor
+      fetchVendorProfile();
     }
   }, [user, navigate]);
+
+  const fetchVendorProfile = async () => {
+    try {
+      setLoadingVendor(true);
+      const token = localStorage.getItem("userToken");
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/vendors/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setVendor(response.data);
+    } catch (err) {
+      console.error("Error fetching vendor profile:", err);
+    } finally {
+      setLoadingVendor(false);
+    }
+  };
 
   const handleLogout = () => {
     dispatch(logout());
@@ -51,6 +78,50 @@ const Profile = () => {
                   <p className="text-teal-600 font-medium capitalize">{user?.role || "Customer"}</p>
                 </div>
               </div>
+
+              {/* Vendor Actions */}
+              <div className="space-y-3 mt-6 border-t pt-6">
+                {user?.role === "vendor" ? (
+                  <>
+                    {loadingVendor ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader className="animate-spin text-teal-600" size={20} />
+                      </div>
+                    ) : vendor?.isApproved ? (
+                      <button
+                        onClick={() => navigate("/vendor/dashboard")}
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Store size={18} />
+                        Vendor Dashboard
+                      </button>
+                    ) : (
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800 text-center font-medium">
+                          ⏳ Vendor application pending admin approval
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : !hasApplication ? (
+                  <button
+                    onClick={() => navigate("/become-vendor")}
+                    className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Store size={18} />
+                    Become a Vendor
+                  </button>
+                ) : (
+                  <a
+                    href="/vendor/approval-status"
+                    className="w-full bg-teal-600 hover:bg-teal-700 text-white py-2 px-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-center no-underline"
+                  >
+                    <CheckCircle size={18} />
+                    Check Vendor Status
+                  </a>
+                )}
+              </div>
+
               <button
                 onClick={handleLogout}
                 className="w-full mt-6 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium transition-colors"
