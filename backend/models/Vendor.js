@@ -15,14 +15,14 @@ const vendorSchema = new mongoose.Schema(
     },
     gstNo: {
       type: String,
-      required: true,
-      unique: true,
+      required: false,
+      sparse: true,
       uppercase: true,
     },
     panNo: {
       type: String,
-      required: true,
-      unique: true,
+      required: false,
+      sparse: true,
       uppercase: true,
     },
     businessDescription: {

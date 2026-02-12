@@ -1,5 +1,10 @@
 const Vendor = require("../models/Vendor");
 const User = require("../models/User");
+const { sellerTransporter } = require("../utils/email");
+const {
+  generateVendorApprovalEmail,
+  generateAdminVendorRequestEmail,
+} = require("../utils/emailTemplate");
 
 // @desc    Register as vendor
 // @route   POST /api/vendors/register
@@ -54,14 +59,14 @@ const registerVendor = async (req, res) => {
     const vendor = new Vendor({
       userId,
       companyName,
-      gstNo: gstNo.toUpperCase(),
-      panNo: panNo.toUpperCase(),
+      gstNo: gstNo ? gstNo.toUpperCase() : "",
+      panNo: panNo ? panNo.toUpperCase() : "",
       businessDescription,
       bankDetails: {
         accountName: bankDetails.accountName,
         accountNumber: bankDetails.accountNumber,
         bankName: bankDetails.bankName,
-        ifscCode: bankDetails.ifscCode.toUpperCase(),
+        ifscCode: bankDetails.ifscCode ? bankDetails.ifscCode.toUpperCase() : "",
       },
       pickupAddress,
       contactPerson,
@@ -76,16 +81,43 @@ const registerVendor = async (req, res) => {
     user.vendorName = companyName;
     await user.save();
 
+    // Send notification email to admin
+    try {
+      const emailHtml = generateAdminVendorRequestEmail(
+        user.name || user.firstName,
+        companyName,
+        user.email,
+        contactPerson.phone || "N/A",
+        businessDescription,
+        pickupAddress.city || "N/A",
+        pickupAddress.state || "N/A"
+      );
+
+      await sellerTransporter.sendMail({
+        from: process.env.SELLER_EMAIL,
+        to: process.env.ADMIN_EMAIL || "cto.metafit@gmail.com",
+        subject: "📋 New Vendor Registration Request - MetaFit",
+        html: emailHtml,
+      });
+      console.log(`Admin notification email sent for vendor: ${companyName}`);
+    } catch (emailError) {
+      console.error("Error sending admin notification email:", emailError.message);
+      // Don't fail the registration if email fails
+    }
+
     res.status(201).json({
       message:
         "Vendor registration submitted. Awaiting admin approval.",
       vendor,
     });
   } catch (error) {
-    console.error("Vendor registration error:", error);
-    res
-      .status(500)
-      .json({ message: "Error registering vendor", error: error.message });
+    console.error("Vendor registration error:", error.message);
+    console.error("Stack:", error.stack);
+    res.status(500).json({
+      message: "Error registering vendor",
+      error: error.message,
+      details: error.stack,
+    });
   }
 };
 
@@ -194,7 +226,7 @@ const approveVendor = async (req, res) => {
     const { vendorId } = req.params;
     const { commissionRate } = req.body;
 
-    const vendor = await Vendor.findById(vendorId);
+    const vendor = await Vendor.findById(vendorId).populate("userId");
 
     if (!vendor) {
       return res.status(404).json({ message: "Vendor not found" });
@@ -210,13 +242,26 @@ const approveVendor = async (req, res) => {
     await vendor.save();
 
     // Update user role
-    await User.findByIdAndUpdate(vendor.userId, {
+    const user = await User.findByIdAndUpdate(vendor.userId, {
       role: "vendor",
       isApproved: true,
     });
 
+    // Send approval email to vendor
+    const emailHtml = generateVendorApprovalEmail(
+      user.name || user.firstName,
+      vendor.companyName
+    );
+
+    await sellerTransporter.sendMail({
+      from: process.env.SELLER_EMAIL,
+      to: user.email,
+      subject: "🎉 Vendor Account Approved - MetaFit",
+      html: emailHtml,
+    });
+
     res.json({
-      message: "Vendor approved successfully",
+      message: "Vendor approved successfully and email sent",
       vendor,
     });
   } catch (error) {
