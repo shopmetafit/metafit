@@ -18,9 +18,14 @@ router.post("/", protect, async (req, res) => {
   }
 
   try {
-    // Calculate delivery charge based on city
-    const city = shippingAddress?.city?.toLowerCase();
-    const deliveryCharge = city === "udaipur" ? 60 : 100;
+    // Calculate delivery charge (fixed 30 rupees for all cities)
+    const deliveryCharge = 30;
+
+    // Calculate total from items (authoritative source)
+    const itemsTotal = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Use calculated total with delivery charge (ignore frontend price)
+    const correctTotal = itemsTotal + deliveryCharge;
 
     // create a new checkout session
     const newCheckout = await Checkout.create({
@@ -28,7 +33,7 @@ router.post("/", protect, async (req, res) => {
       checkoutItems,
       shippingAddress,
       paymentMethod,
-      totalPrice,
+      totalPrice: correctTotal,
       deliveryCharge,
       paymentStatus: "Pending",
       isPaid: false,

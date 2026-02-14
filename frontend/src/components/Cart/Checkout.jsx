@@ -293,16 +293,13 @@ console.log(user);
     JSON.stringify(shippingAddress)
     );
 
-       // Calculate delivery charge
-       const deliveryCharge = shippingAddress.city?.toLowerCase() === "udaipur" ? 60 : 100;
-       const totalWithDelivery = cart.totalPrice + deliveryCharge;
-
+       // Send to backend - backend will calculate delivery charge
        const res = await dispatch(
          createCheckout({
            checkoutItems: cart.products,
            shippingAddress,
            paymentMethod: "Razorpay",
-           totalPrice: totalWithDelivery,
+           totalPrice: cart.totalPrice,
          })
        );
        // console.log("chekout165", res);
@@ -310,7 +307,7 @@ console.log(user);
          // console.log("cho20", res.payload);
          setCheckoutId(res.payload._id); //Set checkout ID if checkout was successful
 
-         handleRazorpayPayment(totalWithDelivery, res.payload._id);
+         handleRazorpayPayment(res.payload.totalPrice, res.payload._id);
        }
      }
     // setCheckoutId(123); //Set checkout ID if checkout was successful
@@ -521,11 +518,12 @@ console.log(user);
         </div>
         <div className="flex justify-between items-center text-lg">
           <p>Shipping</p>
-          <p>Rs {shippingAddress.city?.toLowerCase() === "udaipur" ? "60" : "100"}</p>
+          <p>Rs 30</p>
         </div>
         <div className="flex justify-between items-center text-lg mb-4 border-t pt-4">
           <p>Total</p>
-          <p>Rs {(cart.totalPrice + (shippingAddress.city?.toLowerCase() === "udaipur" ? 60 : 100))?.toLocaleString()}</p>
+          <p>Rs {(cart.totalPrice + 30)?.toLocaleString()}</p>
+          <p className="text-xs text-gray-500">(calculated by server)</p>
         </div>
       </div>
     </div>
