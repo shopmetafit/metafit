@@ -20,6 +20,13 @@ const MyOrdersPage = () => {
     dispatch(fetchUserOrders());
   }, [user?._id]); // Only depend on user ID to prevent infinite loops
 
+  // Handle token expiration - redirect to login
+  useEffect(() => {
+    if (error && (error.includes("Session expired") || (error.includes("token") && error.includes("failed")))) {
+      navigate("/login");
+    }
+  }, [error, navigate]);
+
   const handleRowClick = (orderId) => {
     navigate(`/order/${orderId}`);
   };

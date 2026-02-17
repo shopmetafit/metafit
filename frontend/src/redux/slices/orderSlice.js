@@ -5,12 +5,12 @@ import axios from "axios";
 
 export const fetchUserOrders = createAsyncThunk(
   "orders/fetchUserOrders",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
       const token = localStorage.getItem("userToken");
       
       if (!token) {
-        return rejectWithValue({ message: "User not authenticated" });
+        return rejectWithValue({ message: "User not authenticated", statusCode: 401 });
       }
       
       const response = await axios.get(
@@ -23,7 +23,24 @@ export const fetchUserOrders = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: error.message });
+      const statusCode = error.response?.status;
+      
+      // Handle token expiration (401 Unauthorized)
+      if (statusCode === 401) {
+        // Import logout here to avoid circular dependency
+        const { logout } = await import('./authSlice');
+        dispatch(logout());
+        return rejectWithValue({ 
+          message: "Session expired. Please login again.", 
+          statusCode: 401,
+          isTokenExpired: true 
+        });
+      }
+      
+      return rejectWithValue({ 
+        message: error.response?.data?.message || error.message,
+        statusCode 
+      });
     }
   }
 );
@@ -31,12 +48,12 @@ export const fetchUserOrders = createAsyncThunk(
 // Async thunk to fetch orders details by ID
 export const fetchOrderDetails = createAsyncThunk(
   "orders/fetchOrderDetails",
-  async (orderId, { rejectWithValue }) => {
+  async (orderId, { rejectWithValue, dispatch }) => {
     try {
       const token = localStorage.getItem("userToken");
       
       if (!token) {
-        return rejectWithValue({ message: "User not authenticated" });
+        return rejectWithValue({ message: "User not authenticated", statusCode: 401 });
       }
       
       const response = await axios.get(
@@ -49,7 +66,24 @@ export const fetchOrderDetails = createAsyncThunk(
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { message: error.message });
+      const statusCode = error.response?.status;
+      
+      // Handle token expiration (401 Unauthorized)
+      if (statusCode === 401) {
+        // Import logout here to avoid circular dependency
+        const { logout } = await import('./authSlice');
+        dispatch(logout());
+        return rejectWithValue({ 
+          message: "Session expired. Please login again.", 
+          statusCode: 401,
+          isTokenExpired: true 
+        });
+      }
+      
+      return rejectWithValue({ 
+        message: error.response?.data?.message || error.message,
+        statusCode 
+      });
     }
   }
 );
