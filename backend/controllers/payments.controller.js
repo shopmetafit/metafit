@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
 const transporter = require("../utils/email");
 const {generateBuyerEmail, generateSellerEmail} = require("../utils/emailTemplate");
+const { sendWhatsAppOrderConfirmation } = require("../config/whatsappServices");
 
 exports.createOrder = (req, res) => {
   const { courseId, amount } = req.body;
@@ -48,6 +49,7 @@ exports.verifyPayment = async (req, res) => {
     firstName,
     lastName,
     address,
+    phone,
   } = req.body;
 
   // Generate HMAC signature to verify payment
@@ -111,6 +113,45 @@ exports.verifyPayment = async (req, res) => {
     } catch (emailErr) {
       console.error("✗ Failed to send seller email:", emailErr.message);
       // Don't throw - continue processing even if email fails
+    }
+
+    // Send WhatsApp order confirmation if phone number is available
+    if (phone) {
+      console.log("📱 Attempting to send WhatsApp confirmation to:", phone);
+      try {
+        const productName = products && products.length > 0 
+          ? products.map(p => p.name).join(", ") 
+          : "Order";
+        
+        const productQuantity = products && products.length > 0 
+          ? products.length.toString() 
+          : "1";
+
+        const whatsappPayload = {
+          customer_phone: phone,
+          customer_name: firstName,
+          product_success_name: payment_id,
+          product_name: productName,
+          product_quantity: productQuantity,
+          product_amount: `₹${totalAmount}`,
+          shipping_address: address,
+          payment_status: "completed"
+        };
+
+        console.log("📱 WhatsApp Payload:", JSON.stringify(whatsappPayload, null, 2));
+
+        const whatsappResult = await sendWhatsAppOrderConfirmation(whatsappPayload);
+        console.log("✓ WhatsApp order confirmation sent successfully:", whatsappResult);
+      } catch (whatsappErr) {
+        console.error("✗ Failed to send WhatsApp order confirmation:", {
+          message: whatsappErr.message,
+          error: whatsappErr,
+          phone: phone
+        });
+        // Don't throw - continue processing even if WhatsApp fails
+      }
+    } else {
+      console.warn("⚠️ Phone number not provided in payment verification");
     }
 
     return res.status(200).json({
