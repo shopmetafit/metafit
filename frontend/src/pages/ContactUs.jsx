@@ -17,7 +17,7 @@ const ContactUs = () => {
     {
       icon: Phone,
       title: "Call Us",
-      primary: "9982498555",
+      primary: "8829912389",
       secondary: "Available 24/7",
       link: "tel:9982498555"
     },
