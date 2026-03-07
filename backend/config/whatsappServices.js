@@ -106,7 +106,6 @@ const sendWhatsAppOrderConfirmation = async ({
   product_name,
   product_quantity,
   product_amount,
-  shipping_address,
   payment_status
 }) => {
   console.log("\n🔴 ========== WHATSAPP ORDER CONFIRMATION START ==========");
@@ -146,7 +145,6 @@ const sendWhatsAppOrderConfirmation = async ({
 
   const quantity = validateParam(product_quantity, "product_quantity");
   const amount = validateParam(product_amount, "product_amount");
-  const address = validateParam(shipping_address, "shipping_address");
 
   console.log("📞 Formatting phone number...");
   let phoneNumber = customer_phone.replace(/\D/g, "");
@@ -181,7 +179,6 @@ const sendWhatsAppOrderConfirmation = async ({
             { type: "text", text: product },
             { type: "text", text: quantity },
             { type: "text", text: amount },
-            { type: "text", text: address }
           ]
         }
       ]
@@ -236,8 +233,118 @@ const sendWhatsAppOrderConfirmation = async ({
   return data;
 };
 
+const sendWhatsAppAdminOrderNotification = async ({
+  admin_phone,
+  orderId,
+  product,
+  quantity,
+  total_amount,
+  name,
+  phone,
+  address
+}) => {
+  console.log("\n🔵 ========== WHATSAPP ADMIN ORDER NOTIFICATION START ==========");
+
+  console.log("📱 Admin Phone:", admin_phone);
+  console.log("🧾 Order ID:", orderId);
+  console.log("📦 Product:", product);
+
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    console.error("❌ WhatsApp credentials missing");
+    throw new Error("WhatsApp credentials missing");
+  }
+
+  const order = validateParam(orderId, "orderId");
+  const productName = validateParam(product, "product");
+  const productQuantity = validateParam(quantity, "quantity");
+  const amount = validateParam(total_amount, "total_amount");
+  const customerName = validateParam(name, "name");
+  const customerPhone = validateParam(phone, "phone");
+  const shippingAddress = validateParam(address, "address");
+
+  console.log("📞 Formatting admin phone number...");
+
+  let phoneNumber = admin_phone.replace(/\D/g, "");
+
+  if (phoneNumber.length === 10) {
+    phoneNumber = "91" + phoneNumber;
+  }
+
+  if (!/^\d{10,15}$/.test(phoneNumber)) {
+    console.error("❌ Invalid phone number:", phoneNumber);
+    throw new Error("Invalid phone number");
+  }
+
+  console.log("✅ Admin phone number validated:", phoneNumber);
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to: "919610112016",
+    type: "template",
+    template: {
+      name: "bazaar_admin",
+      language: { code: "en" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: order },          // {{1}}
+            { type: "text", text: productName },    // {{3}}
+            { type: "text", text: productQuantity },// {{4}}
+            { type: "text", text: amount },         // {{5}}
+            { type: "text", text: customerName },   // {{6}}
+            { type: "text", text: customerPhone },  // {{7}}
+            { type: "text", text: shippingAddress } // {{8}}
+          ]
+        }
+      ]
+    }
+  };
+
+  const normalizedPhone = phoneNumber.replace(/\D/g, "");
+  const lastTime = lastMessageTime.get(normalizedPhone) || 0;
+  const timeSinceLastMessage = Date.now() - lastTime;
+  const MIN_DELAY = 2000;
+
+  if (timeSinceLastMessage < MIN_DELAY) {
+    const waitTime = MIN_DELAY - timeSinceLastMessage;
+    console.log(`⏳ Rate limiting: waiting ${waitTime}ms`);
+    await new Promise(resolve => setTimeout(resolve, waitTime));
+  }
+
+  console.log("📤 Sending Admin Notification to WhatsApp API...");
+
+  const response = await fetch(WHATSAPP_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+
+  console.log("📥 WhatsApp API Response:", JSON.stringify(data, null, 2));
+
+  lastMessageTime.set(normalizedPhone, Date.now());
+
+  if (!response.ok) {
+    console.error("❌ WhatsApp API Error:", data?.error);
+    throw new Error(data?.error?.message || "WhatsApp admin notification failed");
+  }
+
+  console.log("✅ Admin notification sent successfully");
+  console.log("🔵 ========== WHATSAPP ADMIN ORDER NOTIFICATION END ==========\n");
+
+  return data;
+};
+
+
 // For CommonJS export
-module.exports = { sendWhatsAppOTP, sendWhatsAppOrderConfirmation };
+module.exports = { sendWhatsAppOTP, sendWhatsAppOrderConfirmation, sendWhatsAppAdminOrderNotification };
 
 console.log("WHATSAPP_API_KEY:", !!process.env.WHATSAPP_TOKEN);
 console.log("WHATSAPP_PHONE_NUMBER_ID:", !!process.env.WHATSAPP_PHONE_NUMBER_ID);
+
+

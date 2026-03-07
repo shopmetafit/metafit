@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   fetchAdminProducts,
   deleteProduct,
+  updateProduct,
 } from "../../redux/slices/adminProductSlice";
 
 const ProductManagement = () => {
@@ -16,6 +17,8 @@ const ProductManagement = () => {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingPriority, setEditingPriority] = useState(null);
+  const [priorityValue, setPriorityValue] = useState("");
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -45,6 +48,21 @@ const ProductManagement = () => {
       // console.log("Delete product with Id", id);
       dispatch(deleteProduct(id));
     }
+  };
+
+  const handlePriorityEdit = (product) => {
+    setEditingPriority(product._id);
+    setPriorityValue(product.priority || 0);
+  };
+
+  const handlePrioritySave = (productId) => {
+    dispatch(updateProduct({
+      id: productId,
+      productData: { priority: Number(priorityValue) }
+    })).then(() => {
+      setEditingPriority(null);
+      setPriorityValue("");
+    });
   };
 
   if (loading) return <p>Loading..</p>;
@@ -77,6 +95,7 @@ const ProductManagement = () => {
               <th className="py-3 px-4">Name</th>
               <th className="py-3 px-4">Price</th>
               <th className="py-3 px-4">Sku</th>
+              <th className="py-3 px-4">Priority</th>
               <th className="py-3 px-4">Actions</th>
             </tr>
           </thead>
@@ -92,6 +111,38 @@ const ProductManagement = () => {
                   </td>
                   <td className="p-4">Rs{product.discountPrice}</td>
                   <td className="p-4">{product.sku}</td>
+                  <td className="p-4">
+                    {editingPriority === product._id ? (
+                      <div className="flex gap-1">
+                        <input
+                          type="number"
+                          value={priorityValue}
+                          onChange={(e) => setPriorityValue(e.target.value)}
+                          className="w-16 px-2 py-1 border border-gray-300 rounded"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handlePrioritySave(product._id)}
+                          className="bg-green-500 text-white px-2 py-1 rounded text-sm hover:bg-green-600"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => setEditingPriority(null)}
+                          className="bg-gray-500 text-white px-2 py-1 rounded text-sm hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handlePriorityEdit(product)}
+                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 text-sm font-semibold"
+                      >
+                        {product.priority || 0}
+                      </button>
+                    )}
+                  </td>
                   <td className="p-4">
                     <Link
                       to={`/admin/products/${product._id}/edit`}
@@ -112,7 +163,7 @@ const ProductManagement = () => {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="p-4 text-center text-gray-500">
+                <td colSpan={5} className="p-4 text-center text-gray-500">
                   No product found
                 </td>
               </tr>

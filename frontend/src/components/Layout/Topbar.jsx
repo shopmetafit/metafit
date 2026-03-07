@@ -153,12 +153,12 @@ const Topbar = () => {
 
             {/* Phone Button - Desktop */}
             <a
-              href="tel:+919982498555"
+              href="tel:+918829912389"
               className="hidden md:flex items-center gap-2 text-white bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
               <Phone className="h-4 w-4 relative z-10" />
-              <span className="font-semibold text-sm relative z-10">+91 998 249 8555</span>
+               <span className="font-semibold text-sm relative z-10">+91 88299 12389</span>
             </a>
 
             {/* Mobile Menu Button */}
@@ -259,11 +259,11 @@ const Topbar = () => {
                 <span>Chat on WhatsApp</span>
               </a>
               <a
-                href="tel:+919982498555"
+                href="tel:+918829912389"
                 className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-teal-600 hover:to-cyan-700 transition-all transform hover:scale-105"
               >
                 <Phone className="h-5 w-5" />
-                <span>+91 998 249 8555</span>
+                <span>+91 882 991 2389</span>
               </a>
             </div>
           </div>

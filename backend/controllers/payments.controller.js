@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
 const transporter = require("../utils/email");
 const {generateBuyerEmail, generateSellerEmail} = require("../utils/emailTemplate");
-const { sendWhatsAppOrderConfirmation } = require("../config/whatsappServices");
+const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification} = require("../config/whatsappServices");
 
 exports.createOrder = (req, res) => {
   const { courseId, amount } = req.body;
@@ -133,8 +133,7 @@ exports.verifyPayment = async (req, res) => {
           product_success_name: payment_id,
           product_name: productName,
           product_quantity: productQuantity,
-          product_amount: `₹${totalAmount}`,
-          shipping_address: address,
+          product_amount: `${totalAmount}`,
           payment_status: "completed"
         };
 
@@ -152,6 +151,48 @@ exports.verifyPayment = async (req, res) => {
       }
     } else {
       console.warn("⚠️ Phone number not provided in payment verification");
+    }
+
+    // Send WhatsApp admin notification with order details
+    if (payment_id && firstName && phone) {
+      try {
+        console.log("📱 Attempting to send WhatsApp admin notification");
+        const productId = products && products.length > 0
+          ? (products[0]._id || products[0].id || "N/A")
+          : "N/A";
+
+        const productName = products && products.length > 0 
+          ? products.map(p => p.name).join(", ") 
+          : "Order";
+        
+        const adminNotificationPayload = {
+          admin_phone: process.env.ADMIN_WHATSAPP_PHONE || "919610112016",
+          orderId: payment_id.toString(),
+          product: productName,
+          quantity: (products && products.length > 0) ? products.length.toString() : "1",
+          total_amount: `₹${totalAmount}`,
+          name: firstName,
+          phone: phone,
+          address: address || "Not provided"
+        };
+
+        console.log("📱 Admin WhatsApp Payload:", JSON.stringify(adminNotificationPayload, null, 2));
+
+        const adminResult = await sendWhatsAppAdminOrderNotification(adminNotificationPayload);
+        console.log("✓ WhatsApp admin notification sent successfully:", adminResult);
+      } catch (adminWhatsappErr) {
+        console.error("✗ Failed to send WhatsApp admin notification:", {
+          message: adminWhatsappErr.message,
+          error: adminWhatsappErr
+        });
+        // Don't throw - continue processing even if admin WhatsApp fails
+      }
+    } else {
+      console.warn("⚠️ Skipping admin WhatsApp notification - missing required data", {
+        payment_id,
+        firstName,
+        phone
+      });
     }
 
     return res.status(200).json({
