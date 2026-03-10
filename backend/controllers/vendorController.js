@@ -335,6 +335,99 @@ const getVendorDetails = async (req, res) => {
   }
 };
 
+// @desc    Admin creates a new vendor
+// @route   POST /api/admin/vendors/create
+// @access  Private (admin only)
+const createVendorAsAdmin = async (req, res) => {
+  try {
+    const {
+      companyName,
+      gstNo,
+      panNo,
+      businessDescription,
+      bankDetails,
+      pickupAddress,
+      contactPerson,
+    } = req.body;
+
+    // Validation
+    if (!companyName || !bankDetails || !pickupAddress || !contactPerson) {
+      return res
+        .status(400)
+        .json({ message: "Missing required fields" });
+    }
+
+    // Validate GST format - only if provided
+    if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
+      return res.status(400).json({ message: "Invalid GST number format" });
+    }
+
+    // Validate PAN format - only if provided
+    if (panNo && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
+      return res.status(400).json({ message: "Invalid PAN format" });
+    }
+
+    // Validate account number - only numbers
+    if (bankDetails.accountNumber && !/^\d+$/.test(bankDetails.accountNumber)) {
+      return res.status(400).json({ message: "Account number must contain only digits" });
+    }
+
+    // Create a new user for the vendor
+    const newUser = new User({
+      name: contactPerson.name || companyName,
+      email: contactPerson.email,
+      phone: contactPerson.phone,
+      role: "vendor",
+      vendorName: companyName,
+      password: Math.random().toString(36).slice(-12), // Generate random password
+    });
+
+    const savedUser = await newUser.save();
+
+    // Create vendor profile
+    const vendor = new Vendor({
+      userId: savedUser._id,
+      companyName,
+      gstNo: gstNo ? gstNo.toUpperCase() : "",
+      panNo: panNo ? panNo.toUpperCase() : "",
+      businessDescription,
+      bankDetails: {
+        accountName: bankDetails.accountName,
+        accountNumber: bankDetails.accountNumber,
+        bankName: bankDetails.bankName,
+        ifscCode: bankDetails.ifscCode ? bankDetails.ifscCode.toUpperCase() : "",
+      },
+      pickupAddress,
+      contactPerson,
+      status: "approved",
+      isApproved: true,
+      approvedAt: new Date(),
+      commissionRate: 10, // Default commission
+    });
+
+    const savedVendor = await vendor.save();
+
+    console.log(`✅ Vendor created and approved by admin: ${companyName}`);
+
+    res.status(201).json({
+      message: "Vendor created and approved successfully",
+      vendor: savedVendor,
+      user: {
+        _id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        phone: savedUser.phone,
+      },
+    });
+  } catch (error) {
+    console.error("Admin vendor creation error:", error.message);
+    res.status(500).json({
+      message: "Error creating vendor",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerVendor,
   getVendorProfile,
@@ -343,4 +436,5 @@ module.exports = {
   approveVendor,
   rejectVendor,
   getVendorDetails,
+  createVendorAsAdmin,
 };

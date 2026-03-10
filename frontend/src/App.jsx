@@ -42,6 +42,9 @@ import VendorOrders from "./pages/VendorOrders";
 import VendorEarnings from "./pages/VendorEarnings";
 import VendorRegistrationForm from "./pages/VendorRegistrationForm";
 import AdminVendorManagement from "./pages/AdminVendorManagement";
+import AdminAddVendor from "./pages/AdminAddVendor";
+import AdminAddVendorProduct from "./pages/AdminAddVendorProduct";
+import AdminVendorProducts from "./pages/AdminVendorProducts";
 import VendorApprovalStatus from "./pages/VendorApprovalStatus";
 import VendorAddProductPage from "./pages/VendorAddProductPage";
 import ProductApprovalPage from "./components/Admin/ProductApprovalPage";
@@ -90,6 +93,9 @@ const App = () => {
               <Route index element={<AdminHomePage />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="vendors" element={<AdminVendorManagement />} />
+              <Route path="add-vendor" element={<AdminAddVendor />} />
+              <Route path="vendor-products/:vendorId" element={<AdminVendorProducts />} />
+              <Route path="add-product/:vendorId" element={<AdminAddVendorProduct />} />
               <Route path="products" element={<ProductManagement />} />
               <Route path="products/new" element={<NewProductPage />} />
               <Route path="products/:id/edit" element={<EditProductPage />} />

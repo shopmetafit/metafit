@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   CheckCircle,
@@ -8,11 +9,14 @@ import {
   Eye,
   Filter,
   AlertCircle,
+  Plus,
+  Package,
 } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminVendorManagement = () => {
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -112,13 +116,22 @@ const AdminVendorManagement = () => {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Vendor Management
-          </h1>
-          <p className="text-gray-600">
-            Review and approve vendor registrations
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-800 mb-2">
+              Vendor Management
+            </h1>
+            <p className="text-gray-600">
+              Review and approve vendor registrations
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/admin/add-vendor")}
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold flex items-center space-x-2"
+          >
+            <Plus size={20} />
+            <span>Add Vendor</span>
+          </button>
         </div>
 
         {error && (
@@ -321,10 +334,23 @@ const AdminVendorManagement = () => {
                 )}
 
                 {vendor.status === "approved" && (
-                  <div className="p-3 bg-blue-50 rounded border border-blue-200 text-blue-700 text-sm font-medium">
-                    ✓ Vendor Approved - Can now add products
-                  </div>
-                )}
+                   <div className="flex gap-3">
+                     <button
+                       onClick={() => navigate(`/admin/vendor-products/${vendor.userId._id}`)}
+                       className="flex-1 flex items-center justify-center space-x-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition font-semibold"
+                     >
+                       <Package size={18} />
+                       <span>View Products</span>
+                     </button>
+                     <button
+                       onClick={() => navigate(`/admin/add-product/${vendor.userId._id}`)}
+                       className="flex-1 flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold"
+                     >
+                       <Plus size={18} />
+                       <span>Add Product</span>
+                     </button>
+                   </div>
+                 )}
 
                 {vendor.status === "rejected" && (
                   <div className="p-3 bg-red-50 rounded border border-red-200 text-red-700 text-sm font-medium">

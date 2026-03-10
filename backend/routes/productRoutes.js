@@ -78,6 +78,91 @@ router.post("/", protect, admin, async (req, res) => {
   }
 });
 
+// @route POST /api/products/admin/add-for-vendor/:vendorId
+// @desc Create a new Product for a specific vendor (admin only)
+// @access Private/admin
+
+router.post("/admin/add-for-vendor/:vendorId", protect, admin, async (req, res) => {
+  try {
+    let { vendorId } = req.params;
+    
+    // Ensure vendorId is a string and valid
+    if (typeof vendorId === "object") {
+      vendorId = String(vendorId);
+    }
+    
+    const {
+      name,
+      description,
+      price,
+      discountPrice,
+      countInStock,
+      category,
+      brand,
+      sizes,
+      colors,
+      collection,
+      material,
+      gender,
+      images,
+      isFeatured,
+      isPublished,
+      tags,
+      dimensions,
+      weight,
+      sku,
+      variants,
+      hasVariants,
+    } = req.body;
+
+    console.log(`📦 Creating product for vendor: ${vendorId}`);
+    console.log(`🔍 VendorId type: ${typeof vendorId}, value: ${vendorId}`);
+
+    const product = new Product({
+      name,
+      description,
+      price: Number(price),
+      discountPrice: discountPrice ? Number(discountPrice) : undefined,
+      countInStock: Number(countInStock),
+      category,
+      brand,
+      sizes: sizes || [],
+      colors: colors || [],
+      collection,
+      material,
+      gender: gender || "Unisex",
+      images: images || [],
+      isFeatured: isFeatured !== false,
+      isPublished: isPublished !== false,
+      tags: tags || [],
+      dimensions,
+      weight,
+      sku,
+      user: vendorId, // Vendor as the user
+      vendorId: vendorId, // Explicit vendor reference
+      createdBy: "VENDOR", // Mark as vendor product
+      productApprovalStatus: "approved", // Auto-approve admin-created vendor products
+      approvedBy: req.user._id,
+      approvedAt: new Date(),
+      ...(hasVariants && variants && { 
+        variants: variants,
+        hasVariants: true 
+      }),
+    });
+
+    const createProduct = await product.save();
+    console.log(`✅ Product created successfully for vendor: ${vendorId}`);
+    res.status(201).json(createProduct);
+  } catch (error) {
+    console.error(`❌ Error creating product for vendor:`, error);
+    res.status(500).json({ 
+      message: "Server Error", 
+      error: error.message,
+      details: error.errors ? Object.keys(error.errors).map(key => `${key}: ${error.errors[key].message}`) : []
+    });
+  }
+});
+
 // @route PUT/api/products/:id
 // @desc Update an existing product ID
 // @access Private
