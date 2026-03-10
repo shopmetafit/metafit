@@ -56,6 +56,8 @@ router.post("/", async (req, res) => {
           size: size || null,
           color: color || null,
           quantity,
+          vendorId: product.vendorId || null,
+          createdBy: product.createdBy || "ADMIN",
         });
       }
 
@@ -81,6 +83,8 @@ router.post("/", async (req, res) => {
             size: size || null,
             color: color || null,
             quantity,
+            vendorId: product.vendorId || null,
+            createdBy: product.createdBy || "ADMIN",
           },
         ],
         totalPrice: product.discountPrice * quantity,

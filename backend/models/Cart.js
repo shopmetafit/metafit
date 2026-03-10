@@ -23,6 +23,16 @@ const cartItemSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    createdBy: {
+      type: String,
+      enum: ["ADMIN", "VENDOR"],
+      default: "ADMIN",
+    },
   },
   { _id: false }
 );

@@ -102,7 +102,7 @@ console.log(user);
   }, [loadScript]);
 
   const handlePaymentSuccess = async (details, checkoutId) => {
-    // console.log("co146", details);
+    console.log("co146", details);
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_BACKEND_URL}/api/checkout/${checkoutId}/pay`,
@@ -152,7 +152,7 @@ console.log(user);
           } catch (error) {
             console.log(error);
           }
-          // console.log("Payment Successful", details);
+          console.log("Payment Successful", details);
         }; // Finalize checkout if payment is successful
         handleFinalizeCheckout(checkoutId);
       } else {
@@ -206,7 +206,10 @@ console.log(user);
             payment_id: response.razorpay_payment_id,
             signature: response.razorpay_signature,
             email: user.email,
-            products: cart.products,
+            products: cart.products.map(product => ({
+              ...product,
+              createdBy: product.createdBy || "ADMIN"
+            })),
             totalAmount: cart.totalPrice,
             firstName: shippingAddress.firstName,
             lastName: shippingAddress.lastName,
@@ -217,8 +220,8 @@ console.log(user);
             phone: shippingAddress.phone,
             paymentMethod: "Razorpay",
           };
-          console.log("cho139:option2", option2.firstName);
-          console.log("cho139:option2", option2.address);
+          console.log("cho139:option2", option2);
+          console.log("cho139:option2", option2.products);
           try {
             const verifyRes = await axios.post(
               `${import.meta.env.VITE_BACKEND_URL}/api/verifyPayment`,

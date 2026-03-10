@@ -6,12 +6,9 @@ const WHATSAPP_TOKEN = process.env.WHATSAPP_TOKEN;
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const WHATSAPP_API_URL = `https://graph.facebook.com/v24.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`;
 
-// Rate limiting: Store last message time per phone
 const lastMessageTime = new Map();
 
-/**
- * Validate and sanitize parameter
- */
+
 const validateParam = (value, name) => {
     if (value === null || value === undefined) {
         throw new Error(`${name} is required`);
@@ -26,9 +23,7 @@ const validateParam = (value, name) => {
     return str;
 };
 
-/**
- * Send WhatsApp OTP
- */
+
 const sendWhatsAppOTP = async (customer_phone, otp) => {
     if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
         throw new Error("WhatsApp credentials missing");
@@ -96,9 +91,7 @@ const sendWhatsAppOTP = async (customer_phone, otp) => {
     return data;
 };
 
-/**
- * Send WhatsApp Order Confirmation
- */
+
 const sendWhatsAppOrderConfirmation = async ({
   customer_phone,
   customer_name,
@@ -340,11 +333,91 @@ const sendWhatsAppAdminOrderNotification = async ({
   return data;
 };
 
+const sendWhatsAppVendorOrderNotification = async ({
+  vendor_phone,
+  vendor_name,
+  orderId,
+  product,
+  quantity,
+  total_amount,
+  customer_name,
+  customer_phone,
+  address,
+  number
+}) => {
 
-// For CommonJS export
-module.exports = { sendWhatsAppOTP, sendWhatsAppOrderConfirmation, sendWhatsAppAdminOrderNotification };
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    throw new Error("WhatsApp credentials missing");
+  }
 
-console.log("WHATSAPP_API_KEY:", !!process.env.WHATSAPP_TOKEN);
-console.log("WHATSAPP_PHONE_NUMBER_ID:", !!process.env.WHATSAPP_PHONE_NUMBER_ID);
+  const vendorName = validateParam(vendor_name, "vendor_name");
+  const order = validateParam(orderId, "orderId");
+  const productName = validateParam(product, "product");
+  const productQuantity = validateParam(quantity, "quantity");
+  const amount = validateParam(total_amount, "total_amount");
+  const customerName = validateParam(customer_name, "customer_name");
+  const customerPhone = validateParam(customer_phone, "customer_phone");
+  const shippingAddress = validateParam(address, "address");
+  const contactNumber = validateParam(number, "number");
+
+  let phoneNumber = vendor_phone.replace(/\D/g, "");
+
+  if (phoneNumber.length === 10) {
+    phoneNumber = "91" + phoneNumber;
+  }
+
+  if (!/^\d{10,15}$/.test(phoneNumber)) {
+    throw new Error("Invalid vendor phone number");
+  }
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to: phoneNumber,
+    type: "template",
+    template: {
+      name: "mwellness_vendor",
+      language: { code: "en" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: vendorName },      // {{1}}
+            { type: "text", text: order },           // {{2}}
+            { type: "text", text: productName },     // {{3}}
+            { type: "text", text: productQuantity }, // {{4}}
+            { type: "text", text: amount },          // {{5}}
+            { type: "text", text: customerName },    // {{6}}
+            { type: "text", text: customerPhone },   // {{7}}
+            { type: "text", text: shippingAddress }, // {{8}}
+            { type: "text", text: contactNumber }    // {{9}}
+          ]
+        }
+      ]
+    }
+  };
+
+  const response = await fetch(WHATSAPP_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error("❌ WhatsApp Vendor Notification Error:", data);
+    throw new Error(data?.error?.message || "Vendor notification failed");
+  }
+
+  console.log("✅ Vendor notification sent successfully");
+  console.log("🟢 ===== VENDOR ORDER NOTIFICATION END =====\n");
+
+  return data;
+};
+module.exports = { sendWhatsAppOTP, sendWhatsAppOrderConfirmation, sendWhatsAppAdminOrderNotification, sendWhatsAppVendorOrderNotification };
+
 
 
