@@ -9,6 +9,7 @@ const {
   rejectVendor,
   getVendorDetails,
   createVendorAsAdmin,
+  toggleVendorStatus,
 } = require("../controllers/vendorController");
 
 const router = express.Router();
@@ -26,5 +27,6 @@ router.get("/", protect, admin, getAllVendors);
 router.post("/admin/create", protect, admin, createVendorAsAdmin);
 router.put("/:vendorId/approve", protect, admin, approveVendor);
 router.put("/:vendorId/reject", protect, admin, rejectVendor);
+router.put("/:vendorId/toggle-status", protect, admin, toggleVendorStatus);
 
 module.exports = router;

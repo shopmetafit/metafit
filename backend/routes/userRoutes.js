@@ -75,7 +75,7 @@ router.post("/login",validate(loginSchema), async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials" });
 
     const payload = { user: { id: user._id, role: user.role } };
-    // console.log("wece",payload);
+    console.log("wece",payload);
 
     // sign and return the token along with user data
     jwt.sign(

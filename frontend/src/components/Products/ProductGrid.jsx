@@ -89,9 +89,14 @@ const ProductGrid = ({ products, loading, error }) => {
                         ₹{product.price}
                       </p>
                       <div className="flex items-center justify-between gap-3">
-                        <p className="text-lg font-bold text-gray-900">
-                          ₹{product.discountPrice}
-                        </p>
+                        <div>
+                          <p className="text-lg font-bold text-gray-900">
+                            ₹{product.discountPrice}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            + ₹30 Shipping
+                          </p>
+                        </div>
                         {product.price && product.discountPrice && (
                           <span className="text-white text-[10px] font-bold bg-red-500 rounded-full w-12 h-12 flex items-center justify-center whitespace-nowrap">
                             {Math.round(
@@ -106,9 +111,14 @@ const ProductGrid = ({ products, loading, error }) => {
                   ) : (
                     <div>
                       <p className="text-xs text-gray-500 font-medium mb-2 uppercase tracking-wide">Multiple Options</p>
-                      <p className="text-lg font-bold text-gray-900">
-                        From ₹{Math.min(...product.variants.map(v => v.discountPrice || v.price))}
-                      </p>
+                      <div>
+                        <p className="text-lg font-bold text-gray-900">
+                          From ₹{Math.min(...product.variants.map(v => v.discountPrice || v.price))}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          + ₹30 Shipping
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>

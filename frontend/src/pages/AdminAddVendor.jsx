@@ -41,11 +41,13 @@ const AdminAddVendor = () => {
             phone: "",
             email: "",
         },
+        password: "",
     });
 
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({});
     const [showAccountNumber, setShowAccountNumber] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Validation functions
     // const validateGST = (gst) => {
@@ -66,6 +68,10 @@ const AdminAddVendor = () => {
 
     const validateAccountNumber = (accountNumber) => {
         return /^\d+$/.test(accountNumber);
+    };
+
+    const validatePassword = (password) => {
+        return password.length >= 8;
     };
 
     // Helper to show error only if field is touched
@@ -147,6 +153,11 @@ const AdminAddVendor = () => {
                 newErrors["contactPerson.email"] = "Email is required";
             } else if (!validateEmail(formData.contactPerson.email)) {
                 newErrors["contactPerson.email"] = "Invalid email address";
+            }
+            if (!formData.password.trim()) {
+                newErrors["password"] = "Password is required";
+            } else if (!validatePassword(formData.password)) {
+                newErrors["password"] = "Password must be at least 8 characters long";
             }
         }
 
@@ -539,6 +550,34 @@ const AdminAddVendor = () => {
                                     error={getFieldError("contactPerson.email")}
                                     required
                                 />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Password *
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            placeholder="Min 8 characters"
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-3 text-gray-500"
+                                        >
+                                            {showPassword ? "Hide" : "Show"}
+                                        </button>
+                                    </div>
+                                    {getFieldError("password") && (
+                                        <p className="text-red-500 text-sm mt-1">
+                                            {getFieldError("password")}
+                                        </p>
+                                    )}
+                                </div>
 
                                 <div className="bg-gray-100 rounded-lg p-4 mt-6">
                                     <h3 className="font-semibold text-gray-800 mb-3">

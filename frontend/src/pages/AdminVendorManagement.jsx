@@ -104,6 +104,31 @@ const AdminVendorManagement = () => {
     }
   };
 
+  const handleDisableVendor = async (vendorId, currentStatus) => {
+    const newStatus = currentStatus === "active" ? "disabled" : "active";
+    const confirmMessage = newStatus === "disabled" 
+      ? "Are you sure you want to disable this vendor? Their products will not be shown."
+      : "Are you sure you want to enable this vendor?";
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      const token = localStorage.getItem("userToken");
+      await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/vendors/${vendorId}/toggle-status`,
+        { isActive: newStatus === "active" },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      toast.success(newStatus === "disabled" ? "Vendor disabled successfully" : "Vendor enabled successfully");
+      fetchVendors();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update vendor status");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -348,6 +373,17 @@ const AdminVendorManagement = () => {
                      >
                        <Plus size={18} />
                        <span>Add Product</span>
+                     </button>
+                     <button
+                       onClick={() => handleDisableVendor(vendor._id, vendor.isActive ? "active" : "disabled")}
+                       className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition font-semibold ${
+                         vendor.isActive
+                           ? "bg-orange-600 text-white hover:bg-orange-700"
+                           : "bg-green-600 text-white hover:bg-green-700"
+                       }`}
+                     >
+                       {vendor.isActive ? <XCircle size={18} /> : <CheckCircle size={18} />}
+                       <span>{vendor.isActive ? "Disable" : "Enable"}</span>
                      </button>
                    </div>
                  )}

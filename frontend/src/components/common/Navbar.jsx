@@ -258,8 +258,9 @@ const Navbar = () => {
           )}
 
 
-          <Link to="/profile" className="hover:text-white/80">
-            <HiOutlineUser className="h-6 w-6 text-white " />
+          <Link to="/profile" className="flex items-center gap-2 hover:text-white/80">
+            <HiOutlineUser className="h-6 w-6 text-white" />
+            {user && <span className="text-sm font-semibold hidden sm:inline">{user.name || "Profile"}</span>}
           </Link>
 
 

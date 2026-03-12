@@ -100,6 +100,10 @@ const vendorSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected", "suspended"],
       default: "pending",
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

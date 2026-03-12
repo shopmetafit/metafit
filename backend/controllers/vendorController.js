@@ -30,13 +30,19 @@ const registerVendor = async (req, res) => {
       bankDetails,
       pickupAddress,
       contactPerson,
+      password,
     } = req.body;
 
     // Validation
-    if (!companyName || !bankDetails || !pickupAddress) {
+    if (!companyName || !bankDetails || !pickupAddress || !password) {
       return res
         .status(400)
         .json({ message: "Missing required fields" });
+    }
+
+    // Validate password
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
     }
 
     // Validate GST format - only if provided
@@ -79,6 +85,7 @@ const registerVendor = async (req, res) => {
     // Update user role to vendor
     user.role = "vendor";
     user.vendorName = companyName;
+    user.password = password; // Update password
     await user.save();
 
     // Send notification email to admin
@@ -121,9 +128,7 @@ const registerVendor = async (req, res) => {
   }
 };
 
-// @desc    Get vendor profile
-// @route   GET /api/vendors/profile
-// @access  Private (vendor users)
+
 const getVendorProfile = async (req, res) => {
   try {
     const vendor = await Vendor.findOne({ userId: req.user._id }).populate(
@@ -348,19 +353,25 @@ const createVendorAsAdmin = async (req, res) => {
       bankDetails,
       pickupAddress,
       contactPerson,
+      password,
     } = req.body;
 
     // Validation
-    if (!companyName || !bankDetails || !pickupAddress || !contactPerson) {
+    if (!companyName || !bankDetails || !pickupAddress || !contactPerson || !password) {
       return res
         .status(400)
         .json({ message: "Missing required fields" });
     }
 
-    // Validate GST format - only if provided
-    if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
-      return res.status(400).json({ message: "Invalid GST number format" });
+    // Validate password
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters long" });
     }
+
+    // Validate GST format - only if provided
+    // if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
+    //   return res.status(400).json({ message: "Invalid GST number format" });
+    // }
 
     // Validate PAN format - only if provided
     if (panNo && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
@@ -379,7 +390,7 @@ const createVendorAsAdmin = async (req, res) => {
       phone: contactPerson.phone,
       role: "vendor",
       vendorName: companyName,
-      password: Math.random().toString(36).slice(-12), // Generate random password
+      password: password, // Use provided password
     });
 
     const savedUser = await newUser.save();
@@ -406,7 +417,7 @@ const createVendorAsAdmin = async (req, res) => {
     });
 
     const savedVendor = await vendor.save();
-
+      
     console.log(`✅ Vendor created and approved by admin: ${companyName}`);
 
     res.status(201).json({
@@ -428,6 +439,42 @@ const createVendorAsAdmin = async (req, res) => {
   }
 };
 
+// @desc    Toggle vendor active status (admin only)
+// @route   PUT /api/vendors/:vendorId/toggle-status
+// @access  Private (admin)
+const toggleVendorStatus = async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    const { isActive } = req.body;
+
+    if (typeof isActive !== "boolean") {
+      return res
+        .status(400)
+        .json({ message: "isActive must be a boolean value" });
+    }
+
+    const vendor = await Vendor.findById(vendorId);
+
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found" });
+    }
+
+    vendor.isActive = isActive;
+    await vendor.save();
+
+    res.json({
+      message: `Vendor ${isActive ? "enabled" : "disabled"} successfully`,
+      vendor,
+    });
+  } catch (error) {
+    console.error("Error toggling vendor status:", error);
+    res.status(500).json({
+      message: "Error updating vendor status",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerVendor,
   getVendorProfile,
@@ -437,4 +484,5 @@ module.exports = {
   rejectVendor,
   getVendorDetails,
   createVendorAsAdmin,
+  toggleVendorStatus,
 };
