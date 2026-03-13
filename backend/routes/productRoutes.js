@@ -1,6 +1,5 @@
 const express = require("express");
 const Product = require("../models/Product");
-const Vendor = require("../models/Vendor");
 const { protect, admin } = require("../middleware/authMiddleware");
 const router = express.Router();
 
@@ -274,15 +273,7 @@ router.get("/", async (req, res) => {
       videoUrl
     } = req.query;
 
-    // Get all disabled vendors
-    const disabledVendors = await Vendor.find({ isActive: false }).select("userId");
-    const disabledVendorIds = disabledVendors.map(v => v.userId.toString());
-
-    let query = {
-      // Exclude products from disabled vendors
-      user: { $nin: disabledVendorIds }
-    };
-    
+    let query = {};
     // Filter logic
     if (collection && collection.toLowerCase() !== "all") query.collection = collection;
     if (category && category.toLowerCase() !== "all") query.category = { $regex: category, $options: "i" };
@@ -343,11 +334,7 @@ router.get("/", async (req, res) => {
 // @access Public
 router.get("/best-seller", async (req, res) => {
   try {
-    // Get all disabled vendors
-    const disabledVendors = await Vendor.find({ isActive: false }).select("userId");
-    const disabledVendorIds = disabledVendors.map(v => v.userId.toString());
-
-    const bestSeller = await Product.findOne({ user: { $nin: disabledVendorIds } }).sort({ rating: -1 });
+    const bestSeller = await Product.findOne().sort({ rating: -1 });
     if (bestSeller) {
       res.json(bestSeller);
     } else {
@@ -365,11 +352,7 @@ router.get("/best-seller", async (req, res) => {
 
 router.get("/new-arrivals", async (req, res) => {
   try {
-    // Get all disabled vendors
-    const disabledVendors = await Vendor.find({ isActive: false }).select("userId");
-    const disabledVendorIds = disabledVendors.map(v => v.userId.toString());
-
-    const newArrivals = await Product.find({ user: { $nin: disabledVendorIds } }).sort({ createdAt: -1 }).limit(8);
+    const newArrivals = await Product.find().sort({ createdAt: -1 }).limit(8);
     res.json(newArrivals);
   } catch (error) {
     console.error(error);
@@ -406,16 +389,10 @@ router.get("/similar/:id", async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    
-    // Get all disabled vendors
-    const disabledVendors = await Vendor.find({ isActive: false }).select("userId");
-    const disabledVendorIds = disabledVendors.map(v => v.userId.toString());
-
     const similarProduct = await Product.find({
       _id: { $ne: id },
       gender: product.gender,
       category: product.category,
-      user: { $nin: disabledVendorIds }
     }).limit(4);
     res.json(similarProduct);
   } catch (error) {
