@@ -272,7 +272,7 @@ const sendWhatsAppAdminOrderNotification = async ({
 
   const payload = {
     messaging_product: "whatsapp",
-    to: "919610112016",
+    to: process.env.ADMIN_WHATSAPP_PHONE, // Always send to the configured admin number, not dynamic input
     type: "template",
     template: {
       name: "bazaar_admin",
