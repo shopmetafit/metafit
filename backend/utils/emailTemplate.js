@@ -217,9 +217,111 @@ const generateAdminVendorRequestEmail = (vendorName, companyName, email, phone, 
   `;
 };
 
+
+
+const generateAdminOrderEmail = (buyerName, buyerEmail, sellerName, sellerEmail, productList, totalAmount, payment_id, address) => {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body style="margin:0; padding:0; background:#0f172a; font-family:Arial, Helvetica, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:30px 10px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#020617; border-radius:12px; overflow:hidden;">
+          <tr>
+            <td style="background:#3b82f6; padding:24px; text-align:center;">
+              <h1 style="margin:0; color:#ffffff; font-size:26px;">📦 New Order Placed - Admin Alert</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:30px; color:#e5e7eb;">
+              <h2>New Product Order Received</h2>
+              <p style="color:#9ca3af; font-size:15px;">A new order has been placed on MetaFit. Please review the details below.</p>
+              
+              <!-- Buyer Information -->
+              <div style="background:#020617; border:1px solid #1f2937; border-radius:10px; padding:20px; margin-top:20px;">
+                <h3 style="margin-top:0; color:#60a5fa;">👤 Buyer Information</h3>
+                <table width="100%" style="border-collapse: collapse;">
+                  <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Name:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${buyerName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Email:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${buyerEmail}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Seller Information -->
+              <div style="background:#020617; border:1px solid #1f2937; border-radius:10px; padding:20px; margin-top:20px;">
+                <h3 style="margin-top:0; color:#60a5fa;">🏪 Seller Information</h3>
+                <table width="100%" style="border-collapse: collapse;">
+                  <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Name:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${sellerName}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Email:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${sellerEmail}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Order Details -->
+              <div style="background:#020617; border:1px solid #1f2937; border-radius:10px; padding:20px; margin-top:20px;">
+                <h3 style="margin-top:0; color:#60a5fa;">📋 Order Details</h3>
+                <ul style="color:#e5e7eb; padding-left:20px;">${productList}</ul>
+                <hr style="border:none; border-top:1px solid #1f2937; margin:16px 0;" />
+                <table width="100%" style="border-collapse: collapse;">
+                  <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Total Amount:</b></td>
+                    <td style="padding: 10px 0; color:#10b981; font-weight:bold;">₹${totalAmount}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Payment ID:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${payment_id}</td>
+                  </tr>
+                  <tr style="border-bottom: 1px solid #1f2937;">
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Shipping Address:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${address}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 10px 0; color:#9ca3af;"><b>Order Date:</b></td>
+                    <td style="padding: 10px 0; color:#e5e7eb;">${new Date().toLocaleString()}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Action Required -->
+              <div style="background:#1f2937; border-left:4px solid #3b82f6; border-radius:6px; padding:16px; margin-top:20px;">
+                <p style="margin:0; color:#9ca3af;"><strong>⚠️ Action Required</strong></p>
+                <p style="margin:8px 0; color:#9ca3af; font-size:14px;">Please log in to the admin dashboard to monitor order status, verify payment, and ensure timely fulfillment.</p>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#020617; padding:16px; text-align:center; color:#6b7280; font-size:12px;">
+              © ${new Date().getFullYear()} MetaFit · All rights reserved
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `;
+};
+
 module.exports = {
   generateBuyerEmail,
   generateSellerEmail,
   generateVendorApprovalEmail,
-  generateAdminVendorRequestEmail
+  generateAdminVendorRequestEmail,
+  generateAdminOrderEmail
 };
