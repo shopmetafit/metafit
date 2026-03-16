@@ -19,7 +19,7 @@ router.post("/", protect, async (req, res) => {
 
   try {
     // Calculate delivery charge (fixed 30 rupees for all cities)
-    const deliveryCharge = 30;
+    const deliveryCharge = 0;
 
     // Calculate total from items (authoritative source)
     const itemsTotal = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
