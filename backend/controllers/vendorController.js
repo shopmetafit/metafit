@@ -102,11 +102,11 @@ const registerVendor = async (req, res) => {
 
       await sellerTransporter.sendMail({
         from: process.env.SELLER_EMAIL,
-        to: process.env.ADMIN_EMAIL || "cto.metafit@gmail.com",
+        to: process.env.EMAIL_USER || "cto.metafit@gmail.com",
         subject: "📋 New Vendor Registration Request - MetaFit",
         html: emailHtml,
       });
-      console.log(`Admin notification email sent for vendor: ${companyName}`);
+      // console.log(`Admin notification email sent for vendor: ${companyName}`);
     } catch (emailError) {
       console.error("Error sending admin notification email:", emailError.message);
       // Don't fail the registration if email fails
