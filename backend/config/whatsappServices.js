@@ -24,6 +24,9 @@ const validateParam = (value, name) => {
 };
 
 
+// OTP Store for vendor OTP login
+const otpStore = new Map();
+
 const sendWhatsAppOTP = async (customer_phone, otp) => {
     if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
         throw new Error("WhatsApp credentials missing");
@@ -417,7 +420,13 @@ const sendWhatsAppVendorOrderNotification = async ({
 
   return data;
 };
-module.exports = { sendWhatsAppOTP, sendWhatsAppOrderConfirmation, sendWhatsAppAdminOrderNotification, sendWhatsAppVendorOrderNotification };
+module.exports = { 
+  sendWhatsAppOTP, 
+  sendWhatsAppOrderConfirmation, 
+  sendWhatsAppAdminOrderNotification, 
+  sendWhatsAppVendorOrderNotification,
+  otpStore
+};
 
 
 

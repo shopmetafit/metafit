@@ -35,17 +35,6 @@ const AdminSidebar = () => {
         </NavLink>
 
 
-          <NavLink
-          to="/admin/vendors"
-          className={(isActive) => {
-            isActive
-              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
-              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
-          }}
-        >
-          <CircleUserRoundIcon />
-        <span>Vendor Managment </span>
-        </NavLink>
 
 
         <NavLink
@@ -82,6 +71,20 @@ const AdminSidebar = () => {
           <FaClipboardList />
         <span>Orders</span>
         </NavLink>
+
+              <NavLink
+          to="/admin/vendor-approvals"
+          className={(isActive) => {
+            isActive
+              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
+              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
+          }}
+        >
+          <FaBlog />
+        <span>Vendor Approvals</span>
+        </NavLink>
+
+
         <NavLink
           to="/admin/blogs"
           className={(isActive) => {

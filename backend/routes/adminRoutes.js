@@ -81,5 +81,6 @@ router.delete("/:id", protect, admin, async (req, res) => {
     res.status(500).send("Server Error", error);
   }
 });
+// (vendor-related admin endpoints removed - reverted to original)
 
 module.exports = router;

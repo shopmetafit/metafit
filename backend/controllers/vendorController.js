@@ -1,488 +1,214 @@
-const Vendor = require("../models/Vendor");
-const User = require("../models/User");
-const { sellerTransporter } = require("../utils/email");
-const {
-  generateVendorApprovalEmail,
-  generateAdminVendorRequestEmail,
-} = require("../utils/emailTemplate");
+const Vendor = require("../models/Vendor.js");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// @desc    Register as vendor
-// @route   POST /api/vendors/register
-// @access  Private (customer users)
-const registerVendor = async (req, res) => {
+// REGISTER VENDOR
+exports.registerVendor = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
+    const data = req.body || {};
+console.log("BODY DATA:", req.body);
+    // Basic validation
+    if (!data.businessEmail || !data.vendorPass || !data.businessName || !data.vendorPhone) {
+      return res.status(400).json({ success: false, message: "Missing required fields" });
+    }
+    const existing = await Vendor.findOne({ email: data.businessEmail });
 
-    // Check if user already registered as vendor
-    const existingVendor = await Vendor.findOne({ userId });
-    if (existingVendor) {
-      return res
-        .status(400)
-        .json({ message: "You are already registered as a vendor" });
+    if (existing) {
+      return res.json({ success: false, message: "Already registered" });
     }
 
-    const {
-      companyName,
-      gstNo,
-      panNo,
-      businessDescription,
-      bankDetails,
-      pickupAddress,
-      contactPerson,
-      password,
-    } = req.body;
+    const hashedPassword = await bcrypt.hash(data.vendorPass, 10);
 
-    // Validation
-    if (!companyName || !bankDetails || !pickupAddress || !password) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields" });
-    }
+    const newVendor = new Vendor({
+      businessName: data.businessName,
+      vendorName: data.vendorName,
+      email: data.businessEmail,
+      phone: data.vendorPhone,
+      password: hashedPassword,
 
-    // Validate password
-    if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters long" });
-    }
+      bankAccountNumber: data.bankAccNumber,
+      ifscCode: data.IFSCCode,
+      accountHolderName: data.accountHolderName,
 
-    // Validate GST format - only if provided
-    // Format: 2 digits (state) + 10 alphanumeric (PAN) + 1 digit + Z + 1 alphanumeric
-    if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
-      return res.status(400).json({ message: "Invalid GST number format" });
-    }
+      state: data.vendorState,
+      city: data.vendorCity,
+      pincode: data.pinCode,
 
-    // Validate PAN format (10 character) - only if provided
-    if (panNo && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
-      return res.status(400).json({ message: "Invalid PAN format" });
-    }
-
-    // Validate account number - only numbers
-    if (bankDetails.accountNumber && !/^\d+$/.test(bankDetails.accountNumber)) {
-      return res.status(400).json({ message: "Account number must contain only digits" });
-    }
-
-    // Create vendor profile
-    const vendor = new Vendor({
-      userId,
-      companyName,
-      gstNo: gstNo ? gstNo.toUpperCase() : "",
-      panNo: panNo ? panNo.toUpperCase() : "",
-      businessDescription,
-      bankDetails: {
-        accountName: bankDetails.accountName,
-        accountNumber: bankDetails.accountNumber,
-        bankName: bankDetails.bankName,
-        ifscCode: bankDetails.ifscCode ? bankDetails.ifscCode.toUpperCase() : "",
-      },
-      pickupAddress,
-      contactPerson,
-      status: "pending",
-      isApproved: false,
+      status: "pending"
     });
 
-    await vendor.save();
+    await newVendor.save();
 
-    // Update user role to vendor
-    user.role = "vendor";
-    user.vendorName = companyName;
-    user.password = password; // Update password
-    await user.save();
+    res.json({
+      success: true,
+      message: "Registration successful, waiting for admin approval"
+    });
 
-    // Send notification email to admin
-    try {
-      const emailHtml = generateAdminVendorRequestEmail(
-        user.name || user.firstName,
-        companyName,
-        user.email,
-        contactPerson.phone || "N/A",
-        businessDescription,
-        pickupAddress.city || "N/A",
-        pickupAddress.state || "N/A"
-      );
+  } catch (error) {
+    console.log("Error" , error);
+    
+    // res.json({ success: false });
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+  
+};
 
-      await sellerTransporter.sendMail({
-        from: process.env.SELLER_EMAIL,
-        to: process.env.EMAIL_USER || "cto.metafit@gmail.com",
-        subject: "📋 New Vendor Registration Request - MetaFit",
-        html: emailHtml,
+// VENDOR LOGIN
+exports.loginVendor = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required" });
+    }
+
+    // Find vendor by email
+    const vendor = await Vendor.findOne({ email });
+    if (!vendor) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, vendor.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Check approval status
+    if (vendor.status !== "approved") {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Account not approved yet. Please wait for admin approval.",
+        status: vendor.status
       });
-      // console.log(`Admin notification email sent for vendor: ${companyName}`);
-    } catch (emailError) {
-      console.error("Error sending admin notification email:", emailError.message);
-      // Don't fail the registration if email fails
     }
 
-    res.status(201).json({
-      message:
-        "Vendor registration submitted. Awaiting admin approval.",
-      vendor,
-    });
-  } catch (error) {
-    console.error("Vendor registration error:", error.message);
-    console.error("Stack:", error.stack);
-    res.status(500).json({
-      message: "Error registering vendor",
-      error: error.message,
-      details: error.stack,
-    });
-  }
-};
-
-
-const getVendorProfile = async (req, res) => {
-  try {
-    const vendor = await Vendor.findOne({ userId: req.user._id }).populate(
-      "userId",
-      "name email phone avatar"
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        vendorId: vendor._id, 
+        email: vendor.email,
+        vendorName: vendor.vendorName,
+        businessName: vendor.businessName
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "24h" }
     );
 
-    if (!vendor) {
-      return res
-        .status(404)
-        .json({ message: "Vendor profile not found" });
-    }
-
-    res.json(vendor);
-  } catch (error) {
-    console.error("Error fetching vendor profile:", error);
-    res.status(500).json({
-      message: "Error fetching vendor profile",
-      error: error.message,
-    });
-  }
-};
-
-// @desc    Update vendor profile
-// @route   PUT /api/vendors/profile
-// @access  Private (vendor users)
-const updateVendorProfile = async (req, res) => {
-  try {
-    const vendor = await Vendor.findOne({ userId: req.user._id });
-
-    if (!vendor) {
-      return res
-        .status(404)
-        .json({ message: "Vendor profile not found" });
-    }
-
-    const {
-      companyName,
-      businessDescription,
-      bankDetails,
-      pickupAddress,
-      contactPerson,
-    } = req.body;
-
-    // Update only non-sensitive fields
-    if (companyName) vendor.companyName = companyName;
-    if (businessDescription) vendor.businessDescription = businessDescription;
-    if (bankDetails) vendor.bankDetails = bankDetails;
-    if (pickupAddress) vendor.pickupAddress = pickupAddress;
-    if (contactPerson) vendor.contactPerson = contactPerson;
-
-    await vendor.save();
-
     res.json({
-      message: "Vendor profile updated",
-      vendor,
+      success: true,
+      message: "Login successful",
+      token,
+      vendor: {
+        id: vendor._id,
+        vendorName: vendor.vendorName,
+        businessName: vendor.businessName,
+        email: vendor.email,
+        status: vendor.status
+      }
     });
+
   } catch (error) {
-    console.error("Error updating vendor profile:", error);
-    res.status(500).json({
-      message: "Error updating vendor profile",
-      error: error.message,
-    });
+    console.error("Vendor login error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// @desc    Get all vendors (admin only)
-// @route   GET /api/vendors
-// @access  Private (admin)
-const getAllVendors = async (req, res) => {
+// VENDOR OTP LOGIN
+exports.loginVendorWithOTP = async (req, res) => {
   try {
-    const { status } = req.query; // Filter by status: pending, approved, rejected, suspended
+    let { phone, otp } = req.body;
 
-    let query = {};
-    if (status) {
-      query.status = status;
+    // Basic validation
+    if (!phone || !otp) {
+      return res.status(400).json({ success: false, message: "Phone and OTP are required" });
     }
 
-    const vendors = await Vendor.find(query)
-      .populate("userId", "name email phone")
-      .sort({ createdAt: -1 });
+    // Normalize phone number
+    phone = phone.replace(/\D/g, "");
+    if (phone.length === 10) {
+      phone = "91" + phone;
+    }
 
-    res.json({
-      count: vendors.length,
-      vendors,
-    });
-  } catch (error) {
-    console.error("Error fetching vendors:", error);
-    res
-      .status(500)
-      .json({ message: "Error fetching vendors", error: error.message });
-  }
-};
-
-// @desc    Approve vendor (admin only)
-// @route   PUT /api/vendors/:vendorId/approve
-// @access  Private (admin)
-const approveVendor = async (req, res) => {
-  try {
-    const { vendorId } = req.params;
-    const { commissionRate } = req.body;
-
-    const vendor = await Vendor.findById(vendorId).populate("userId");
-
+    // Find vendor by phone
+    const vendor = await Vendor.findOne({ phone });
     if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found" });
+      return res.status(401).json({ success: false, message: "No vendor found with this phone number" });
     }
 
-    vendor.isApproved = true;
-    vendor.status = "approved";
-    vendor.approvedAt = new Date();
-    if (commissionRate) {
-      vendor.commissionRate = commissionRate;
+    // Check approval status
+    if (vendor.status !== "approved") {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Account not approved yet. Please wait for admin approval.",
+        status: vendor.status
+      });
     }
 
-    await vendor.save();
+    // Verify OTP (using the same logic as the existing OTP controller)
+    const otpStore = require("../config/whatsappServices").otpStore; // This would need to be exported
+    const otpData = otpStore.get(phone);
 
-    // Update user role
-    const user = await User.findByIdAndUpdate(vendor.userId, {
-      role: "vendor",
-      isApproved: true,
-    });
+    if (!otpData) {
+      return res.status(400).json({ success: false, message: "OTP expired or not found" });
+    }
 
-    // Send approval email to vendor
-    const emailHtml = generateVendorApprovalEmail(
-      user.name || user.firstName,
-      vendor.companyName
+    const OTP_EXPIRY_MINUTES = 10;
+    const MAX_OTP_ATTEMPTS = 3;
+    const expiryTime = otpData.createdAt + OTP_EXPIRY_MINUTES * 60 * 1000;
+
+    if (Date.now() > expiryTime) {
+      otpStore.delete(phone);
+      return res.status(400).json({ success: false, message: "OTP expired" });
+    }
+
+    if (otpData.attempts >= MAX_OTP_ATTEMPTS) {
+      otpStore.delete(phone);
+      return res.status(429).json({ success: false, message: "Too many wrong attempts" });
+    }
+
+    if (otpData.otp !== otp) {
+      otpData.attempts += 1;
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid OTP",
+        attemptsRemaining: MAX_OTP_ATTEMPTS - otpData.attempts
+      });
+    }
+
+    // OTP verified successfully
+    otpStore.delete(phone);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        vendorId: vendor._id, 
+        email: vendor.email,
+        vendorName: vendor.vendorName,
+        businessName: vendor.businessName,
+        phone: vendor.phone
+      },
+      process.env.JWT_SECRET || "your-secret-key",
+      { expiresIn: "24h" }
     );
 
-    await sellerTransporter.sendMail({
-      from: process.env.SELLER_EMAIL,
-      to: user.email,
-      subject: "🎉 Vendor Account Approved - MetaFit",
-      html: emailHtml,
-    });
-
     res.json({
-      message: "Vendor approved successfully and email sent",
-      vendor,
+      success: true,
+      message: "Login successful",
+      token,
+      vendor: {
+        id: vendor._id,
+        vendorName: vendor.vendorName,
+        businessName: vendor.businessName,
+        email: vendor.email,
+        phone: vendor.phone,
+        status: vendor.status
+      }
     });
+
   } catch (error) {
-    console.error("Error approving vendor:", error);
-    res
-      .status(500)
-      .json({ message: "Error approving vendor", error: error.message });
+    console.error("Vendor OTP login error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
-};
-
-// @desc    Reject vendor (admin only)
-// @route   PUT /api/vendors/:vendorId/reject
-// @access  Private (admin)
-const rejectVendor = async (req, res) => {
-  try {
-    const { vendorId } = req.params;
-    const { rejectionReason } = req.body;
-
-    if (!rejectionReason) {
-      return res
-        .status(400)
-        .json({ message: "Rejection reason is required" });
-    }
-
-    const vendor = await Vendor.findById(vendorId);
-
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found" });
-    }
-
-    vendor.isApproved = false;
-    vendor.status = "rejected";
-    vendor.rejectionReason = rejectionReason;
-
-    await vendor.save();
-
-    res.json({
-      message: "Vendor rejected",
-      vendor,
-    });
-  } catch (error) {
-    console.error("Error rejecting vendor:", error);
-    res
-      .status(500)
-      .json({ message: "Error rejecting vendor", error: error.message });
-  }
-};
-
-// @desc    Get vendor details (by ID or current user)
-// @route   GET /api/vendors/:vendorId
-// @access  Public
-const getVendorDetails = async (req, res) => {
-  try {
-    const { vendorId } = req.params;
-
-    const vendor = await Vendor.findById(vendorId)
-      .populate("userId", "name email phone vendorLogo vendorBanner")
-      .lean();
-
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found" });
-    }
-
-    res.json(vendor);
-  } catch (error) {
-    console.error("Error fetching vendor details:", error);
-    res.status(500).json({
-      message: "Error fetching vendor details",
-      error: error.message,
-    });
-  }
-};
-
-// @desc    Admin creates a new vendor
-// @route   POST /api/admin/vendors/create
-// @access  Private (admin only)
-const createVendorAsAdmin = async (req, res) => {
-  try {
-    const {
-      companyName,
-      gstNo,
-      panNo,
-      businessDescription,
-      bankDetails,
-      pickupAddress,
-      contactPerson,
-      password,
-    } = req.body;
-
-    // Validation
-    if (!companyName || !bankDetails || !pickupAddress || !contactPerson || !password) {
-      return res
-        .status(400)
-        .json({ message: "Missing required fields" });
-    }
-
-    // Validate password
-    if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters long" });
-    }
-
-    // Validate GST format - only if provided
-    // if (gstNo && !/^\d{2}[A-Z0-9]{10}\d[A-Z]\d$/.test(gstNo.toUpperCase())) {
-    //   return res.status(400).json({ message: "Invalid GST number format" });
-    // }
-
-    // Validate PAN format - only if provided
-    if (panNo && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(panNo)) {
-      return res.status(400).json({ message: "Invalid PAN format" });
-    }
-
-    // Validate account number - only numbers
-    if (bankDetails.accountNumber && !/^\d+$/.test(bankDetails.accountNumber)) {
-      return res.status(400).json({ message: "Account number must contain only digits" });
-    }
-
-    // Create a new user for the vendor
-    const newUser = new User({
-      name: contactPerson.name || companyName,
-      email: contactPerson.email,
-      phone: contactPerson.phone,
-      role: "vendor",
-      vendorName: companyName,
-      password: password, // Use provided password
-    });
-
-    const savedUser = await newUser.save();
-
-    // Create vendor profile
-    const vendor = new Vendor({
-      userId: savedUser._id,
-      companyName,
-      gstNo: gstNo ? gstNo.toUpperCase() : "",
-      panNo: panNo ? panNo.toUpperCase() : "",
-      businessDescription,
-      bankDetails: {
-        accountName: bankDetails.accountName,
-        accountNumber: bankDetails.accountNumber,
-        bankName: bankDetails.bankName,
-        ifscCode: bankDetails.ifscCode ? bankDetails.ifscCode.toUpperCase() : "",
-      },
-      pickupAddress,
-      contactPerson,
-      status: "approved",
-      isApproved: true,
-      approvedAt: new Date(),
-      commissionRate: 10, // Default commission
-    });
-
-    const savedVendor = await vendor.save();
-      
-    console.log(`✅ Vendor created and approved by admin: ${companyName}`);
-
-    res.status(201).json({
-      message: "Vendor created and approved successfully",
-      vendor: savedVendor,
-      user: {
-        _id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        phone: savedUser.phone,
-      },
-    });
-  } catch (error) {
-    console.error("Admin vendor creation error:", error.message);
-    res.status(500).json({
-      message: "Error creating vendor",
-      error: error.message,
-    });
-  }
-};
-
-// @desc    Toggle vendor active status (admin only)
-// @route   PUT /api/vendors/:vendorId/toggle-status
-// @access  Private (admin)
-const toggleVendorStatus = async (req, res) => {
-  try {
-    const { vendorId } = req.params;
-    const { isActive } = req.body;
-
-    if (typeof isActive !== "boolean") {
-      return res
-        .status(400)
-        .json({ message: "isActive must be a boolean value" });
-    }
-
-    const vendor = await Vendor.findById(vendorId);
-
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found" });
-    }
-
-    vendor.isActive = isActive;
-    await vendor.save();
-
-    res.json({
-      message: `Vendor ${isActive ? "enabled" : "disabled"} successfully`,
-      vendor,
-    });
-  } catch (error) {
-    console.error("Error toggling vendor status:", error);
-    res.status(500).json({
-      message: "Error updating vendor status",
-      error: error.message,
-    });
-  }
-};
-
-module.exports = {
-  registerVendor,
-  getVendorProfile,
-  updateVendorProfile,
-  getAllVendors,
-  approveVendor,
-  rejectVendor,
-  getVendorDetails,
-  createVendorAsAdmin,
-  toggleVendorStatus,
 };

@@ -1,5 +1,4 @@
 const Product = require("../models/Product");
-const Vendor = require("../models/Vendor");
 
 // @desc    Get all pending/unapproved products (admin only)
 // @route   GET /api/admin/products/pending

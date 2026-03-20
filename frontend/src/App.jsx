@@ -35,19 +35,12 @@ import BlogList from "./components/Blog/BlogList";
 import BlogDetail from "./components/Blog/BlogDetail";
 import BlogEditor from "./components/Admin/BlogEditor";
 import BlogDashboard from "./components/Admin/BlogDashboard";
-import VendorLayout from "./components/Vendor/VendorLayout";
-import VendorDashboard from "./pages/VendorDashboard";
-import VendorProducts from "./pages/VendorProducts";
-import VendorOrders from "./pages/VendorOrders";
-import VendorEarnings from "./pages/VendorEarnings";
-import VendorRegistrationForm from "./pages/VendorRegistrationForm";
-import AdminVendorManagement from "./pages/AdminVendorManagement";
-import AdminAddVendor from "./pages/AdminAddVendor";
-import AdminAddVendorProduct from "./pages/AdminAddVendorProduct";
-import AdminVendorProducts from "./pages/AdminVendorProducts";
-import VendorApprovalStatus from "./pages/VendorApprovalStatus";
-import VendorAddProductPage from "./pages/VendorAddProductPage";
+
 import ProductApprovalPage from "./components/Admin/ProductApprovalPage";
+import VendorLogin from "./pages/VendorLogin";
+import VendorRegister from "./pages/VendorRegister";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorApprovals from "./components/Admin/VendorApprovals";
 
 const App = () => {
   return (
@@ -59,6 +52,9 @@ const App = () => {
              <Route index element={<Home />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            <Route path="vendor-login" element={<VendorLogin />} />
+            <Route path="vendor-register" element={<VendorRegister />} />
+            <Route path="vendor-dashboard" element={<VendorDashboard />} />
             <Route path="profile" element={<Profile />} />
             <Route path="collections/:collection" element={<Collection />} />
             <Route path="product/:id" element={<ProductDetails />} />
@@ -76,12 +72,11 @@ const App = () => {
             />
             <Route path="order/:id" element={<OrderDetailsPage />} />
             <Route path="my-orders" element={<MyOrdersPage />} />
-            <Route path="become-vendor" element={<VendorRegistrationForm />} />
-            <Route path="vendor/approval-status" element={<VendorApprovalStatus />} />
+
             <Route path="blog" element={<BlogList />} />
-            <Route path="blog/:slug" element={<BlogDetail />} />
-          
-          </Route>
+             <Route path="blog/:slug" element={<BlogDetail />} />
+            
+            </Route>
             <Route
               path="/admin"
               element={
@@ -92,14 +87,12 @@ const App = () => {
             >
               <Route index element={<AdminHomePage />} />
               <Route path="users" element={<UserManagement />} />
-              <Route path="vendors" element={<AdminVendorManagement />} />
-              <Route path="add-vendor" element={<AdminAddVendor />} />
-              <Route path="vendor-products/:vendorId" element={<AdminVendorProducts />} />
-              <Route path="add-product/:vendorId" element={<AdminAddVendorProduct />} />
+
               <Route path="products" element={<ProductManagement />} />
               <Route path="products/new" element={<NewProductPage />} />
               <Route path="products/:id/edit" element={<EditProductPage />} />
               <Route path="product-approvals" element={<ProductApprovalPage />} />
+              <Route path="vendor-approvals" element={<VendorApprovals />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="blogs" element={<BlogDashboard />} />
               <Route path="blogs/create" element={<BlogEditor />} />
@@ -107,22 +100,7 @@ const App = () => {
           
             </Route>
 
-          {/* Vendor Routes */}
-          <Route
-            path="/vendor"
-            element={
-              <ProtectedRoutes role="vendor">
-                <VendorLayout />
-              </ProtectedRoutes>
-            }
-          >
-            <Route path="dashboard" element={<VendorDashboard />} />
-            <Route path="products" element={<VendorProducts />} />
-            <Route path="products/new" element={<VendorAddProductPage />} />
-            <Route path="products/:id/edit" element={<VendorProducts />} />
-            <Route path="orders" element={<VendorOrders />} />
-            <Route path="earnings" element={<VendorEarnings />} />
-          </Route>
+
 
 
           </Routes>

@@ -3,9 +3,8 @@ const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
 const transporter = require("../utils/email");
 const {generateBuyerEmail, generateSellerEmail, generateAdminOrderEmail} = require("../utils/emailTemplate");
-const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification , sendWhatsAppVendorOrderNotification} = require("../config/whatsappServices");
+const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification} = require("../config/whatsappServices");
 const Product = require("../models/Product");
-const Vendor = require("../models/Vendor");
 const Order = require("../models/Order");
 const User = require("../models/User");
 
@@ -126,77 +125,7 @@ exports.verifyPayment = async (req, res) => {
       // Don't throw - continue processing even if email fails
     }
 
-    // Send vendor-specific emails for each vendor's products
-    if (products && products.length > 0) {
-      const vendorMap = {};
-      
-      for (const product of products) {
-        try {
-          const dbProduct = await Product.findById(product.productId);
-          
-          if (!dbProduct) continue;
-          
-          // Handle ADMIN products
-          if (dbProduct.createdBy === "ADMIN") {
-            if (!vendorMap["ADMIN"]) {
-              vendorMap["ADMIN"] = { email: process.env.SELLER_EMAIL, name: "Admin", productList: [] };
-            }
-            vendorMap["ADMIN"].productList.push(product);
-          }
-          // Handle VENDOR products
-          else if (dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
-            const vendor = await Vendor.findOne({ userId: dbProduct.vendorId });
-            
-            if (vendor && vendor.contactPerson && vendor.contactPerson.email) {
-              const vendorId = vendor._id.toString();
-              if (!vendorMap[vendorId]) {
-                vendorMap[vendorId] = { 
-                  email: vendor.contactPerson.email, 
-                  name: vendor.contactPerson.name || vendor.companyName,
-                  productList: [] 
-                };
-              }
-              vendorMap[vendorId].productList.push(product);
-            }
-          }
-        } catch (err) {
-          console.error(`✗ Error processing product ${product.productId}:`, err.message);
-        }
-      }
 
-      // Send emails to each vendor with their products
-      for (const [vendorKey, vendorData] of Object.entries(vendorMap)) {
-        try {
-          const vendorProductList = vendorData.productList
-            .map((p) => {
-              let details = `${p.name} - ₹${p.price}`;
-              const attributes = [];
-              if (p.quantity) attributes.push(`Qty: ${p.quantity}`);
-              if (p.size) attributes.push(`Size: ${p.size}`);
-              if (p.color) attributes.push(`Color: ${p.color}`);
-              if (attributes.length > 0) {
-                details += ` (${attributes.join(", ")})`;
-              }
-              return `<li>${details}</li>`;
-            })
-            .join("");
-
-          const sellerEmailHtml = generateSellerEmail(firstName, lastName, email, vendorProductList, totalAmount, payment_id, address);
-          
-          const sellerMailOptions = {
-            from: process.env.EMAIL_USER,
-            to: vendorData.email,
-            subject: `New Order from ${firstName} ${lastName}`,
-            html: sellerEmailHtml,
-          };
-
-          await transporter.sendMail(sellerMailOptions);
-          // console.log(`✓ Vendor email sent successfully to ${vendorData.name} (${vendorData.email})`);
-        } catch (emailErr) {
-          console.error(`✗ Failed to send vendor email to ${vendorData.email}:`, emailErr.message);
-        }
-      }
-    }
 
     // Send WhatsApp order confirmation if phone number is available
     if (phone) {
@@ -274,80 +203,7 @@ exports.verifyPayment = async (req, res) => {
     }
 
     if (products && products.length > 0) {
-      try {
-        // console.log("📱 Attempting to send WhatsApp vendor notification");
-        // console.log("📦 Products received:", JSON.stringify(products, null, 2));
-        
-        // Send notification to each vendor whose product was purchased
-        for (const product of products) {
-          // console.log(`🔍 Checking product: ${product.name}, productId: ${product.productId}`);
-          
-          try {
-            // Fetch actual product from database to get createdBy and vendorId from source of truth
-            const dbProduct = await Product.findById(product.productId);
-            
-            if (!dbProduct) {
-              console.warn(`⚠️ Product not found in database: ${product.productId}`);
-              continue;
-            }
-            
-            // console.log(`📦 Product from DB - createdBy: ${dbProduct.createdBy}, vendorId: ${dbProduct.vendorId}`);
-            
-            // Check if product is created by VENDOR and has vendorId
-            if (dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
-              try {
-                // console.log(`🔎 Searching for vendor with userId: ${dbProduct.vendorId}`);
-                
-                // Fetch vendor details from database using vendorId
-                const vendor = await Vendor.findOne({ userId: dbProduct.vendorId });
-                
-                // console.log(`📋 Vendor query result:`, vendor ? "Found" : "Not Found");
-                if (vendor) {
-                  // console.log(`   Vendor data:`, JSON.stringify(vendor, null, 2));
-                }
-                
-                if (vendor && vendor.contactPerson && vendor.contactPerson.phone) {
-                  // console.log(`📱 Found vendor: ${vendor.companyName} with phone: ${vendor.contactPerson.phone}`);
-                  
-                  const vendorNotificationPayload = {
-                    vendor_phone: vendor.contactPerson.phone,
-                    vendor_name: vendor.companyName,
-                    orderId: payment_id.toString(),
-                    product: dbProduct.name || "Unknown Product",
-                    quantity: product.quantity ? product.quantity.toString() : "1",
-                    customer_name: firstName,
-                    customer_phone: phone,
-                    address: address || "Not provided",
-                    total_amount: product.price ? `${product.price * product.quantity}` : totalAmount,
-                    number: process.env.ADMIN_WHATSAPP_PHONE,
-                  };
-
-                  // console.log("📱 Vendor WhatsApp Payload:", JSON.stringify(vendorNotificationPayload, null, 2));
-
-                  const vendorResult = await sendWhatsAppVendorOrderNotification(vendorNotificationPayload);
-                  // console.log(`✓ WhatsApp vendor notification sent successfully to ${vendor.companyName} (${vendor.contactPerson.phone}):`, vendorResult);
-                } else {
-                  console.warn(`⚠️ Vendor not found or phone number missing for vendorId: ${dbProduct.vendorId}`);
-                }
-              } catch (vendorFetchErr) {
-                console.error(`✗ Error fetching vendor details for vendorId ${dbProduct.vendorId}:`);
-                console.error(`   Error message:`, vendorFetchErr.message);
-                console.error(`   Full error:`, vendorFetchErr);
-              }
-            } else {
-              // console.log(`⏭️ Product not created by vendor (createdBy: ${dbProduct.createdBy})`);
-            }
-          } catch (productFetchErr) {
-            console.error(`✗ Error fetching product details for productId ${product.productId}:`, productFetchErr.message);
-          }
-        }
-      } catch (vendorWhatsappErr) {
-        console.error("✗ Failed to send WhatsApp vendor notification:", {
-          message: vendorWhatsappErr.message,
-          error: vendorWhatsappErr
-        });
-        // Don't throw - continue processing even if vendor WhatsApp fails
-      }
+      // Vendor WhatsApp notifications removed
     } else {
       console.warn("⚠️ No products available for vendor notification");
     }

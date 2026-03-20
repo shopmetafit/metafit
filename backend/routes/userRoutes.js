@@ -59,6 +59,7 @@ router.post("/register",validate(registerSchema), async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+// (vendor-register endpoint removed - reverted to original)
 
 // @route POST /api/users/login
 // @desc Authenticate user
