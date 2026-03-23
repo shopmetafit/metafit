@@ -3,10 +3,11 @@ const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
 const transporter = require("../utils/email");
 const {generateBuyerEmail, generateSellerEmail, generateAdminOrderEmail} = require("../utils/emailTemplate");
-const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification} = require("../config/whatsappServices");
+const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification, sendWhatsAppVendorOrderNotification} = require("../config/whatsappServices");
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 const User = require("../models/User");
+const Vendor = require("../models/Vendor");
 
 exports.createOrder = (req, res) => {
   const { courseId, amount } = req.body;
@@ -187,6 +188,36 @@ exports.verifyPayment = async (req, res) => {
 
         const adminResult = await sendWhatsAppAdminOrderNotification(adminNotificationPayload);
         // console.log("✓ WhatsApp admin notification sent successfully:", adminResult);
+
+        // Send vendor order notification via WhatsApp (only if vendor exists)
+        if (vendor) {
+          try {
+            const vendorNotificationPayload = {
+              vendor_phone: vendor.phone,
+              vendor_name: vendor.vendorName,
+              orderId: payment_id.toString(),
+              product: productName,
+              quantity: totalQuantity,
+              total_amount: `${totalAmount}`,
+              customer_name: firstName,
+              customer_phone: phone,
+              address: address || "Not provided",
+              number: process.env.ADMIN_WHATSAPP_PHONE
+            };
+
+            const vendorResult = await sendWhatsAppVendorOrderNotification(vendorNotificationPayload);
+            // console.log("✓ WhatsApp vendor notification sent successfully:", vendorResult);
+          } catch (whatsappErr) {
+            console.error("✗ Failed to send WhatsApp vendor notification:", {
+              message: whatsappErr.message,
+              error: whatsappErr,
+              vendorPhone: vendor.phone
+            });
+            // Don't throw - continue processing even if WhatsApp fails
+          }
+        } else {
+          console.warn("⚠️ No vendor found for this order - skipping vendor notification");
+        }
       } catch (adminWhatsappErr) {
         console.error("✗ Failed to send WhatsApp admin notification:", {
           message: adminWhatsappErr.message,
@@ -219,6 +250,7 @@ exports.verifyPayment = async (req, res) => {
       // Build order items from products and fetch vendor details if needed
       let vendorCity = null;
       let vendorPostalCode = null;
+      let vendor = null;
 
       const orderItems = await Promise.all(
         products.map(async (p) => {
@@ -228,7 +260,7 @@ exports.verifyPayment = async (req, res) => {
           // If product is from vendor, fetch vendor details
           if (dbProduct && dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
             try {
-              const vendor = await Vendor.findOne({ userId: dbProduct.vendorId });
+              vendor = await Vendor.findOne({ userId: dbProduct.vendorId });
               if (vendor && vendor.pickupAddress) {
                 vendorCity = vendor.pickupAddress.city;
                 vendorPostalCode = vendor.pickupAddress.pincode;

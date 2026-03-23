@@ -1,6 +1,9 @@
 const Vendor = require("../models/Vendor.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { sellerTransporter } = require("../utils/email");
+const { generateAdminVendorRequestEmail, generateVendorApprovalEmail } = require("../utils/emailTemplate");
+const { sendWhatsAppVendorOrderNotification } = require("../config/whatsappServices");
 
 // REGISTER VENDOR
 exports.registerVendor = async (req, res) => {
@@ -38,6 +41,32 @@ console.log("BODY DATA:", req.body);
     });
 
     await newVendor.save();
+
+    // Send admin notification email about new vendor registration
+    try {
+      const adminEmailHtml = generateAdminVendorRequestEmail(
+        data.vendorName,
+        data.businessName,
+        data.businessEmail,
+        data.vendorPhone,
+        "Company",
+        data.vendorCity,
+        data.vendorState
+      );
+
+      const adminMailOptions = {
+        from: process.env.SELLER_EMAIL,
+        to: process.env.ADMIN_EMAIL,
+        subject: "New Vendor Registration Request - MetaFit",
+        html: adminEmailHtml
+      };
+
+      await sellerTransporter.sendMail(adminMailOptions);
+      console.log("✓ Admin notification email sent successfully");
+    } catch (emailErr) {
+      console.error("✗ Failed to send admin notification email:", emailErr.message);
+      // Don't throw - continue processing even if email fails
+    }
 
     res.json({
       success: true,

@@ -1,4 +1,6 @@
 const Product = require("../models/Product");
+const { sellerTransporter } = require("../utils/email");
+const { generateVendorApprovalEmail } = require("../utils/emailTemplate");
 
 // @desc    Get all pending/unapproved products (admin only)
 // @route   GET /api/admin/products/pending
@@ -58,6 +60,27 @@ const approveProduct = async (req, res) => {
     product.isPublished = true; // Make visible to customers
 
     await product.save();
+
+    // Send vendor approval email notification
+    try {
+      const vendorEmailHtml = generateVendorApprovalEmail(
+        product.vendorName || "Vendor",
+        product.businessName || "Your Company"
+      );
+
+      const vendorMailOptions = {
+        from: process.env.SELLER_EMAIL,
+        to: product.vendorEmail || product.email,
+        subject: "Product Approved - MetaFit Vendor Portal",
+        html: vendorEmailHtml
+      };
+
+      await sellerTransporter.sendMail(vendorMailOptions);
+      console.log("✓ Vendor approval email sent successfully");
+    } catch (emailErr) {
+      console.error("✗ Failed to send vendor approval email:", emailErr.message);
+      // Don't throw - continue processing even if email fails
+    }
 
     res.json({
       message: "Product approved successfully",
