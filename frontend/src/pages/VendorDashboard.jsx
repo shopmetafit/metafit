@@ -44,97 +44,211 @@ const VendorDashboard = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Vendor Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {vendorInfo.vendorName}!</p>
-      </div>
-
-      {/* Status Card */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Account Status</h2>
-            <p className="text-gray-600">Your vendor account information</p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Vendor Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {vendorInfo.vendorName}!</p>
           </div>
-          <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
-            vendorInfo.status === 'approved' ? 'bg-green-100 text-green-800' :
-            vendorInfo.status === 'rejected' ? 'bg-red-100 text-red-800' :
-            'bg-yellow-100 text-yellow-800'
-          }`}>
-            {vendorInfo.status.toUpperCase()}
-          </div>
-        </div>
-        
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <p className="text-sm text-gray-600">Business Name</p>
-            <p className="font-medium text-gray-900">{vendorInfo.businessName}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Vendor Name</p>
-            <p className="font-medium text-gray-900">{vendorInfo.vendorName}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600">Email</p>
-            <p className="font-medium text-gray-900">{vendorInfo.email}</p>
-          </div>
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Products</h3>
-          <p className="text-gray-600 mb-4">Add, edit, and manage your products</p>
-          <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-            Products
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">View Orders</h3>
-          <p className="text-gray-600 mb-4">Manage customer orders and shipments</p>
-          <button className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
-            Orders
-          </button>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Settings</h3>
-          <p className="text-gray-600 mb-4">Update your vendor information</p>
-          <button className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-            Settings
-          </button>
-        </div>
-      </div>
-
-      {/* Pending Approval Notice */}
-      {vendorInfo.status !== 'approved' && (
-        <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+          {/* Status Card */}
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Account Status</h2>
+                <p className="text-gray-600">Your vendor account information</p>
+              </div>
+              <div className={`px-4 py-2 rounded-full text-sm font-semibold ${
+                vendorInfo.status === 'approved' ? 'bg-green-100 text-green-800' :
+                vendorInfo.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                'bg-yellow-100 text-yellow-800'
+              }`}>
+                {vendorInfo.status.toUpperCase()}
+              </div>
             </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-yellow-800">
-                {vendorInfo.status === 'pending' 
-                  ? "Your account is under review"
-                  : "Your account has been rejected"
-                }
-              </p>
-              <p className="text-sm text-yellow-700 mt-1">
-                {vendorInfo.status === 'pending' 
-                  ? "Please wait for admin approval. You will be notified once your account is approved."
-                  : "Your account has been rejected. Please contact support for more information."
-                }
-              </p>
+            
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <p className="text-sm text-gray-600">Business Name</p>
+                <p className="font-medium text-gray-900">{vendorInfo.businessName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Vendor Name</p>
+                <p className="font-medium text-gray-900">{vendorInfo.vendorName}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Email</p>
+                <p className="font-medium text-gray-900">{vendorInfo.email}</p>
+              </div>
             </div>
           </div>
+
+          {/* Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Product Requests */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">📦</span>
+                </div>
+                <span className="text-orange-600 text-sm font-semibold">NEW</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Product Requests</h3>
+              <p className="text-gray-600 mb-4">Submit products for admin approval and track their status</p>
+              <div className="space-y-2">
+                <button 
+                  onClick={() => navigate('/vendor/product-request/new')}
+                  disabled={vendorInfo.status !== 'approved'}
+                  className="w-full px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Create Request
+                </button>
+               
+              </div>
+            </div>
+
+            {/* Manage Products */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">🛍️</span>
+                </div>
+                <span className="text-blue-600 text-sm font-semibold">MANAGE</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Products</h3>
+              <p className="text-gray-600 mb-4">Add, edit, and manage your approved products</p>
+              <div className="space-y-2">
+                <button 
+                  onClick={() => navigate('/vendor/manage-products')}
+                  disabled={vendorInfo.status !== 'approved'}
+                  className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  My Products
+                </button>
+                <button 
+                  onClick={() => navigate('/vendor/product-requests')}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                >
+                  Product Requests
+                </button>
+              </div>
+            </div>
+
+
+            {/* Account Settings */}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-gray-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">⚙️</span>
+                </div>
+                <span className="text-gray-600 text-sm font-semibold">SETTINGS</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Settings</h3>
+              <p className="text-gray-600 mb-4">Update your vendor information</p>
+              <button 
+                onClick={() => navigate('/vendor/profile')}
+                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+              >
+                Settings
+              </button>
+            </div>
+
+            {/* Analytics */}
+            {/* <div className="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">📊</span>
+                </div>
+                <span className="text-purple-600 text-sm font-semibold">ANALYTICS</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Sales Analytics</h3>
+              <p className="text-gray-600 mb-4">View your sales performance and insights</p>
+              <button 
+                onClick={() => navigate('/vendor/analytics')}
+                className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition"
+              >
+                View Analytics
+              </button>
+            </div> */}
+
+            {/* Support */}
+            {/* <div className="bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-teal-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">🆘</span>
+                </div>
+                <span className="text-teal-600 text-sm font-semibold">SUPPORT</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Help & Support</h3>
+              <p className="text-gray-600 mb-4">Get help with your vendor account</p>
+              <button 
+                onClick={() => navigate('/vendor/support')}
+                className="w-full px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition"
+              >
+                Get Help
+              </button>
+            </div> */}
+          </div>
+
+          {/* Pending Approval Notice */}
+          {vendorInfo.status !== 'approved' && (
+            <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-yellow-800">
+                    {vendorInfo.status === 'pending' 
+                      ? "Your account is under review"
+                      : "Your account has been rejected"
+                    }
+                  </p>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    {vendorInfo.status === 'pending' 
+                      ? "Please wait for admin approval. You will be notified once your account is approved. In the meantime, you can prepare your product requests."
+                      : "Your account has been rejected. Please contact support for more information."
+                    }
+                  </p>
+                  {vendorInfo.status === 'rejected' && (
+                    <button 
+                      onClick={() => navigate('/vendor-support')}
+                      className="mt-2 text-sm text-yellow-600 hover:text-yellow-800 font-medium"
+                    >
+                      Contact Support →
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Quick Stats */}
+          {vendorInfo.status === 'approved' && (
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-600">Total Products</h4>
+                <p className="text-2xl font-bold text-gray-900">0</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-600">Pending Requests</h4>
+                <p className="text-2xl font-bold text-yellow-600">0</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-600">Total Orders</h4>
+                <p className="text-2xl font-bold text-green-600">0</p>
+              </div>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-600">Revenue</h4>
+                <p className="text-2xl font-bold text-blue-600">₹0</p>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

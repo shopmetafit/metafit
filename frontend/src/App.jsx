@@ -36,11 +36,14 @@ import BlogDetail from "./components/Blog/BlogDetail";
 import BlogEditor from "./components/Admin/BlogEditor";
 import BlogDashboard from "./components/Admin/BlogDashboard";
 
-import ProductApprovalPage from "./components/Admin/ProductApprovalPage";
 import VendorLogin from "./pages/VendorLogin";
 import VendorRegister from "./pages/VendorRegister";
 import VendorDashboard from "./pages/VendorDashboard";
+import VendorManageProducts from "./pages/VendorManageProducts";
 import VendorApprovals from "./components/Admin/VendorApprovals";
+import ProductRequestForm from "./components/Vendor/ProductRequestForm";
+import ProductRequestsList from "./components/Vendor/ProductRequestsList";
+import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
 
 const App = () => {
   return (
@@ -55,6 +58,10 @@ const App = () => {
             <Route path="vendor-login" element={<VendorLogin />} />
             <Route path="vendor-register" element={<VendorRegister />} />
             <Route path="vendor-dashboard" element={<VendorDashboard />} />
+            <Route path="vendor/manage-products" element={<VendorManageProducts />} />
+            <Route path="vendor/product-request/new" element={<ProductRequestForm />} />
+            <Route path="vendor/product-request/:requestId" element={<ProductRequestForm />} />
+            <Route path="vendor/product-requests" element={<ProductRequestsList />} />
             <Route path="profile" element={<Profile />} />
             <Route path="collections/:collection" element={<Collection />} />
             <Route path="product/:id" element={<ProductDetails />} />
@@ -91,8 +98,8 @@ const App = () => {
               <Route path="products" element={<ProductManagement />} />
               <Route path="products/new" element={<NewProductPage />} />
               <Route path="products/:id/edit" element={<EditProductPage />} />
-              <Route path="product-approvals" element={<ProductApprovalPage />} />
               <Route path="vendor-approvals" element={<VendorApprovals />} />
+              <Route path="product-requests" element={<ProductRequestsAdmin />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="blogs" element={<BlogDashboard />} />
               <Route path="blogs/create" element={<BlogEditor />} />

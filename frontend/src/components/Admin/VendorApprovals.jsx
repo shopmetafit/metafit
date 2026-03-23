@@ -197,12 +197,14 @@ const VendorApprovals = () => {
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">{new Date(vendor.createdAt).toLocaleDateString()}</td>
                     <td className="px-4 py-3 text-sm">
-                      <button
-                        onClick={() => handleViewDetails(vendor)}
-                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-xs font-semibold"
-                      >
-                        Review
-                      </button>
+                      {vendor.status === 'pending' && (
+                        <button
+                          onClick={() => handleViewDetails(vendor)}
+                          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition text-xs font-semibold"
+                        >
+                          Review
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

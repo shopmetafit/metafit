@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { registerVendor, loginVendor, loginVendorWithOTP } = require("../controllers/vendorController");
 const { sendOtpController, verifyOtpController } = require("../controllers/otpController");
+const { protectVendor, vendorApproved } = require("../middleware/vendorAuthMiddleware");
 
 // REGISTER ROUTE
 router.post("/register", registerVendor);
@@ -195,6 +196,182 @@ router.get("/all-vendors", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching vendors"
+    });
+  }
+});
+
+// Get vendor products (for vendor dashboard)
+router.get("/products", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const Product = require("../models/Product");
+    
+    // For now, return all products since we don't have vendor association
+    // In a full implementation, this would filter by vendor ID
+    const products = await Product.find()
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      products
+    });
+  } catch (error) {
+    console.error("Error fetching vendor products:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching vendor products"
+    });
+  }
+});
+
+// Get vendor orders (for vendor dashboard)
+router.get("/orders", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const Order = require("../models/Order");
+    
+    // For now, return all orders since we don't have vendor association
+    // In a full implementation, this would filter by vendor ID
+    const orders = await Order.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      orders
+    });
+  } catch (error) {
+    console.error("Error fetching vendor orders:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching vendor orders"
+    });
+  }
+});
+
+// Update vendor product (for vendor dashboard)
+router.put("/products/:id", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const productData = req.body;
+    const Product = require("../models/Product");
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    // Update product fields
+    Object.assign(product, productData);
+    await product.save();
+
+    res.json({
+      success: true,
+      message: "Product updated successfully",
+      product
+    });
+  } catch (error) {
+    console.error("Error updating product:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating product"
+    });
+  }
+});
+
+// Delete vendor product (for vendor dashboard)
+router.delete("/products/:id", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Product = require("../models/Product");
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
+    }
+
+    await Product.findByIdAndDelete(id);
+
+    res.json({
+      success: true,
+      message: "Product deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting product"
+    });
+  }
+});
+
+// Update order status (for vendor dashboard)
+router.put("/orders/:id/status", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const Order = require("../models/Order");
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    order.status = status;
+    if (status === 'Delivered') {
+      order.deliveredAt = new Date();
+    }
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Order status updated successfully",
+      order
+    });
+  } catch (error) {
+    console.error("Error updating order status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating order status"
+    });
+  }
+});
+
+// Update shipping status (for vendor dashboard)
+router.put("/orders/:id/shipping", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { shippingStatus } = req.body;
+    const Order = require("../models/Order");
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    order.shippingStatus = shippingStatus;
+    await order.save();
+
+    res.json({
+      success: true,
+      message: "Shipping status updated successfully",
+      order
+    });
+  } catch (error) {
+    console.error("Error updating shipping status:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating shipping status"
     });
   }
 });

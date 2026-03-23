@@ -49,16 +49,18 @@ const AdminSidebar = () => {
         <span>Edit Products</span>
         </NavLink>
 
+       
+
         <NavLink
-          to="/admin/product-approvals"
+          to="/admin/product-requests"
           className={(isActive) => {
             isActive
               ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
               : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
           }}
         >
-          <FaCheckCircle />
-        <span>Product Approvals</span>
+          <FaBoxOpen />
+        <span>Product Requests</span>
         </NavLink>
         <NavLink
           to="/admin/orders"

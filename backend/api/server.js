@@ -20,6 +20,7 @@ const shipmentRoutes = require("../routes/shipmentRoutes");
 const adminShipmentRoutes = require("../routes/adminShipmentRoutes");
 const blogRoutes = require("../routes/blogRoutes");
 const vendorRoutes = require("../routes/vendorRoutes")
+const productRequestRoutes = require("../routes/productRequestRoutes")
 
 const app= express();
 app.use(cors({domain:["https://metafit-a5ll.vercel.app", "http://localhost:5173"]}));
@@ -62,6 +63,7 @@ app.use("/api/auth", otpRoutes);
 
 app.use("/api/upload", videoUploadRoute);
 app.use("/api/vendor", vendorRoutes);
+app.use("/api/vendor/product-requests", productRequestRoutes);
 
 
 app.listen(PORT, "0.0.0.0", () => {
