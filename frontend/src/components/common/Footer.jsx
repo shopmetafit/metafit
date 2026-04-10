@@ -1,276 +1,222 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, ChevronDown, Phone, Mail, Check, Facebook, Instagram, Linkedin } from "lucide-react";
+import { ChevronUp, ChevronDown, Phone, Mail, Facebook, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
+
+const footerColumns = [
+  {
+    heading: "Get to Know Us",
+    links: [
+      { label: "About M Wellness Bazaar", href: "/aboutUs" },
+      { label: "Blog & Wellness Tips", href: "/blog" },
+      { label: "Become a Vendor", href: "/vendor-register" },
+    ],
+  },
+  {
+    heading: "Connect with Us",
+    links: [
+      { label: "Contact Us", href: "/contactUs" },
+      { label: "WhatsApp Us", href: "https://wa.me/918302270668", external: true },
+      { label: "Call: +91 88299 12389", href: "tel:+918829912389" },
+      { label: "Email Us", href: "mailto:info@metafitwellness.com" },
+    ],
+  },
+  {
+    heading: "Make Money with Us",
+    links: [
+      { label: "Sell on M Wellness Bazaar", href: "/vendor-register" },
+      { label: "Become an Affiliate", href: "/vendor-register" },
+    ],
+  },
+  {
+    heading: "Let Us Help You",
+    links: [
+      { label: "My Orders", href: "/my-orders" },
+      { label: "Returns & Refunds", href: "/refund-policy" },
+      { label: "Shipping Policy", href: "/shipping-policy" },
+      { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Terms & Conditions", href: "/terms-and-conditions" },
+    ],
+  },
+];
 
 const Footer = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [email, setEmail] = useState("");
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setPolicyOpen(false);
       }
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email) {
-      setIsSubscribed(true);
-      setTimeout(() => {
-        setIsSubscribed(false);
-        setEmail("");
-      }, 3000);
-    }
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <footer className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="h-10 w-10 bg-gradient-to-br from-[#047ca8] to-[#06b6d4] rounded-lg flex items-center justify-center shadow-lg">
-                <Send className="h-5 w-5 text-white" />
+    <footer>
+      {/* ── Back to Top ── */}
+      <button
+        onClick={scrollToTop}
+        className="w-full bg-[#37475a] hover:bg-[#4a5d73] text-white text-sm font-semibold py-3.5 flex items-center justify-center gap-2 transition-colors"
+      >
+        <ChevronUp className="h-4 w-4" />
+        Back to top
+      </button>
+
+      {/* ── 4-Column Links ── */}
+      <div className="bg-[#232f3e] text-white">
+        <div className="max-w-screen-2xl mx-auto px-6 py-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {footerColumns.map((col) => (
+              <div key={col.heading}>
+                <h3 className="text-sm font-bold text-white mb-4">{col.heading}</h3>
+                <ul className="space-y-2.5">
+                  {col.links.map((link) => (
+                    <li key={link.label}>
+                      {link.external ? (
+                        <a
+                          href={link.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-gray-300 hover:text-white transition-colors"
+                        >
+                          {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          to={link.href}
+                          className="text-xs text-gray-300 hover:text-white transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <h3 className="text-lg font-bold text-white">Newsletter</h3>
-            </div>
-            <p className="text-sm text-slate-300 mb-4 leading-relaxed mt-20">
-              Be the first to hear about new products, exclusive events, and special offers.
-            </p>
-            <div className="bg-gradient-to-r from-amber-400/20 to-orange-400/20 border mt-20 border-amber-400/40 p-3 rounded-lg mb-4 backdrop-blur">
-              <p className="text-xs font-semibold text-amber-100 mb-0">
-                ✨ Sign up to get exclusive 10% off on your first order
-              </p>
-            </div>
-            {/* <div className="relative">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-4 py-2.5 text-sm border border-slate-700 rounded-lg bg-slate-800 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
-              />
-              <button
-                onClick={handleSubscribe}
-                className="w-full mt-2 bg-gradient-to-r from-[#047ca8] to-[#06b6d4] hover:from-[#036488] hover:to-[#0592b0] text-white px-4 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Trust Badges Row ── */}
+      <div className="bg-[#37475a] border-t border-white/10">
+        <div className="max-w-screen-2xl mx-auto px-6 py-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { icon: "✓", title: "Quality Guaranteed", desc: "Premium wellness products only" },
+              { icon: "🔒", title: "Secure Payments", desc: "100% safe & encrypted transactions" },
+              { icon: "📦", title: "Free Shipping", desc: "On orders over ₹999" },
+            ].map((badge) => (
+              <div
+                key={badge.title}
+                className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-3"
               >
-                Subscribe Now
-              </button>
-            </div> */}
-            {isSubscribed && (
-              <p className="text-emerald-300 text-xs mt-2 flex items-center animate-pulse">
-                <Check className="h-4 w-4 mr-2" /> Successfully subscribed!
-              </p>
-            )}
+                <span className="text-xl flex-shrink-0">{badge.icon}</span>
+                <div>
+                  <p className="text-xs font-bold text-white">{badge.title}</p>
+                  <p className="text-xs text-gray-400">{badge.desc}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </div>
+      </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-5 pb-2 border-b border-slate-700">
-              Shop
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <a href="/collections/all" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Explore our Products
-                </a>
-              </li>
-             
-            </ul>
-          </div>
+      {/* ── Bottom Bar ── */}
+      <div className="bg-[#131a22] border-t border-white/10">
+        <div className="max-w-screen-2xl mx-auto px-6 py-5">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-5 pb-2 border-b border-slate-700">
-              Support
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <a href="/contactus" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  Contact us
-                </a>
-              </li>
-              <li>
-                <a href="/aboutus" className="text-sm text-slate-300 hover:text-teal-400 transition-colors duration-300 flex items-center">
-                  <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2"></span>
-                  About us
-                </a>
-              </li>
-             
-            </ul>
-          </div>
+            {/* Logo */}
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+              <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-base">M</span>
+              </div>
+              <div className="leading-tight">
+                <div className="text-sm font-black text-white">M Wellness Bazaar</div>
+                <div className="text-xs text-teal-400">From Ancient Healing to AI Living</div>
+              </div>
+            </Link>
 
-          <div>
-            <h3 className="text-lg font-bold text-white mb-5 pb-2 border-b border-slate-700">
-              Get in Touch
-            </h3>
-            
-            <p className="text-xs text-slate-300 font-medium mb-3">Follow us on social media</p>
-            <div className="flex items-center space-x-3 mb-6">
+            {/* Social Links */}
+            <div className="flex items-center gap-2">
               <a
                 href="https://www.facebook.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-110 shadow-lg"
+                className="w-8 h-8 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center justify-center transition-colors"
+                aria-label="Facebook"
               >
-                <Facebook className="h-5 w-5" />
+                <Facebook className="h-4 w-4 text-white" />
               </a>
               <a
                 href="https://www.instagram.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center text-white hover:from-pink-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-110 shadow-lg"
+                className="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 rounded-lg flex items-center justify-center transition-colors"
+                aria-label="Instagram"
               >
-                <Instagram className="h-5 w-5" />
+                <Instagram className="h-4 w-4 text-white" />
               </a>
-              {/* <a
-                href="https://www.linkedin.com/company/meta-fit-wellness/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 transform hover:scale-110 shadow-lg"
+              <a
+                href="tel:+918829912389"
+                className="w-8 h-8 bg-teal-600 hover:bg-teal-500 rounded-lg flex items-center justify-center transition-colors"
+                aria-label="Phone"
               >
-                <Linkedin className="h-5 w-5" />
-              </a> */}
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                <Phone className="h-5 w-5 text-[#047ca8] mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Call us</p>
-                  <a href="tel:+919982498555" className="text-sm font-semibold text-white hover:text-[#06b6d4] transition-colors">
-                    +91 8829912389
-                  </a>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-3 p-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-colors">
-                <Mail className="h-5 w-5 text-[#047ca8] mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-xs text-slate-400 font-medium">Email us</p>
-                  <a href="mailto:info@metafitwellness.com" className="text-sm font-semibold text-white hover:text-[#06b6d4] transition-colors break-all">
-                    info@metafitwellness.com
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-slate-700">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex items-center space-x-4 bg-gradient-to-r from-[#047ca8]/10 to-[#06b6d4]/10 backdrop-blur-sm p-4 rounded-lg border border-[#047ca8]/20 hover:border-[#047ca8]/40 transition-all">
-              <div className="h-12 w-12 bg-gradient-to-br from-[#047ca8] to-[#06b6d4] rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white">Quality Guaranteed</h4>
-                <p className="text-xs text-slate-300">Premium wellness products</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 bg-gradient-to-r from-[#047ca8]/10 to-[#06b6d4]/10 backdrop-blur-sm p-4 rounded-lg border border-[#047ca8]/20 hover:border-[#047ca8]/40 transition-all">
-              <div className="h-12 w-12 bg-gradient-to-br from-[#047ca8] to-[#06b6d4] rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white">Secure Payments</h4>
-                <p className="text-xs text-slate-300">100% secure transactions</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4 bg-gradient-to-r from-[#047ca8]/10 to-[#06b6d4]/10 backdrop-blur-sm p-4 rounded-lg border border-[#047ca8]/20 hover:border-[#047ca8]/40 transition-all">
-              <div className="h-12 w-12 bg-gradient-to-br from-[#047ca8] to-[#06b6d4] rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-bold text-sm text-white">Free Shipping</h4>
-                <p className="text-xs text-slate-300">On orders over ₹999</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gradient-to-r from-slate-950 to-slate-900 border-t border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-center space-y-3 md:space-y-0 text-sm">
-            <p className="text-slate-300">
-              Copyright © 2025 <span className="font-semibold text-white">MetaFit Wellness</span>. All Rights Reserved
-            </p>
-
-            <p className="text-slate-400 italic text-xs font-medium">
-              ✨ From Ancient Healing to Modern Wellness
-            </p>
-
-            <div className="relative inline-block text-left" ref={dropdownRef}>
-              <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center px-4 py-1.5 text-xs bg-white bg-opacity-20 hover:bg-opacity-30 text-white rounded-md transition-colors"
+                <Phone className="h-4 w-4 text-white" />
+              </a>
+              <a
+                href="mailto:info@metafitwellness.com"
+                className="w-8 h-8 bg-[#047ca8] hover:bg-[#06b6d4] rounded-lg flex items-center justify-center transition-colors"
+                aria-label="Email"
               >
-                Policies <ChevronDown className={`ml-1.5 h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-              </button>
+                <Mail className="h-4 w-4 text-white" />
+              </a>
+            </div>
 
-              {isOpen && (
-                <div className="absolute right-0 bottom-full mb-2 w-48 rounded-lg bg-white shadow-xl border border-gray-200 z-50 overflow-hidden">
-                  <ul className="py-1 text-xs">
-                    <li>
-                      <a
-                        href="#"
-                        onClick={() => setIsOpen(false)}
-                        className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      >
-                        🔒 Privacy Policy
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        onClick={() => setIsOpen(false)}
-                        className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      >
-                        💰 Refund Policy
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        onClick={() => setIsOpen(false)}
-                        className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      >
-                        📦 Shipping Policy
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        onClick={() => setIsOpen(false)}
-                        className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      >
-                        📋 Terms & Conditions
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        onClick={() => setIsOpen(false)}
-                        className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-600 transition-colors"
-                      >
-                        💵 Pricing Policy
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              )}
+            {/* Copyright + Policies */}
+            <div className="flex flex-col items-center md:items-end gap-1">
+              <p className="text-xs text-gray-400">
+                © 2025 <span className="text-white font-semibold">MetaFit Wellness</span>. All Rights Reserved.
+              </p>
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setPolicyOpen(!policyOpen)}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
+                >
+                  Policies{" "}
+                  <ChevronDown
+                    className={`h-3 w-3 transition-transform ${policyOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {policyOpen && (
+                  <div className="absolute right-0 bottom-full mb-2 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                    <ul className="py-1 text-xs">
+                      {[
+                        { label: "🔒 Privacy Policy", href: "/privacy-policy" },
+                        { label: "💰 Refund Policy", href: "/refund-policy" },
+                        { label: "📦 Shipping Policy", href: "/shipping-policy" },
+                        { label: "📋 Terms & Conditions", href: "/terms-and-conditions" },
+                        { label: "💵 Pricing Policy", href: "/pricing-policy" },
+                      ].map((p) => (
+                        <li key={p.label}>
+                          <Link
+                            to={p.href}
+                            onClick={() => setPolicyOpen(false)}
+                            className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                          >
+                            {p.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -21,7 +21,7 @@ const adminShipmentRoutes = require("../routes/adminShipmentRoutes");
 const blogRoutes = require("../routes/blogRoutes");
 const vendorRoutes = require("../routes/vendorRoutes")
 const productRequestRoutes = require("../routes/productRequestRoutes")
-
+const couponRoutes = require("../routes/couponRoutes");
 const app= express();
 app.use(cors({domain:["https://metafit-a5ll.vercel.app", "http://localhost:5173"]}));
 app.use(express.json());
@@ -48,6 +48,7 @@ app.use("/api/orders",orderRoutes);
 app.use("/api/shipment",shipmentRoutes);
 app.use("/api/upload",uploadRoutes);
 app.use("/api/contact",contactRoutes);
+app.use("/api/coupons", couponRoutes);
 
 
 //Admin

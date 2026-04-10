@@ -4,14 +4,11 @@ import { registerUser, sendOTP, verifyOTP } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 
 const Register = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -23,40 +20,30 @@ const Register = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  
   const { user, guestId, otpLoading, otpVerifying } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
 
   const redirect = new URLSearchParams(location.search).get("redirect") || "/";
   const isCheckoutRedirect = redirect.includes("checkout");
 
-  // Timer effect
   useEffect(() => {
     let interval;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
+    if (timer > 0) interval = setInterval(() => setTimer((p) => p - 1), 1000);
     return () => clearInterval(interval);
   }, [timer]);
 
-  // Focus first OTP input when shown
   useEffect(() => {
     if (showOtpInput && otpInputRefs.current[0]) {
-      setTimeout(() => {
-        otpInputRefs.current[0].focus();
-      }, 100);
+      setTimeout(() => otpInputRefs.current[0].focus(), 100);
     }
   }, [showOtpInput]);
 
-  // Navigation effect
   useEffect(() => {
     if (user) {
       if (cart?.products?.length > 0 && guestId) {
-        dispatch(mergeCart({ guestId, user })).then(() => {
-          navigate(isCheckoutRedirect ? "/checkout" : "/");
-        });
+        dispatch(mergeCart({ guestId, user })).then(() =>
+          navigate(isCheckoutRedirect ? "/checkout" : "/")
+        );
       } else {
         navigate(isCheckoutRedirect ? "/checkout" : "/");
       }
@@ -65,37 +52,26 @@ const Register = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
-    if (name === 'phone') {
-      // Allow only numbers and limit to 10 digits
-      const numericValue = value.replace(/\D/g, '');
-      if (numericValue.length <= 10) {
-        setFormData(prev => ({ ...prev, [name]: numericValue }));
-      }
+    if (name === "phone") {
+      const num = value.replace(/\D/g, "");
+      if (num.length <= 10) setFormData((p) => ({ ...p, [name]: num }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData((p) => ({ ...p, [name]: value }));
     }
   };
 
   const handleOtpChange = (value, index) => {
-    // Ensure only numbers
-    const numericValue = value.replace(/\D/g, '');
-    
-    // Update OTP string
-    const newOtp = otp.split('');
-    newOtp[index] = numericValue;
-    const updatedOtp = newOtp.join('');
-    setOtp(updatedOtp);
-
-    // Auto-focus next input
-    if (numericValue && index < 5 && otpInputRefs.current[index + 1]) {
+    const num = value.replace(/\D/g, "");
+    const newOtp = otp.split("");
+    newOtp[index] = num;
+    setOtp(newOtp.join(""));
+    if (num && index < 5 && otpInputRefs.current[index + 1]) {
       otpInputRefs.current[index + 1].focus();
     }
   };
 
   const handleKeyDown = (e, index) => {
-    // Handle backspace
-    if (e.key === 'Backspace' && !otp[index] && index > 0 && otpInputRefs.current[index - 1]) {
+    if (e.key === "Backspace" && !otp[index] && index > 0 && otpInputRefs.current[index - 1]) {
       otpInputRefs.current[index - 1].focus();
     }
   };
@@ -105,23 +81,38 @@ const Register = () => {
       toast.error("Please enter a valid 10-digit phone number");
       return;
     }
-
     setIsSendingOtp(true);
     try {
       const result = await dispatch(sendOTP({ phone: formData.phone }));
-      
       if (sendOTP.fulfilled.match(result)) {
         setShowOtpInput(true);
         setOtpSent(true);
-        setTimer(120); // 2 minutes timer
-        toast.success("OTP sent successfully to your phone");
-      } else if (sendOTP.rejected.match(result)) {
+        setTimer(120);
+        toast.success("OTP sent to your phone");
+      } else {
         toast.error(result.payload?.message || "Failed to send OTP");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to send OTP. Please try again.");
     } finally {
       setIsSendingOtp(false);
+    }
+  };
+
+  const handleRegistration = async () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.phone) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+    const result = await dispatch(registerUser(formData));
+    if (registerUser.rejected.match(result)) {
+      const error = result.payload;
+      if (error?.errors) error.errors.forEach((e) => toast.error(e.message));
+      else if (error?.message) toast.error(error.message);
+      else toast.error("Registration failed. Please try again.");
+      setOtp("");
+      setShowOtpInput(false);
+      setOtpSent(false);
     }
   };
 
@@ -130,258 +121,229 @@ const Register = () => {
       toast.error("Please enter the complete 6-digit OTP");
       return;
     }
-
     setIsVerifying(true);
     try {
-      const result = await dispatch(verifyOTP({ 
-        phone: formData.phone, 
-        otp 
-      }));
-      
+      const result = await dispatch(verifyOTP({ phone: formData.phone, otp }));
       if (verifyOTP.fulfilled.match(result)) {
-        toast.success("Phone number verified successfully!");
-        // Continue with registration
+        toast.success("Phone verified!");
         await handleRegistration();
-      } else if (verifyOTP.rejected.match(result)) {
+      } else {
         toast.error(result.payload?.message || "Invalid OTP. Please try again.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Verification failed. Please try again.");
     } finally {
       setIsVerifying(false);
     }
   };
 
-  const handleRegistration = async () => {
-    console.log("Registering user with data:", formData);
-    if (!formData.name || !formData.email || !formData.password|| !formData.phone) {
-      toast.error("Please fill all required fields");
-      return;
-    }
-
-    const result = await dispatch(registerUser(formData));
-    
-    if (registerUser.rejected.match(result)) {
-      const error = result.payload;
-      if (error?.errors) {
-        error.errors.forEach((err) => toast.error(err.message));
-      } else if (error?.message) {
-        toast.error(error.message);
-      } else {
-        toast.error("Registration failed. Please try again.");
-      }
-      // Reset OTP verification if registration fails
-      setOtp("");
-      setShowOtpInput(false);
-      setOtpSent(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!otpSent) {
-      // First step: Send OTP
-      await handleSendOtp();
-    } else {
-      // Second step: Verify OTP and register
-      await handleVerifyOtp();
-    }
+    if (!otpSent) await handleSendOtp();
+    else await handleVerifyOtp();
   };
 
-  const handleResendOtp = () => {
-    if (timer === 0) {
-      handleSendOtp();
-    }
-  };
+  const isLoading = isSendingOtp || isVerifying || otpLoading || otpVerifying;
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <div className="w-full flex flex-col justify-center items-center p-3 sm:p-4 md:p-8">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-sm sm:max-w-md bg-white p-4 sm:p-6 md:p-8 rounded-lg border shadow-sm mx-2 sm:mx-4"
-        >
-          <div className="flex justify-center mb-4 sm:mb-6">
-            <h2 className="text-lg sm:text-xl font-medium">M Wellness Bazaar</h2>
-          </div>
-          
-          <h2 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">
-            Hey There!
-          </h2>
-          <p className="text-center text-sm sm:text-base mb-4 sm:mb-6 px-2">
-            {!showOtpInput 
-              ? "Create your account" 
-              : "Verify your phone number"
-            }
-          </p>
+    <div className="min-h-screen bg-[#f0f2f2] flex flex-col items-center justify-center px-4 py-10">
 
+      {/* Logo */}
+      <Link to="/" className="flex items-center gap-2 mb-6">
+        <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg">
+          <span className="text-white font-black text-xl">M</span>
+        </div>
+        <div className="leading-tight">
+          <div className="text-lg font-black text-gray-900">M Wellness</div>
+          <div className="text-xs text-teal-600 font-semibold -mt-0.5">Bazaar</div>
+        </div>
+      </Link>
+
+      {/* Card */}
+      <div className="w-full max-w-sm bg-white rounded-lg border border-gray-300 shadow-sm p-6">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-1">
+          {showOtpInput ? "Verify your number" : "Create account"}
+        </h1>
+        <p className="text-sm text-gray-500 mb-5">
+          {showOtpInput
+            ? `Enter the 6-digit OTP sent to +91 ${formData.phone}`
+            : "Fill in the details below to get started"}
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           {!showOtpInput ? (
             <>
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-                  Name *
-                </label>
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Full Name *</label>
                 <input
                   type="text"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Enter your name"
                   required
+                  placeholder="Your full name"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
                 />
               </div>
-              
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-                  Email *
-                </label>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Email *</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Enter your email address"
                   required
+                  placeholder="you@example.com"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
                 />
               </div>
-              
-              <div className="mb-3 sm:mb-4">
-                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="Enter your password"
-                  required
-                />
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Password *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    placeholder="At least 6 characters"
+                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm pr-10 focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-              
-              <div className="mb-4 sm:mb-6">
-                <label className="block text-xs sm:text-sm font-semibold mb-1 sm:mb-2">
-                  Phone Number *
-                </label>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">Phone Number *</label>
                 <div className="flex gap-2">
-                  <div className="flex items-center px-2 sm:px-3 border rounded bg-gray-50 text-xs sm:text-sm">
-                    <span className="text-gray-600">+91</span>
+                  <div className="flex items-center px-3 border border-gray-300 rounded bg-gray-50 text-sm text-gray-600 flex-shrink-0">
+                    +91
                   </div>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className="flex-1 p-2 sm:p-3 text-sm sm:text-base border rounded focus:outline-none focus:ring-2 focus:ring-black"
+                    required
                     placeholder="10-digit mobile number"
                     maxLength="10"
-                    required
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
                   />
                 </div>
-                <p className="text-xs text-gray-500 mt-1 sm:mt-2">
-                  We'll send a verification code to this number
-                </p>
+                <p className="text-xs text-gray-400 mt-1">We'll send an OTP to verify your number</p>
               </div>
             </>
           ) : (
-            <div className="mb-4 sm:mb-6">
-              <div className="text-center mb-3 sm:mb-4">
-                <p className="text-sm text-gray-600">
-                  Enter the 6-digit OTP sent to +91 {formData.phone}
-                </p>
-                <p className="text-xs text-gray-500 mt-1 sm:mt-2">
-                  OTP expires in: {Math.floor(timer / 60)}:{timer % 60 < 10 ? '0' : ''}{timer % 60}
-                </p>
-              </div>
-              
-              <div className="flex justify-center gap-1 sm:gap-2 mb-3 sm:mb-4">
-                {Array.from({ length: 6 }).map((_, index) => (
+            <div>
+              {/* OTP Timer */}
+              <p className="text-xs text-gray-500 text-center mb-4">
+                Expires in:{" "}
+                <span className="font-bold text-gray-800">
+                  {Math.floor(timer / 60)}:{String(timer % 60).padStart(2, "0")}
+                </span>
+              </p>
+
+              {/* OTP Boxes */}
+              <div className="flex justify-center gap-2 mb-4">
+                {Array.from({ length: 6 }).map((_, i) => (
                   <input
-                    key={index}
-                    ref={(el) => (otpInputRefs.current[index] = el)}
+                    key={i}
+                    ref={(el) => (otpInputRefs.current[i] = el)}
                     type="text"
-                    value={otp[index] || ""}
-                    onChange={(e) => handleOtpChange(e.target.value, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className="w-10 h-10 sm:w-12 sm:h-12 text-center text-base sm:text-lg border rounded-lg focus:border-black focus:outline-none focus:ring-2 focus:ring-black"
+                    value={otp[i] || ""}
+                    onChange={(e) => handleOtpChange(e.target.value, i)}
+                    onKeyDown={(e) => handleKeyDown(e, i)}
                     maxLength="1"
                     inputMode="numeric"
+                    className="w-11 h-12 text-center text-lg font-bold border-2 border-gray-300 rounded-lg focus:border-[#047ca8] focus:outline-none focus:ring-2 focus:ring-[#047ca8]/20 transition"
                   />
                 ))}
               </div>
-              
-              <div className="text-center mb-3 sm:mb-4">
+
+              <div className="text-center mb-2">
                 <button
                   type="button"
-                  onClick={handleResendOtp}
+                  onClick={() => timer === 0 && handleSendOtp()}
                   disabled={timer > 0 || isSendingOtp}
-                  className={`text-xs sm:text-sm ${timer > 0 || isSendingOtp ? 'text-gray-400 cursor-not-allowed' : 'text-black hover:text-gray-700 font-medium'}`}
+                  className={`text-sm font-medium transition-colors ${
+                    timer > 0 || isSendingOtp
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-[#047ca8] hover:underline"
+                  }`}
                 >
-                  {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
+                  {timer > 0 ? `Resend OTP in ${timer}s` : "Resend OTP"}
                 </button>
               </div>
-              
-              <p className="text-xs text-gray-500 text-center mt-2 sm:mt-4 px-2">
-                Didn't receive OTP? Check if the number is correct or try resend
-              </p>
             </div>
           )}
 
+          {/* Submit */}
           <button
             type="submit"
-            disabled={isSendingOtp || isVerifying || otpLoading || otpVerifying}
-            className="w-full bg-black text-white p-2 sm:p-3 text-sm sm:text-base rounded-lg font-semibold hover:bg-gray-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+            disabled={isLoading}
+            className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-full text-sm transition-colors shadow-md flex items-center justify-center gap-2"
           >
-            {(isSendingOtp || otpLoading) ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Sending OTP...
-              </span>
-            ) : (isVerifying || otpVerifying) ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-white" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                </svg>
-                Verifying...
-              </span>
+                {isSendingOtp || otpLoading ? "Sending OTP..." : "Verifying..."}
+              </>
+            ) : otpSent ? (
+              "Verify & Create Account"
             ) : (
-              otpSent ? "Verify & Create Account" : "Send OTP"
+              "Send OTP"
             )}
           </button>
 
           {showOtpInput && (
             <button
               type="button"
-              onClick={() => {
-                setShowOtpInput(false);
-                setOtp("");
-                setOtpSent(false);
-              }}
-              className="w-full mt-3 sm:mt-4 p-2 sm:p-3 text-sm sm:text-base border rounded-lg font-semibold hover:bg-gray-50 transition focus:outline-none focus:ring-2 focus:ring-black"
+              onClick={() => { setShowOtpInput(false); setOtp(""); setOtpSent(false); }}
+              className="w-full border border-gray-300 text-gray-700 font-semibold py-2.5 rounded-full text-sm hover:bg-gray-50 transition-colors"
             >
               Change Phone Number
             </button>
           )}
-
-          <p className="mt-4 sm:mt-6 text-center text-xs sm:text-sm">
-            Already have an account?{" "}
-            <Link 
-              to={`/login?redirect=${encodeURIComponent(redirect)}`} 
-              className="text-black hover:text-gray-700 font-medium"
-            >
-              Login
-            </Link>
-          </p>
         </form>
+
+        {/* Trust signal */}
+        <div className="flex items-center justify-center gap-1.5 mt-4 text-xs text-gray-500">
+          <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+          <span>Your information is safe and secure</span>
+        </div>
       </div>
+
+      {/* Already have account */}
+      <div className="flex items-center gap-3 w-full max-w-sm my-5">
+        <div className="flex-1 h-px bg-gray-300" />
+        <span className="text-xs text-gray-400">Already have an account?</span>
+        <div className="flex-1 h-px bg-gray-300" />
+      </div>
+
+      <Link
+        to={`/login?redirect=${encodeURIComponent(redirect)}`}
+        className="w-full max-w-sm block text-center border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 font-semibold py-2.5 rounded-full text-sm transition-colors shadow-sm"
+      >
+        Sign in to your account
+      </Link>
+
+      <p className="text-xs text-gray-500 mt-6 text-center max-w-xs">
+        By creating an account, you agree to our{" "}
+        <Link to="/terms-and-conditions" className="text-[#047ca8] hover:underline">Terms</Link>{" "}
+        and{" "}
+        <Link to="/privacy-policy" className="text-[#047ca8] hover:underline">Privacy Policy</Link>.
+      </p>
     </div>
   );
 };

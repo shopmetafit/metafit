@@ -30,6 +30,45 @@ console.log(user);
     phone: "",
   });
 
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const deliveryCharge = 30;
+  const subtotal = cart?.totalPrice ?? 0;
+  const totalWithDelivery = subtotal + deliveryCharge;
+  const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+
+    if (!cart || !cart.totalPrice) {
+      toast.error("Cart is empty");
+      return;
+    }
+
+    try {
+      setIsApplyingCoupon(true);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/coupons/apply`,
+        { code, subtotal: cart.totalPrice }
+      );
+
+      const discountAmount = Number(data?.discountAmount || 0);
+      setCouponDiscount(Number.isFinite(discountAmount) ? discountAmount : 0);
+      setAppliedCoupon(code);
+      toast.success("Coupon applied");
+    } catch (e) {
+      setAppliedCoupon("");
+      setCouponDiscount(0);
+      toast.error(e?.response?.data?.message || "Invalid coupon");
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
   //  Reset cart loaded state when user changes (login/logout)
   useEffect(() => {
     if (user && user._id) {
@@ -37,45 +76,35 @@ console.log(user);
     }
   }, [user?._id]);
 
-  //  Merge guest cart with user cart after login
+  //  Load cart for logged-in user at checkout
   useEffect(() => {
     if (user && user._id && !isCartLoaded) {
       const guestId = localStorage.getItem("guestId");
-      
-      // First try to merge guest cart if it exists
-      if (guestId) {
+      const cartAlreadyLoaded = cart?.products && cart.products.length > 0;
+
+      if (cartAlreadyLoaded) {
+        // Cart is already in Redux state (user was logged in before reaching checkout)
+        // No need to merge — just mark as loaded
+        setIsCartLoaded(true);
+      } else if (guestId) {
+        // User just logged in from a guest session — merge guest cart into user cart
         dispatch(mergeCart({ guestId, user }))
-          .then((result) => {
-            console.log("Cart merged successfully", result);
+          .then(() => {
             setIsCartLoaded(true);
           })
-          .catch((err) => {
-            console.log("Cart merge failed, fetching user cart from server", err);
-            // If merge fails, fetch from server instead
-            dispatch(fetchCart({ userId: user._id }))
-              .then(() => {
-                console.log("User cart fetched from server");
-                setIsCartLoaded(true);
-              })
-              .catch((fetchErr) => {
-                console.log("Failed to fetch user cart", fetchErr);
-                setIsCartLoaded(true);
-              });
+          .catch(() => {
+            // Merge failed (guest cart already merged or doesn't exist) — fetch user cart directly
+            dispatch(fetchCart({ userId: user._id })).finally(() => {
+              setIsCartLoaded(true);
+            });
           });
       } else {
-        // No guest cart, just fetch user cart from server
-        dispatch(fetchCart({ userId: user._id }))
-          .then(() => {
-            console.log("User cart fetched from server");
-            setIsCartLoaded(true);
-          })
-          .catch((err) => {
-            console.log("Failed to fetch user cart", err);
-            setIsCartLoaded(true);
-          });
+        // No guest cart — just fetch user cart from server
+        dispatch(fetchCart({ userId: user._id })).finally(() => {
+          setIsCartLoaded(true);
+        });
       }
     } else if (!user && !isCartLoaded) {
-      // Guest user, mark as loaded
       setIsCartLoaded(true);
     }
   }, [user, dispatch, isCartLoaded]);
@@ -210,10 +239,10 @@ console.log(user);
               ...product,
               createdBy: product.createdBy || "ADMIN"
             })),
-            totalAmount: cart.totalPrice,
-            firstName: shippingAddress.firstName,
-            lastName: shippingAddress.lastName,
-            address: shippingAddress.address,
+	            totalAmount: price,
+	            firstName: shippingAddress.firstName,
+	            lastName: shippingAddress.lastName,
+	            address: shippingAddress.address,
             city: shippingAddress.city,
             postalCode: shippingAddress.postalCode,
             country: shippingAddress.country,
@@ -297,14 +326,15 @@ console.log(user);
     );
 
        // Send to backend - backend will calculate delivery charge
-       const res = await dispatch(
-         createCheckout({
-           checkoutItems: cart.products,
-           shippingAddress,
-           paymentMethod: "Razorpay",
-           totalPrice: cart.totalPrice,
-         })
-       );
+	       const res = await dispatch(
+	         createCheckout({
+	           checkoutItems: cart.products,
+	           shippingAddress,
+	           paymentMethod: "Razorpay",
+	           totalPrice: cart.totalPrice,
+	           couponCode: appliedCoupon,
+	         })
+	       );
        // console.log("chekout165", res);
        if (res.payload && res.payload._id) {
          // console.log("cho20", res.payload);
@@ -521,12 +551,56 @@ console.log(user);
         </div>
         <div className="flex justify-between items-center text-lg">
           <p>Shipping</p>
-          <p>Rs 30</p>
+          <p>Rs {deliveryCharge.toLocaleString()}</p>
         </div>
+
+        <div className="mt-4">
+          <p className="text-sm text-gray-600 mb-2">Have a coupon?</p>
+          <div className="flex gap-2">
+            <input
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              placeholder="Enter coupon code"
+              className="flex-1 p-2 border rounded"
+            />
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={isApplyingCoupon}
+              className="px-4 py-2 bg-black text-white rounded disabled:opacity-60"
+            >
+              {isApplyingCoupon ? "Applying..." : "Apply"}
+            </button>
+          </div>
+          {appliedCoupon ? (
+            <div className="mt-2 flex items-center justify-between text-sm text-green-700">
+              <span>Applied: {appliedCoupon}</span>
+              <button
+                type="button"
+                className="underline"
+                onClick={() => {
+                  setAppliedCoupon("");
+                  setCouponDiscount(0);
+                  setCouponCode("");
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ) : null}
+        </div>
+
+        {couponDiscount > 0 ? (
+          <div className="flex justify-between items-center text-lg mt-4 text-green-700">
+            <p>Discount</p>
+            <p>- Rs {couponDiscount.toLocaleString()}</p>
+          </div>
+        ) : null}
+
         <div className="flex justify-between items-center text-lg mb-4 border-t pt-4">
           <p>Total</p>
-          <p>Rs {(cart.totalPrice + 30)?.toLocaleString()}</p>
-          <p className="text-xs text-gray-500">(calculated by server)</p>
+          <p>Rs {finalTotal.toLocaleString()}</p>
+          <p className="text-xs text-gray-500">(final total calculated by server)</p>
         </div>
       </div>
     </div>

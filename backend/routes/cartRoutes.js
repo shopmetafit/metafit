@@ -263,10 +263,11 @@ router.post("/merge", protect, async (req, res) => {
       }
     } else {
       if (userCart) {
-        // guest cart has already being merged , return user cart
+        // guest cart already merged — return existing user cart
         return res.status(200).json(userCart);
       }
-      return res.status(400).json({ message: " Guest cart not found" });
+      // No guest cart and no user cart — return empty cart so checkout doesn't break
+      return res.status(200).json({ products: [], totalPrice: 0 });
     }
   } catch (error) {
     console.error(error);

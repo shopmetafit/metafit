@@ -73,7 +73,7 @@ const MyOrdersPage = () => {
             <div
               key={order._id}
               onClick={() => handleRowClick(order._id)}
-              className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+              className="bg-white border border-gray-200 rounded-lg hover:border-[#047ca8] hover:shadow-md transition-all cursor-pointer overflow-hidden"
             >
               {/* Order Header */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b border-gray-200">
@@ -161,7 +161,7 @@ const MyOrdersPage = () => {
                         e.stopPropagation();
                         handleRowClick(order._id);
                       }}
-                      className="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                      className="px-4 py-2 bg-[#0FB7A3] text-white text-sm font-semibold rounded-full hover:bg-[#0DA28E] transition-colors"
                     >
                       View Details →
                     </button>
@@ -182,7 +182,7 @@ const MyOrdersPage = () => {
           <p className="text-gray-600 mb-6">You haven't placed any orders yet. Start shopping to create your first order!</p>
           <a
             href="/collections/all"
-            className="inline-block px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
+            className="inline-block px-6 py-2.5 bg-[#0FB7A3] text-white font-semibold rounded-full hover:bg-[#0DA28E] transition-colors"
           >
             Continue Shopping
           </a>

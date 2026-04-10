@@ -1,269 +1,176 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { Facebook, Instagram, Linkedin, Phone, Menu, X, MessageCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, MapPin, ChevronDown, ShoppingCart, MessageCircle } from 'lucide-react';
+import CartDrawer from '../Layout/CartDrawer';
+
 const Topbar = () => {
   const { user } = useSelector((state) => state.auth);
+  const { cart } = useSelector((state) => state.cart);
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const cartItemCount = cart?.products?.reduce((total, p) => total + p.quantity, 0) || 0;
+
+  const categories = [
+    'All', 'Supplements', 'Wellness Devices', 'Organic Products',
+    'Yoga & Fitness', 'Herbal Care', 'Personal Care',
+  ];
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    navigate(`/collections/all${searchQuery.trim() ? `?search=${encodeURIComponent(searchQuery)}` : ''}`);
+  };
 
   return (
-    <div className={`w-full z-50 transition-all duration-300 ${
-      scrolled ? 'shadow-2xl' : 'shadow-xl'
-    }`}>
-      {/* Main Top Bar - Compact */}
-      <div className="bg-gradient-to-r from-[#022824] via-[#06463C] to-[#022824] text-white border-b border-white/10">
-        <div className="container mx-auto flex justify-between items-center py-4 px-4 md:px-6 backdrop-blur-sm">
-          
-          {/* Left: Metafit Wellness Logo + Social Icons */}
-          <div className="flex items-center gap-4 md:gap-6">
-            {/* Metafit Wellness Logo
-            <a
-              href="https://metafitwellness.com/"
-              className="group flex items-center gap-2 transform transition-all duration-300 hover:scale-105"
-            >
-              <div className="relative">
-                <div className="w-11 h-11 bg-gradient-to-br from-teal-400 to-teal-600 rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">M</span>
-                </div>
-                <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-orange-500 rounded-full">
-                  <div className="absolute inset-0 bg-orange-400 rounded-full animate-ping opacity-75"></div>
-                </div>
-              </div>
-              <div className="hidden sm:block">
-                <div className="text-sm font-bold text-teal-800 leading-tight">Metafit</div>
-              </div>
-            </a> */}
+    <>
+      {/* Amazon-style Main Header */}
+      <div className="bg-[#022824] text-white">
+        <div className="max-w-screen-2xl mx-auto px-3 py-2.5 flex items-center gap-2 lg:gap-4">
 
-            {/* Social Icons - Desktop */}
-            <div className="hidden lg:flex items-center gap-2">
-               <a
-                href="https://www.facebook.com/mwellnessbazaar"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-110 shadow-lg"
-              >
-                <Facebook className="h-5 w-5" />
-              </a>
-              
-                <a
-                href="https://www.instagram.com/mwellnessbazaar"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-500 rounded-lg flex items-center justify-center text-white hover:from-pink-600 hover:to-rose-600 transition-all duration-300 transform hover:scale-110 shadow-lg"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-
-              {/* <a
-                href="https://www.linkedin.com/company/meta-fit-wellness/"
-                className="group p-2 rounded-full bg-white hover:bg-blue-50 shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-110"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="h-4 w-4 text-blue-700" fill="currentColor" />
-              </a> */}
+          {/* Delivery Location - Desktop only */}
+          <div className="hidden lg:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-white rounded px-1 py-0.5 cursor-pointer">
+            <span className="text-xs text-gray-300 leading-tight">Deliver to</span>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              <span className="text-sm font-bold">India</span>
             </div>
           </div>
 
-          {/* Center: Interactive M Wellness Bazaar Logo */}
-          <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2">
-            <a href="/" className="group flex items-center gap-3">
-              <div className="relative">
-                 {/* Main M Logo */}
-                 <div className="w-14 h-14 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl group-hover:shadow-2xl transition-all duration-300 flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-3">
-                   <span className="text-white font-black text-2xl">M</span>
-                 </div>
-                 {/* Animated Dot */}
-                 <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
-                   <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
-                 </div>
-                 {/* Glow Effect */}
-                 <div className="absolute inset-0 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-2xl blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300"></div>
-               </div>
-              
-              {/* Text */}
-              <div className="relative">
-              <div className="text-lg font-black text-white leading-tight drop-shadow-md transition-all duration-300">
-                  Wellness
-                </div>
-                <div className="text-sm font-bold text-white/80 group-hover:text-white transition-colors duration-300">
-                  Bazaar
-                </div>
-                {/* Underline Animation */}
-                <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-500 to-cyan-500 group-hover:w-full transition-all duration-500"></div>
-              </div>
-            </a>
-          </div>
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 group"
+          >
+            <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg transition-all group-hover:shadow-teal-400/40">
+              <span className="text-white font-black text-lg">M</span>
+            </div>
+            <div className="hidden sm:block leading-tight">
+              <div className="text-[15px] font-black text-white">M Wellness</div>
+              <div className="text-xs text-teal-300 font-semibold -mt-0.5">Bazaar</div>
+            </div>
+          </Link>
 
-          {/* Right: Phone Button + Chat Button */}
-          <div className="flex items-center gap-2 md:gap-3 md:w-auto lg:w-auto ">
+          {/* Search Bar - Desktop */}
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 rounded-md overflow-hidden shadow-sm min-w-0">
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              className="bg-gray-100 text-gray-700 text-xs font-medium px-2 border-r border-gray-200 cursor-pointer focus:outline-none hover:bg-gray-200 transition-colors flex-shrink-0"
+              style={{ maxWidth: '110px' }}
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search wellness products, supplements, devices..."
+              className="flex-1 min-w-0 px-4 py-2.5 text-sm text-gray-900 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-4 transition-colors flex items-center justify-center flex-shrink-0"
+            >
+              <Search className="h-5 w-5 text-white" />
+            </button>
+          </form>
 
-                
+          {/* Right Actions */}
+          <div className="flex items-center gap-1 md:gap-1.5 ml-auto md:ml-0">
 
-            {/* Chat Button - Desktop */}
+            {/* Mobile Search */}
+            <button
+              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+              className="md:hidden p-2 hover:ring-1 hover:ring-white rounded transition-all"
+              aria-label="Search"
+            >
+              <Search className="h-6 w-6" />
+            </button>
+
+            {/* WhatsApp - Desktop */}
             <a
-              href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
+              href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products."
               target="_blank"
               rel="noopener noreferrer"
-                  className="
-                    hidden md:flex
-                    md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2
-                    lg:static lg:translate-y-0
-                    items-center gap-2 text-white
-                    bg-gradient-to-r from-green-500 to-green-600
-                    hover:from-green-600 hover:to-green-700
-                    px-5 py-2 rounded-full shadow-lg hover:shadow-xl
-                    transition-all duration-300 transform hover:scale-105
-                    group relative overflow-hidden
-                  "
+              className="hidden xl:flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
             >
-              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
-              <MessageCircle className="h-4 w-4 relative z-10" />
-              <span className="font-semibold text-sm relative z-10">WhatsApp</span>
+              <MessageCircle className="h-5 w-5 text-green-400" />
+              <span className="text-xs font-medium">WhatsApp</span>
             </a>
 
-            {/* Become a Vendor Button - Desktop */}
-            <a
-              href="/vendor-register"
-              className="hidden md:flex items-center gap-2 text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
+            {/* Account & Lists */}
+            <Link
+              to="/profile"
+              className="hidden md:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
             >
-              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
-              <span className="font-semibold text-sm relative z-10">Become a Vendor</span>
-            </a>
+              <span className="text-xs text-gray-300 leading-tight">
+                Hello, {user ? user.name?.split(' ')[0] : 'Sign in'}
+              </span>
+              <div className="flex items-center gap-0.5">
+                <span className="text-sm font-bold whitespace-nowrap">Account & Lists</span>
+                <ChevronDown className="h-3 w-3 flex-shrink-0" />
+              </div>
+            </Link>
 
-            {/* Phone Button - Desktop */}
-            <a
-              href="tel:+918829912389"
-              className="hidden md:flex items-center gap-2 text-white bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 px-5 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 group relative overflow-hidden"
+            {/* Returns & Orders */}
+            <Link
+              to="/my-orders"
+              className="hidden lg:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
             >
-              <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
-              <Phone className="h-4 w-4 relative z-10" />
-               <span className="font-semibold text-sm relative z-10">+91 88299 12389</span>
-            </a>
+              <span className="text-xs text-gray-300 leading-tight">Returns</span>
+              <span className="text-sm font-bold whitespace-nowrap">& Orders</span>
+            </Link>
 
-            {/* Mobile Menu Button */}
+            {/* Cart */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-full bg-white hover:bg-teal-50 shadow-md transition-all transform hover:scale-110"
-              aria-label="Toggle menu"
+              onClick={() => setDrawerOpen(true)}
+              className="flex items-center gap-1 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+              aria-label="Cart"
             >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6 text-teal-700" />
-              ) : (
-                <Menu className="h-6 w-6 text-teal-700" />
-              )}
+              <div className="relative">
+                <ShoppingCart className="h-8 w-8" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1.5 left-4 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 leading-none">
+                    {cartItemCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:block text-sm font-bold">Cart</span>
             </button>
           </div>
         </div>
+
+        {/* Mobile Search Bar */}
+        {mobileSearchOpen && (
+          <div className="md:hidden px-3 pb-3">
+            <form onSubmit={handleSearch} className="flex rounded-md overflow-hidden">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search wellness products..."
+                className="flex-1 px-3 py-2.5 text-sm text-gray-900 focus:outline-none"
+                autoFocus
+              />
+              <button
+                type="submit"
+                className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-4 flex items-center justify-center transition-colors"
+              >
+                <Search className="h-5 w-5 text-white" />
+              </button>
+            </form>
+          </div>
+        )}
       </div>
 
-      {/* Mobile Menu - Compact */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t-2 border-teal-400 shadow-xl animate-slideDown">
-          <div className="container mx-auto py-6 px-4">
-            {/* Center Logo - Mobile */}
-             <div className="mb-6 flex justify-center">
-               <a href="/" className="group flex items-center gap-3">
-                 <div className="relative">
-                   <div className="w-16 h-16 bg-gradient-to-br from-teal-500 via-cyan-500 to-teal-600 rounded-2xl shadow-xl flex items-center justify-center transform group-hover:scale-110 transition-all duration-300">
-                     <span className="text-white font-black text-3xl">M</span>
-                   </div>
-                   <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-orange-400 to-red-500 rounded-full shadow-lg">
-                     <div className="absolute inset-0 bg-orange-300 rounded-full animate-ping opacity-75"></div>
-                   </div>
-                 </div>
-                 <div>
-                   <div className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-cyan-700 leading-tight">
-                     Wellness
-                   </div>
-                   <div className="text-base font-bold text-teal-600">
-                     Bazaar
-                   </div>
-                 </div>
-               </a>
-             </div>
-
-            {/* Social Links - Mobile */}
-            <div className="flex justify-center gap-3 mb-4">
-              <a
-                href="https://www.facebook.com/mwellnessbazaar"
-                className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md"
-                aria-label="Facebook"
-              >
-                <Facebook className="h-5 w-5 text-blue-600" fill="currentColor" />
-              </a>
-              <a
-                href="https://www.instagram.com/mwellnessbazaar"
-                className="p-3 rounded-xl bg-pink-50 hover:bg-pink-100 transition-colors shadow-md"
-                aria-label="Instagram"
-              >
-                <Instagram className="h-5 w-5 text-pink-600" />
-              </a>
-              {/* <a
-                href="https://www.linkedin.com/company/meta-fit-wellness/"
-                className="p-3 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors shadow-md"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="h-5 w-5 text-blue-700" fill="currentColor" />
-              </a> */}
-            </div>
-
-            {/* Contact Buttons - Mobile */}
-            <div className="space-y-3">
-
-              <a
-                href="/vendor-register"
-                className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-orange-600 hover:to-orange-700 transition-all transform hover:scale-105"
-              >
-                <span>Become a Vendor</span>
-              </a>
-
-              <a
-                href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products%20and%20services."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-green-500 to-green-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-green-600 hover:to-green-700 transition-all transform hover:scale-105"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span>Chat on WhatsApp</span>
-              </a>
-              <a
-                href="tel:+918829912389"
-                className="flex items-center justify-center gap-2 text-white bg-gradient-to-r from-teal-500 to-cyan-600 px-6 py-3 rounded-full shadow-lg w-full font-semibold hover:from-teal-600 hover:to-cyan-700 transition-all transform hover:scale-105"
-              >
-                <Phone className="h-5 w-5" />
-                <span>+91 882 991 2389</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes slideDown {
-          from {
-            opacity: 0;
-            transform: translateY(-20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-slideDown {
-          animation: slideDown 0.3s ease-out;
-        }
-      `}</style>
-    </div>
+      <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} />
+    </>
   );
 };
 
