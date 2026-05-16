@@ -1341,7 +1341,7 @@ export default function VendorRegistration() {
                   Already have an account?
                 </p>
                 <a
-                  href="/vendor-login"
+                  href="https://mwellnessbazaar-admin-frontend.vercel.app/vendor-login"
                   className="block w-full text-center bg-gradient-to-r from-blue-500 to-blue-800 text-white py-3 px-4 rounded-lg font-semibold hover:from-gray-800 hover:to-black transition-all shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   Sign In Here
