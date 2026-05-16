@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { vendorApiService } from "../services/vendorApi";
 
 const VendorLogin = () => {
-  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'otp'
+  const [loginMethod, setLoginMethod] = useState('otp'); // 'email' or 'otp'
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -161,16 +161,6 @@ const VendorLogin = () => {
           {/* Login Method Toggle */}
           <div className="flex border border-gray-200 rounded-lg mb-4 sm:mb-6 overflow-hidden">
             <button
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${
-                loginMethod === 'email'
-                  ? 'bg-black text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Email & Password
-            </button>
-            <button
               onClick={() => setLoginMethod('otp')}
               className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${
                 loginMethod === 'otp'
@@ -179,6 +169,16 @@ const VendorLogin = () => {
               }`}
             >
               Phone & OTP
+            </button>
+            <button
+              onClick={() => setLoginMethod('email')}
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${
+                loginMethod === 'email'
+                  ? 'bg-black text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Email & Password
             </button>
           </div>
 
