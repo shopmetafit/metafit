@@ -18,7 +18,11 @@ const moreLinks = [
   { label: "About Us", link: "/aboutUs" },
   { label: "Contact Us", link: "/contactUs" },
   { label: "My Orders", link: "/my-orders" },
-  { label: "Become a Vendor", link: "/vendor-register" },
+  {
+    label: "Become a Vendor",
+    link: "https://mwellnessbazaar-admin-frontend.vercel.app/become-vendor",
+    external: true,
+  },
 ];
 
 const Navbar = () => {
@@ -81,12 +85,12 @@ const Navbar = () => {
           )}
 
           {/* Become Vendor */}
-          <Link
-            to="/vendor-register"
+          <a
+            href="https://mwellnessbazaar-admin-frontend.vercel.app/become-vendor"
             className="ml-auto px-3 py-2.5 text-sm font-medium text-teal-300 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
           >
             Become a Vendor
-          </Link>
+          </a>
         </div>
       </nav>
 
@@ -148,15 +152,27 @@ const Navbar = () => {
               </h3>
             </div>
             {moreLinks.map((item) => (
-              <Link
-                key={item.label}
-                to={item.link}
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
-              >
-                <span className="font-medium">{item.label}</span>
-                <ChevronRight className="h-4 w-4 text-gray-400" />
-              </Link>
+              item.external ? (
+                <a
+                  key={item.label}
+                  href={item.link}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </a>
+              ) : (
+                <Link
+                  key={item.label}
+                  to={item.link}
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
+                >
+                  <span className="font-medium">{item.label}</span>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </Link>
+              )
             ))}
 
             {/* Contact in Sidebar */}
