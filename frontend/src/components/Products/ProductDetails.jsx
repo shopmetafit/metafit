@@ -4,64 +4,111 @@ import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProductDetails, fetchSimilarProduct } from "../../redux/slices/productSlice";
+import { fetchSimilarProduct } from "../../redux/slices/productSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { ShieldCheck, Truck, RefreshCw, ChevronRight, Minus, Plus, ShoppingCart } from "lucide-react";
 import axios from "axios";
-import { readReferralParams, saveReferralContext } from "../../services/referralStorage";
+import {
+  clearReferralContext,
+  readReferralParams,
+  saveReferralContext,
+} from "../../services/referralStorage";
 
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const { selectedProduct, loading, error, similarProducts } = useSelector((state) => state.products);
+  const { similarProducts } = useSelector((state) => state.products);
   const { user, guestId } = useSelector((state) => state.auth);
 
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [mainImage, setMainImage] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [activeReferral, setActiveReferral] = useState(null);
 
   const productFetchId = productId || id;
 
   useEffect(() => {
     if (productFetchId) {
-      dispatch(fetchProductDetails(productFetchId));
       dispatch(fetchSimilarProduct({ id: productFetchId }));
     }
   }, [dispatch, productFetchId]);
 
   useEffect(() => {
-    const referral = readReferralParams(location.search);
-    if (!referral || !productFetchId) return;
+    if (!productFetchId) return;
 
-    const validateReferral = async () => {
+    const referralFromQuery = readReferralParams(location.search);
+    const fetchProduct = async () => {
       try {
-        await axios.get(
-          `${import.meta.env.VITE_BACKEND_URL}/api/store/referrals/validate`,
-          {
-            params: {
+        setLoading(true);
+        setError(null);
+
+        let validReferral = null;
+        if (referralFromQuery) {
+          try {
+            await axios.get(
+              `${import.meta.env.VITE_BACKEND_URL}/api/store/referrals/validate`,
+              {
+                params: {
+                  productId: productFetchId,
+                  vendorId: referralFromQuery.vendorId,
+                  assignedProductId: referralFromQuery.assignedProductId,
+                  ref: referralFromQuery.shareCode,
+                },
+              }
+            );
+
+            validReferral = {
               productId: productFetchId,
-              vendorId: referral.vendorId,
-              assignedProductId: referral.assignedProductId,
-              ref: referral.shareCode,
-            },
+              vendorId: referralFromQuery.vendorId,
+              assignedProductId: referralFromQuery.assignedProductId,
+              shareCode: referralFromQuery.shareCode,
+            };
+            saveReferralContext(validReferral);
+          } catch (validationError) {
+            validReferral = null;
+            clearReferralContext();
+            toast.error(
+              validationError?.response?.data?.message || "Referral link invalid or expired"
+            );
+          }
+        }
+
+        const response = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/store/products/${productFetchId}`,
+          {
+            params: referralFromQuery
+              ? {
+                  vendorId: referralFromQuery.vendorId,
+                  assignedProductId: referralFromQuery.assignedProductId,
+                  ref: referralFromQuery.shareCode,
+                }
+              : undefined,
           }
         );
 
-        saveReferralContext(referral);
-      } catch (error) {
-        toast.error(
-          error?.response?.data?.message || "Referral link invalid or expired"
-        );
+        const product = response.data?.product || response.data;
+        setSelectedProduct(product);
+        setActiveReferral(validReferral);
+      } catch (fetchError) {
+        setError(fetchError?.response?.data?.message || "Failed to load product");
+        if (referralFromQuery) {
+          clearReferralContext();
+        }
+      } finally {
+        setLoading(false);
       }
     };
 
-    validateReferral();
-  }, [location.search, productFetchId]);
+    fetchProduct();
+  }, [location.search, productFetchId, dispatch]);
 
   useEffect(() => {
     if (selectedProduct?.images?.length > 0) {
@@ -96,6 +143,14 @@ const ProductDetails = ({ productId }) => {
         guestId,
         userId: user?._id,
         variant: selectedVariant ? { label: selectedVariant.label, price: selectedVariant.price } : null,
+        referral: activeReferral
+          ? {
+              productId: productFetchId,
+              vendorId: activeReferral.vendorId,
+              assignedProductId: activeReferral.assignedProductId,
+              shareCode: activeReferral.shareCode,
+            }
+          : null,
       })
     )
       .then(() => toast.success("Added to cart!", { duration: 1500 }))
@@ -258,6 +313,12 @@ const ProductDetails = ({ productId }) => {
               <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-snug mb-3">
                 {selectedProduct.name}
               </h1>
+
+              {activeReferral ? (
+                <div className="mb-3 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  Recommended by Vendor
+                </div>
+              ) : null}
 
               {/* Rating placeholder */}
               <div className="flex items-center gap-2 mb-3">

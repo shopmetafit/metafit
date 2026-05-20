@@ -1,5 +1,9 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import {
+  attachReferralToCartProducts,
+  getReferralContext,
+} from "../../services/referralStorage";
 
 // helper function to load card from localstorage
 const loadCartFromStorage = () => {
@@ -10,6 +14,21 @@ const loadCartFromStorage = () => {
 // Helper function to save cart to localStorage
 const saveCartToStorage = (cart) => {
   localStorage.setItem("cart", JSON.stringify(cart));
+};
+
+const normalizeCart = (cart, referralOverride) => {
+  const nextCart = cart || { products: [] };
+  const referral = referralOverride || getReferralContext();
+
+  if (nextCart.products) {
+    nextCart.products = nextCart.products.map((product) => ({
+      ...product,
+      price: product.price || 0,
+    }));
+    nextCart.products = attachReferralToCartProducts(nextCart.products, referral);
+  }
+
+  return nextCart;
 };
 
 // Fetch a cart for a user or guest
@@ -138,14 +157,7 @@ const cartSlice = createSlice({
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
-        // Ensure all items have price field
-        const cart = action.payload;
-        if (cart.products) {
-          cart.products = cart.products.map(p => ({
-            ...p,
-            price: p.price || 0,
-          }));
-        }
+        const cart = normalizeCart(action.payload);
         state.cart = cart;
         saveCartToStorage(cart);
       })
@@ -158,14 +170,7 @@ const cartSlice = createSlice({
       })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.loading = false;
-        // Ensure all items have price field
-        const cart = action.payload;
-        if (cart.products) {
-          cart.products = cart.products.map(p => ({
-            ...p,
-            price: p.price || 0,
-          }));
-        }
+        const cart = normalizeCart(action.payload, action.meta.arg.referral);
         state.cart = cart;
         saveCartToStorage(cart);
       })
@@ -178,16 +183,16 @@ const cartSlice = createSlice({
       })
       .addCase(updateCartItemQuantity.fulfilled, (state, action) => {
         state.loading = false;
-        state.cart = action.payload;
-        saveCartToStorage(action.payload);
+        state.cart = normalizeCart(action.payload);
+        saveCartToStorage(state.cart);
       }).addCase(removeFromCart.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(removeFromCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.cart = action.payload;
-        saveCartToStorage(action.payload);
+        state.cart = normalizeCart(action.payload);
+        saveCartToStorage(state.cart);
       })
       .addCase(removeFromCart.rejected, (state,action) => {
         state.loading = false;
@@ -198,8 +203,8 @@ const cartSlice = createSlice({
       })
       .addCase(mergeCart.fulfilled, (state, action) => {
         state.loading = false;
-        state.cart = action.payload;
-        saveCartToStorage(action.payload);
+        state.cart = normalizeCart(action.payload);
+        saveCartToStorage(state.cart);
       })
       .addCase(mergeCart.rejected, (state,action) => {
         state.loading = false;

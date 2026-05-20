@@ -2,13 +2,16 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
-import { createCheckout } from "../../redux/slices/checkoutSlice";
+import { createCheckout, setCheckoutData } from "../../redux/slices/checkoutSlice";
 import { mergeCart, fetchCart } from "../../redux/slices/cartSlice";
 import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
-import { clearReferralContext, getReferralContext } from "../../services/referralStorage";
+import {
+  clearReferralContext,
+  getReferralForCartItems,
+} from "../../services/referralStorage";
 // import { use } from "../../../../backend/utils/email";
 
 const CheckOut = () => {
@@ -35,7 +38,7 @@ console.log(user);
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const referralContext = getReferralContext();
+  const referralContext = getReferralForCartItems(cart?.products || []);
 
   const deliveryCharge = 30;
   const subtotal = cart?.totalPrice ?? 0;
@@ -133,11 +136,13 @@ console.log(user);
   }, [loadScript]);
 
   const handlePaymentSuccess = async (details, checkoutId) => {
-    console.log("co146", details);
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_BACKEND_URL}/api/checkout/${checkoutId}/pay`,
-        { paymentStatus: "paid", paymentDetails: details },
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/store/orders/${checkoutId}/payment-success`,
+        {
+          paymentStatus: "paid",
+          paymentReference: details.payment_id || details.paymentReference || "",
+        },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("userToken")}`,
@@ -145,56 +150,24 @@ console.log(user);
         }
       );
 
-      console.log("cho60", response);
-      if (response.status === 201) {
-        const handleFinalizeCheckout = async (checkoutId) => {
-          try {
-            const response = await axios.post(
-              `${
-                import.meta.env.VITE_BACKEND_URL
-              }/api/checkout/${checkoutId}/finalize`,
-              {},
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("userToken")}`,
-                },
-              }
-            );
-            
-            console.log("✓ Checkout finalized successfully");
-            
-            // Refresh orders after successful payment
-            dispatch(fetchUserOrders()).catch(err => {
-              console.error("Failed to fetch orders:", err);
-            });
-            
-            // Clear cart after successful order
-            dispatch({ type: 'Cart/clearCart' });
-            
-            // Clear guestId from localStorage so a new one is generated on next add to cart
-            localStorage.removeItem("guestId");
-            clearReferralContext();
-            
-            // Wait a moment and then navigate to confirmation page
-            setTimeout(() => {
-              console.log("✓ Navigating to order-confirmation page");
-              navigate("/order-confirmation");
-            }, 500);
-            // return response
-          } catch (error) {
-            console.log(error);
-          }
-          console.log("Payment Successful", details);
-        }; // Finalize checkout if payment is successful
-        handleFinalizeCheckout(checkoutId);
-      } else {
-        console.log(error);
+      if (response.status === 200 || response.status === 201) {
+        dispatch(setCheckoutData(response.data?.order || null));
+        dispatch(fetchUserOrders()).catch((err) => {
+          console.error("Failed to fetch orders:", err);
+        });
+
+        dispatch({ type: "Cart/clearCart" });
+        localStorage.removeItem("guestId");
+        clearReferralContext();
+
+        setTimeout(() => {
+          navigate("/order-confirmation");
+        }, 300);
       }
     } catch (error) {
       console.log(error);
+      toast.error(error?.response?.data?.message || "Failed to confirm payment");
     }
-    // console.log("Payment Successful", details);
-    // navigate("/order-confirmation");
   };
 
   const handleRazorpayPayment = async (price, checkoutId) => {
@@ -331,25 +304,26 @@ console.log(user);
        // Send to backend - backend will calculate delivery charge
 	       const res = await dispatch(
 	         createCheckout({
-	           checkoutItems: cart.products,
-	           shippingAddress,
-	           paymentMethod: "Razorpay",
-	           totalPrice: cart.totalPrice,
-	           couponCode: appliedCoupon,
              customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
              customerPhone: shippingAddress.phone,
              customerEmail: user?.email || "",
+             shippingAddress,
+             paymentMethod: "Razorpay",
+             totalPrice: cart.totalPrice,
+             couponCode: appliedCoupon,
+             orderItems: cart.products.map((product) => ({
+               productId: product.productId,
+               qty: product.quantity,
+             })),
              vendorId: referralContext?.vendorId,
              assignedProductId: referralContext?.assignedProductId,
              shareCode: referralContext?.shareCode,
 	         })
 	       );
-       // console.log("chekout165", res);
-       if (res.payload && res.payload._id) {
-         // console.log("cho20", res.payload);
-         setCheckoutId(res.payload._id); //Set checkout ID if checkout was successful
-
-         handleRazorpayPayment(res.payload.totalPrice, res.payload._id);
+       if (res.payload && (res.payload._id || res.payload.id || res.payload.orderId)) {
+         const nextCheckoutId = res.payload.id || res.payload.orderId || res.payload._id;
+         setCheckoutId(nextCheckoutId);
+         handleRazorpayPayment(res.payload.totalPrice, nextCheckoutId);
        }
      }
     // setCheckoutId(123); //Set checkout ID if checkout was successful

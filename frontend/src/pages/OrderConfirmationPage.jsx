@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 import { clearCart } from "../redux/slices/cartSlice";
+import { clearReferralContext } from "../services/referralStorage";
 
 const OrderConfirmationPage = () => {
   const dispatch = useDispatch();
@@ -14,10 +15,10 @@ const OrderConfirmationPage = () => {
   // Clear the cart when order is confirm
   useEffect(() => {
     if (checkout && checkout._id) {
-      console.log("✓ Order confirmed, clearing cart");
       dispatch(clearCart());
       localStorage.removeItem("cart");
       localStorage.removeItem("guestId");
+      clearReferralContext();
     } else if (!loading && !user) {
       // If not loading and user not authenticated, redirect to login
       navigate("/login");
@@ -73,7 +74,7 @@ const OrderConfirmationPage = () => {
           
           {/* Order items */}
           <div className="mb-20">
-            {checkout.checkoutItems.map((item) => (
+            {(checkout.orderItems || checkout.checkoutItems || []).map((item) => (
               <div key={item.productId} className="flex items-center mb-4">
                 <img
                   src={item.image}
@@ -88,7 +89,7 @@ const OrderConfirmationPage = () => {
                 </div>
                 <div className="mx-auto text-right">
                   <p className="text-md">₹{item.price}</p>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                  <p className="text-sm text-gray-500">Qty: {item.quantity || item.qty}</p>
                 </div>
               </div>
             ))}
