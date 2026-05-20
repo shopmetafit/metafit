@@ -143,6 +143,11 @@ const orderSchema = new mongoose.Schema(
       default: null,
     },
     referral: {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        default: null,
+      },
       vendorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Vendor",

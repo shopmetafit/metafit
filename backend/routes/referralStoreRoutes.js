@@ -121,6 +121,7 @@ router.post("/orders", protect, async (req, res) => {
     customerName,
     customerPhone,
     customerEmail,
+    productId,
     vendorId,
     assignedProductId,
     shareCode,
@@ -185,8 +186,9 @@ router.post("/orders", protect, async (req, res) => {
       customerName,
       customerPhone,
       customerEmail,
-      referral: vendorId && assignedProductId && shareCode
+      referral: productId && vendorId && assignedProductId && shareCode
         ? {
+            productId,
             vendorId,
             assignedProductId,
             shareCode: normalizeReferralCode(shareCode),
@@ -260,29 +262,32 @@ router.post("/orders/:id/payment-success", protect, async (req, res) => {
 
     await Cart.findOneAndDelete({ user: checkout.user }).catch(() => null);
 
-    if (checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
-      const referredItem =
-        checkout.checkoutItems[0];
+    if (checkout.referral?.productId && checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
+      const referredItem = checkout.checkoutItems.find(
+        (item) => String(item.productId) === String(checkout.referral.productId)
+      );
 
-      await processReferralPurchase({
-        orderId: String(order._id),
-        orderObjectId: order._id,
-        productId: referredItem?.productId,
-        vendorId: checkout.referral.vendorId,
-        assignedProductId: checkout.referral.assignedProductId,
-        shareCode: checkout.referral.shareCode,
-        customerName: checkout.customerName,
-        customerPhone: checkout.customerPhone,
-        customerEmail: checkout.customerEmail,
-        qty: referredItem?.quantity || 1,
-        orderAmount: Number(referredItem?.price || 0) * Number(referredItem?.quantity || 1),
-        paymentStatus: "paid",
-        paymentReference,
-        source: "mwellness-store",
-        metadata: {
-          checkoutId: checkout._id,
-        },
-      });
+      if (referredItem) {
+        await processReferralPurchase({
+          orderId: String(order._id),
+          orderObjectId: order._id,
+          productId: referredItem.productId,
+          vendorId: checkout.referral.vendorId,
+          assignedProductId: checkout.referral.assignedProductId,
+          shareCode: checkout.referral.shareCode,
+          customerName: checkout.customerName,
+          customerPhone: checkout.customerPhone,
+          customerEmail: checkout.customerEmail,
+          qty: referredItem.quantity || 1,
+          orderAmount: Number(referredItem.price || 0) * Number(referredItem.quantity || 1),
+          paymentStatus: "paid",
+          paymentReference,
+          source: "mwellness-store",
+          metadata: {
+            checkoutId: checkout._id,
+          },
+        });
+      }
     }
 
     res.status(201).json({

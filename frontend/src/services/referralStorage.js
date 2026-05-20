@@ -87,6 +87,7 @@ export const attachReferralToCartProducts = (products = [], referral) => {
       ? {
           ...product,
           referral: {
+            productId: String(referral.productId),
             vendorId: referral.vendorId,
             assignedProductId: referral.assignedProductId,
             shareCode: referral.shareCode,

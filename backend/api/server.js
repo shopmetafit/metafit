@@ -26,7 +26,34 @@ const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const app= express();
-app.use(cors({domain:["https://metafit-a5ll.vercel.app", "http://localhost:5173"]}));
+
+const allowedOrigins = [
+  "http://localhost:3005",
+  "http://localhost:5173",
+  "https://metafit-a5ll.vercel.app",
+  "https://metafit-omega.vercel.app",
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser tools like curl/postman and same-origin server requests
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

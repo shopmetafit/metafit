@@ -61,6 +61,7 @@ router.post("/", protect, async (req, res) => {
     customerName,
     customerPhone,
     customerEmail,
+    productId,
     vendorId,
     assignedProductId,
     shareCode,
@@ -126,8 +127,9 @@ router.post("/", protect, async (req, res) => {
       customerName: String(customerName || "").trim(),
       customerPhone: String(customerPhone || "").trim(),
       customerEmail: String(customerEmail || req.user?.email || "").trim().toLowerCase(),
-      referral: vendorId && assignedProductId && shareCode
+      referral: productId && vendorId && assignedProductId && shareCode
         ? {
+            productId,
             vendorId,
             assignedProductId: String(assignedProductId || "").trim(),
             shareCode: String(shareCode || "").trim().toUpperCase(),
@@ -218,31 +220,35 @@ router.post("/:id/finalize", protect, async (req, res) => {
 
       await Cart.findOneAndDelete({ user: checkout.user });
 
-      if (checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
-        const referredItem = checkout.checkoutItems[0];
+      if (checkout.referral?.productId && checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
+        const referredItem = checkout.checkoutItems.find(
+          (item) => String(item.productId) === String(checkout.referral.productId)
+        );
 
-        await processReferralPurchase({
-          orderId: String(finalOrder._id),
-          orderObjectId: finalOrder._id,
-          productId: referredItem?.productId,
-          vendorId: checkout.referral.vendorId,
-          assignedProductId: checkout.referral.assignedProductId,
-          shareCode: checkout.referral.shareCode,
-          customerName: checkout.customerName,
-          customerPhone: checkout.customerPhone,
-          customerEmail: checkout.customerEmail,
-          qty: referredItem?.quantity || 1,
-          orderAmount: Number(referredItem?.price || 0) * Number(referredItem?.quantity || 1),
-          paymentStatus: "paid",
-          paymentReference:
-            checkout.paymentDetails?.payment_id ||
-            checkout.paymentDetails?.paymentReference ||
-            "",
-          source: "metafit-checkout",
-          metadata: {
-            checkoutId: checkout._id,
-          },
-        });
+        if (referredItem) {
+          await processReferralPurchase({
+            orderId: String(finalOrder._id),
+            orderObjectId: finalOrder._id,
+            productId: referredItem.productId,
+            vendorId: checkout.referral.vendorId,
+            assignedProductId: checkout.referral.assignedProductId,
+            shareCode: checkout.referral.shareCode,
+            customerName: checkout.customerName,
+            customerPhone: checkout.customerPhone,
+            customerEmail: checkout.customerEmail,
+            qty: referredItem.quantity || 1,
+            orderAmount: Number(referredItem.price || 0) * Number(referredItem.quantity || 1),
+            paymentStatus: "paid",
+            paymentReference:
+              checkout.paymentDetails?.payment_id ||
+              checkout.paymentDetails?.paymentReference ||
+              "",
+            source: "metafit-checkout",
+            metadata: {
+              checkoutId: checkout._id,
+            },
+          });
+        }
       }
       res.status(201).json(finalOrder);
     } else {

@@ -53,6 +53,12 @@ const CartContents = ({ cart, userId, guestId }) => {
               ₹{(product.price || 0).toLocaleString()}
             </p>
 
+            {product.referral?.shareCode ? (
+              <p className="mt-1 text-xs font-medium text-emerald-700">
+                Vendor referral applied
+              </p>
+            ) : null}
+
             {/* Qty + Remove row */}
             <div className="flex items-center gap-3 mt-2">
               {/* Qty control */}

@@ -104,6 +104,11 @@ const checkoutSchema = new mongoose.Schema(
       type: Date,
     },
     referral: {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        default: null,
+      },
       vendorId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Vendor",

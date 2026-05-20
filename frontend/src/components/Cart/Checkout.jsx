@@ -316,6 +316,7 @@ console.log(user);
                qty: product.quantity,
              })),
              vendorId: referralContext?.vendorId,
+             productId: referralContext?.productId,
              assignedProductId: referralContext?.assignedProductId,
              shareCode: referralContext?.shareCode,
 	         })
