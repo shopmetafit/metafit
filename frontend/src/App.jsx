@@ -110,8 +110,6 @@ const App = () => {
             </Route>
 
 
-
-
           </Routes>
       </BrowserRouter>
     </Provider>
