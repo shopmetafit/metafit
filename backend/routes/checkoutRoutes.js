@@ -5,6 +5,7 @@ const Cart = require("../models/Cart");
 const Order = require("../models/Order");
 const Coupon = require("../models/Coupon");
 const { protect, admin } = require("../middleware/authMiddleware");
+const { processReferralPurchase } = require("../utils/referralUtils");
 const router = express.Router();
 
 const normalizeCode = (value) => String(value || "").trim().toUpperCase();
@@ -51,7 +52,19 @@ const computeCouponDiscount = (coupon, subtotal) => {
 // @access Private
 
 router.post("/", protect, async (req, res) => {
-  const { checkoutItems, shippingAddress, paymentMethod, totalPrice, couponCode } =
+  const {
+    checkoutItems,
+    shippingAddress,
+    paymentMethod,
+    totalPrice,
+    couponCode,
+    customerName,
+    customerPhone,
+    customerEmail,
+    vendorId,
+    assignedProductId,
+    shareCode,
+  } =
     req.body;
   if (!checkoutItems || checkoutItems.length === 0) {
     return res.status(400).json({ message: "No items in checkout" });
@@ -110,6 +123,16 @@ router.post("/", protect, async (req, res) => {
       couponDiscount: discountAmount,
       paymentStatus: "Pending",
       isPaid: false,
+      customerName: String(customerName || "").trim(),
+      customerPhone: String(customerPhone || "").trim(),
+      customerEmail: String(customerEmail || req.user?.email || "").trim().toLowerCase(),
+      referral: vendorId && assignedProductId && shareCode
+        ? {
+            vendorId,
+            assignedProductId: String(assignedProductId || "").trim(),
+            shareCode: String(shareCode || "").trim().toUpperCase(),
+          }
+        : undefined,
     });
     // console.log(`Checkout created for user : ${req.user._id}`);
     res.status(201).json(newCheckout);
@@ -162,6 +185,7 @@ router.post("/:id/finalize", protect, async (req, res) => {
       // create final order based on checkout details
       const finalOrder = await Order.create({
         user: checkout.user,
+        checkoutId: checkout._id,
         orderItems: checkout.checkoutItems,
         shippingAddress: checkout.shippingAddress,
         paymentMethod: checkout.paymentMethod,
@@ -173,7 +197,12 @@ router.post("/:id/finalize", protect, async (req, res) => {
         paidAt: checkout.paidAt,
         isDelivered: false,
         paymentStatus: "paid",
+        paymentId: checkout.paymentDetails?.payment_id || checkout.paymentDetails?.paymentReference || null,
         paymentDetails: checkout.paymentDetails,
+        customerName: checkout.customerName || "",
+        customerPhone: checkout.customerPhone || "",
+        customerEmail: checkout.customerEmail || "",
+        referral: checkout.referral,
       });
       // mark the checkout as finalized
       (checkout.isFinalized = true), (checkout.finalizedAt = Date.now());
@@ -188,6 +217,33 @@ router.post("/:id/finalize", protect, async (req, res) => {
       // Delete the cart associated with the user
 
       await Cart.findOneAndDelete({ user: checkout.user });
+
+      if (checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
+        const referredItem = checkout.checkoutItems[0];
+
+        await processReferralPurchase({
+          orderId: String(finalOrder._id),
+          orderObjectId: finalOrder._id,
+          productId: referredItem?.productId,
+          vendorId: checkout.referral.vendorId,
+          assignedProductId: checkout.referral.assignedProductId,
+          shareCode: checkout.referral.shareCode,
+          customerName: checkout.customerName,
+          customerPhone: checkout.customerPhone,
+          customerEmail: checkout.customerEmail,
+          qty: referredItem?.quantity || 1,
+          orderAmount: Number(referredItem?.price || 0) * Number(referredItem?.quantity || 1),
+          paymentStatus: "paid",
+          paymentReference:
+            checkout.paymentDetails?.payment_id ||
+            checkout.paymentDetails?.paymentReference ||
+            "",
+          source: "metafit-checkout",
+          metadata: {
+            checkoutId: checkout._id,
+          },
+        });
+      }
       res.status(201).json(finalOrder);
     } else {
       res.status(400).json({ message: "Checkout is not paid" });

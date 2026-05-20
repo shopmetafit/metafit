@@ -44,6 +44,7 @@ import VendorApprovals from "./components/Admin/VendorApprovals";
 import ProductRequestForm from "./components/Vendor/ProductRequestForm";
 import ProductRequestsList from "./components/Vendor/ProductRequestsList";
 import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
+import ReferralAssignments from "./components/Admin/ReferralAssignments";
 
 const App = () => {
   return (
@@ -100,6 +101,7 @@ const App = () => {
               <Route path="products/:id/edit" element={<EditProductPage />} />
               <Route path="vendor-approvals" element={<VendorApprovals />} />
               <Route path="product-requests" element={<ProductRequestsAdmin />} />
+              <Route path="referrals" element={<ReferralAssignments />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="blogs" element={<BlogDashboard />} />
               <Route path="blogs/create" element={<BlogEditor />} />

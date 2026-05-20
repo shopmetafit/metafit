@@ -2,14 +2,17 @@ import { useEffect, useState } from "react";
 import { FaPlayCircle } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductDetails, fetchSimilarProduct } from "../../redux/slices/productSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { ShieldCheck, Truck, RefreshCw, ChevronRight, Minus, Plus, ShoppingCart } from "lucide-react";
+import axios from "axios";
+import { readReferralParams, saveReferralContext } from "../../services/referralStorage";
 
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
+  const location = useLocation();
   const dispatch = useDispatch();
 
   const { selectedProduct, loading, error, similarProducts } = useSelector((state) => state.products);
@@ -30,6 +33,35 @@ const ProductDetails = ({ productId }) => {
       dispatch(fetchSimilarProduct({ id: productFetchId }));
     }
   }, [dispatch, productFetchId]);
+
+  useEffect(() => {
+    const referral = readReferralParams(location.search);
+    if (!referral || !productFetchId) return;
+
+    const validateReferral = async () => {
+      try {
+        await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/store/referrals/validate`,
+          {
+            params: {
+              productId: productFetchId,
+              vendorId: referral.vendorId,
+              assignedProductId: referral.assignedProductId,
+              ref: referral.shareCode,
+            },
+          }
+        );
+
+        saveReferralContext(referral);
+      } catch (error) {
+        toast.error(
+          error?.response?.data?.message || "Referral link invalid or expired"
+        );
+      }
+    };
+
+    validateReferral();
+  }, [location.search, productFetchId]);
 
   useEffect(() => {
     if (selectedProduct?.images?.length > 0) {

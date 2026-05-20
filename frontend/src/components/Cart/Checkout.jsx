@@ -8,6 +8,7 @@ import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
+import { clearReferralContext, getReferralContext } from "../../services/referralStorage";
 // import { use } from "../../../../backend/utils/email";
 
 const CheckOut = () => {
@@ -34,6 +35,7 @@ console.log(user);
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const referralContext = getReferralContext();
 
   const deliveryCharge = 30;
   const subtotal = cart?.totalPrice ?? 0;
@@ -171,6 +173,7 @@ console.log(user);
             
             // Clear guestId from localStorage so a new one is generated on next add to cart
             localStorage.removeItem("guestId");
+            clearReferralContext();
             
             // Wait a moment and then navigate to confirmation page
             setTimeout(() => {
@@ -333,6 +336,12 @@ console.log(user);
 	           paymentMethod: "Razorpay",
 	           totalPrice: cart.totalPrice,
 	           couponCode: appliedCoupon,
+             customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+             customerPhone: shippingAddress.phone,
+             customerEmail: user?.email || "",
+             vendorId: referralContext?.vendorId,
+             assignedProductId: referralContext?.assignedProductId,
+             shareCode: referralContext?.shareCode,
 	         })
 	       );
        // console.log("chekout165", res);
@@ -382,6 +391,11 @@ console.log(user);
         <h2 className="text-2xl uppercase mb-6">Checkout</h2>
         <form onSubmit={handleCreateCheckout}>
           <h3 className="text-lg mb-4">Contact Details</h3>
+          {referralContext ? (
+            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+              Referral applied: {referralContext.shareCode}
+            </div>
+          ) : null}
           <div className="mb-4">
             <label className="block text-gray-700">Email</label>
             <input

@@ -1,4 +1,4 @@
-import { FaBoxOpen, FaClipboardList, FaSignOutAlt, FaStore, FaUser, FaBlog, FaCheckCircle } from "react-icons/fa";
+import { FaBoxOpen, FaClipboardList, FaSignOutAlt, FaStore, FaUser, FaBlog, FaCheckCircle, FaLink } from "react-icons/fa";
 import { useDispatch } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { clearCart } from "../../redux/slices/cartSlice";
@@ -72,6 +72,18 @@ const AdminSidebar = () => {
         >
           <FaClipboardList />
         <span>Orders</span>
+        </NavLink>
+
+        <NavLink
+          to="/admin/referrals"
+          className={(isActive) => {
+            isActive
+              ? "bg-gray-700 text-white py-3 px-4 rounded flex items-center space-x-2 "
+              : "text-gray-300 hover:bg-gray-700 hover:text-white py-3 px-4 rounded flex items-center space-x-2";
+          }}
+        >
+          <FaLink />
+          <span>Referrals</span>
         </NavLink>
 
               <NavLink

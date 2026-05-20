@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { vendorApiService } from "../services/vendorApi";
 
 const VendorDashboard = () => {
   const [vendorInfo, setVendorInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [referralData, setReferralData] = useState({
+    summary: { totalSales: 0, totalCommission: 0, totalOrders: 0 },
+    activeLinks: 0,
+    recentSales: [],
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -21,7 +27,19 @@ const VendorDashboard = () => {
     try {
       const parsedInfo = JSON.parse(vendorInfo);
       setVendorInfo(parsedInfo);
-      setIsLoading(false);
+      Promise.all([
+        vendorApiService.getVendorReferralDashboard().catch(() => null),
+      ])
+        .then(([dashboard]) => {
+          if (dashboard?.success) {
+            setReferralData({
+              summary: dashboard.summary || { totalSales: 0, totalCommission: 0, totalOrders: 0 },
+              activeLinks: dashboard.activeLinks || 0,
+              recentSales: dashboard.recentSales || [],
+            });
+          }
+        })
+        .finally(() => setIsLoading(false));
     } catch (error) {
       console.error("Error parsing vendor info:", error);
       localStorage.removeItem('vendorToken');
@@ -231,22 +249,41 @@ const VendorDashboard = () => {
             <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <h4 className="text-sm font-medium text-gray-600">Total Products</h4>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                <p className="text-2xl font-bold text-gray-900">{referralData.activeLinks}</p>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-600">Pending Requests</h4>
-                <p className="text-2xl font-bold text-yellow-600">0</p>
+                <h4 className="text-sm font-medium text-gray-600">Referral Orders</h4>
+                <p className="text-2xl font-bold text-yellow-600">{referralData.summary.totalOrders}</p>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-600">Total Orders</h4>
-                <p className="text-2xl font-bold text-green-600">0</p>
+                <h4 className="text-sm font-medium text-gray-600">Referral Sales</h4>
+                <p className="text-2xl font-bold text-green-600">₹{Number(referralData.summary.totalSales || 0).toFixed(2)}</p>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-600">Revenue</h4>
-                <p className="text-2xl font-bold text-blue-600">₹0</p>
+                <h4 className="text-sm font-medium text-gray-600">Commission</h4>
+                <p className="text-2xl font-bold text-blue-600">₹{Number(referralData.summary.totalCommission || 0).toFixed(2)}</p>
               </div>
             </div>
           )}
+
+          {vendorInfo.status === 'approved' && referralData.recentSales.length > 0 ? (
+            <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
+              <h3 className="text-lg font-semibold text-gray-900">Recent Referral Sales</h3>
+              <div className="mt-4 space-y-3">
+                {referralData.recentSales.map((sale) => (
+                  <div key={sale._id} className="flex flex-col gap-1 rounded-lg border border-gray-100 p-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">{sale.productId?.name || sale.assignedProductId}</p>
+                      <p className="text-sm text-gray-500">{sale.customerName || sale.customerEmail || sale.orderId}</p>
+                    </div>
+                    <div className="text-sm text-gray-700">
+                      Sale ₹{Number(sale.orderAmount || 0).toFixed(2)} | Commission ₹{Number(sale.commissionAmount || 0).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

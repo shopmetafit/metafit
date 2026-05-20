@@ -47,6 +47,22 @@ const checkoutSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    customerName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    customerPhone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    customerEmail: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+    },
     totalPrice: {
       type: Number,
       required: true,
@@ -86,6 +102,24 @@ const checkoutSchema = new mongoose.Schema(
     },
     finalizedAt: {
       type: Date,
+    },
+    referral: {
+      vendorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Vendor",
+        default: null,
+      },
+      assignedProductId: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      shareCode: {
+        type: String,
+        default: "",
+        trim: true,
+        uppercase: true,
+      },
     },
   },
   {

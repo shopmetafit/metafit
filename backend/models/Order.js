@@ -47,6 +47,27 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    checkoutId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Checkout",
+      default: null,
+    },
+    customerName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    customerPhone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    customerEmail: {
+      type: String,
+      default: "",
+      trim: true,
+      lowercase: true,
+    },
     totalPrice: {
       type: Number,
       required: true,
@@ -87,6 +108,10 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    paymentDetails: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
     status: {
       type: String,
       enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
@@ -116,6 +141,24 @@ const orderSchema = new mongoose.Schema(
     bluedartGeneratedAt: {
       type: Date,
       default: null,
+    },
+    referral: {
+      vendorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Vendor",
+        default: null,
+      },
+      assignedProductId: {
+        type: String,
+        default: "",
+        trim: true,
+      },
+      shareCode: {
+        type: String,
+        default: "",
+        trim: true,
+        uppercase: true,
+      },
     },
   },
   {

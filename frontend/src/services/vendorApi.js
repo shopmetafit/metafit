@@ -267,6 +267,24 @@ export const vendorApiService = {
     }
   },
 
+  getVendorReferralDashboard: async () => {
+    try {
+      const response = await vendorApi.get('/api/referrals/vendor/dashboard');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching referral dashboard' };
+    }
+  },
+
+  getVendorSharedProducts: async () => {
+    try {
+      const response = await vendorApi.get('/api/referrals/vendor/shared-products');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching shared products' };
+    }
+  },
+
   // Image upload
   uploadImage: async (imageFile) => {
     try {

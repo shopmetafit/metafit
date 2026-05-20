@@ -1,0 +1,298 @@
+const express = require("express");
+const Product = require("../models/Product");
+const Coupon = require("../models/Coupon");
+const Checkout = require("../models/Checkout");
+const Order = require("../models/Order");
+const Cart = require("../models/Cart");
+const { protect } = require("../middleware/authMiddleware");
+const { validateReferral, normalizeReferralCode, processReferralPurchase } = require("../utils/referralUtils");
+
+const router = express.Router();
+
+const normalizeCode = (value) => String(value || "").trim().toUpperCase();
+
+const isCouponCurrentlyValid = (coupon, now) => {
+  if (!coupon) return false;
+  if (coupon.isActive === false) return false;
+  if (coupon.startsAt && now < coupon.startsAt) return false;
+  if (coupon.endsAt && now > coupon.endsAt) return false;
+  return true;
+};
+
+const computeCouponDiscount = (coupon, subtotal) => {
+  if (!coupon) return 0;
+  if (!Number.isFinite(subtotal) || subtotal <= 0) return 0;
+
+  const minOrderAmount = Number(coupon.minOrderAmount || 0);
+  if (subtotal < minOrderAmount) return 0;
+
+  if (coupon.type === "percentage") {
+    const percent = Number(coupon.value);
+    const cap =
+      coupon.maxDiscountAmount === null || coupon.maxDiscountAmount === undefined
+        ? null
+        : Number(coupon.maxDiscountAmount);
+
+    let discountAmount = (subtotal * percent) / 100;
+    if (cap !== null && Number.isFinite(cap)) {
+      discountAmount = Math.min(discountAmount, cap);
+    }
+    return Math.max(0, Math.min(discountAmount, subtotal));
+  }
+
+  if (coupon.type === "fixed") {
+    return Math.max(0, Math.min(Number(coupon.value || 0), subtotal));
+  }
+
+  return 0;
+};
+
+router.get("/referrals/validate", async (req, res) => {
+  try {
+    const { productId, vendorId, assignedProductId, ref } = req.query;
+    const validation = await validateReferral({ productId, vendorId, assignedProductId, ref });
+
+    if (!validation.valid) {
+      return res.status(404).json(validation);
+    }
+
+    res.json({
+      valid: true,
+      productId,
+      vendorId,
+      assignedProductId,
+      shareCode: validation.assignment.shareCode,
+      refCode: validation.assignment.refCode,
+      commissionType: validation.assignment.commissionType,
+      commissionValue: validation.assignment.commissionValue,
+    });
+  } catch (error) {
+    console.error("Error validating referral", error);
+    res.status(500).json({ valid: false, message: "Failed to validate referral" });
+  }
+});
+
+router.get("/products/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const { vendorId, assignedProductId, ref } = req.query;
+    let referral = null;
+
+    if (vendorId && assignedProductId && ref) {
+      const validation = await validateReferral({
+        productId: req.params.id,
+        vendorId,
+        assignedProductId,
+        ref,
+      });
+
+      referral = validation.valid
+        ? {
+            valid: true,
+            vendorId,
+            assignedProductId,
+            shareCode: validation.assignment.shareCode,
+            refCode: validation.assignment.refCode,
+          }
+        : {
+            valid: false,
+            message: validation.message,
+          };
+    }
+
+    res.json({ product, referral });
+  } catch (error) {
+    console.error("Error fetching store product", error);
+    res.status(500).json({ message: "Failed to fetch product" });
+  }
+});
+
+router.post("/orders", protect, async (req, res) => {
+  const {
+    orderItems,
+    shippingAddress,
+    paymentMethod,
+    totalPrice,
+    couponCode,
+    customerName,
+    customerPhone,
+    customerEmail,
+    vendorId,
+    assignedProductId,
+    shareCode,
+  } = req.body;
+
+  if (!orderItems || orderItems.length === 0) {
+    return res.status(400).json({ message: "No items in order" });
+  }
+
+  try {
+    const productIds = orderItems.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } }).lean();
+    const productMap = new Map(products.map((product) => [String(product._id), product]));
+
+    const normalizedItems = orderItems.map((item) => {
+      const product = productMap.get(String(item.productId));
+      return {
+        productId: item.productId,
+        name: item.name || product?.name || "Product",
+        image: item.image || product?.images?.[0]?.url || "",
+        price: Number(item.price ?? product?.discountPrice ?? product?.price ?? 0),
+        quantity: Number(item.quantity || item.qty || 1),
+        size: item.size,
+        color: item.color,
+      };
+    });
+
+    const deliveryCharge = 30;
+    const itemsTotal = normalizedItems.reduce(
+      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
+      0
+    );
+
+    const code = normalizeCode(couponCode);
+    let discountAmount = 0;
+
+    if (code) {
+      const coupon = await Coupon.findOne({ code }).lean();
+      if (!coupon) {
+        return res.status(400).json({ message: "Invalid coupon code" });
+      }
+
+      const now = new Date();
+      if (!isCouponCurrentlyValid(coupon, now)) {
+        return res.status(400).json({ message: "Coupon is not valid at this time" });
+      }
+
+      discountAmount = computeCouponDiscount(coupon, itemsTotal);
+    }
+
+    const checkout = await Checkout.create({
+      user: req.user._id,
+      checkoutItems: normalizedItems,
+      shippingAddress,
+      paymentMethod,
+      totalPrice: Math.max(itemsTotal + deliveryCharge - discountAmount, 0),
+      deliveryCharge,
+      couponCode: code,
+      couponDiscount: discountAmount,
+      paymentStatus: "Pending",
+      isPaid: false,
+      customerName,
+      customerPhone,
+      customerEmail,
+      referral: vendorId && assignedProductId && shareCode
+        ? {
+            vendorId,
+            assignedProductId,
+            shareCode: normalizeReferralCode(shareCode),
+          }
+        : undefined,
+    });
+
+    res.status(201).json({
+      id: checkout._id,
+      orderId: checkout._id,
+      paymentStatus: checkout.paymentStatus,
+      totalPrice: checkout.totalPrice,
+    });
+  } catch (error) {
+    console.error("Error creating store order", error);
+    res.status(500).json({ message: "Failed to create order" });
+  }
+});
+
+router.post("/orders/:id/payment-success", protect, async (req, res) => {
+  const { paymentStatus, paymentReference } = req.body;
+
+  try {
+    const checkout = await Checkout.findById(req.params.id);
+    if (!checkout) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    if (checkout.isPaid && checkout.isFinalized) {
+      const existingOrder = await Order.findOne({ checkoutId: checkout._id });
+      return res.json({
+        success: true,
+        duplicate: true,
+        order: existingOrder,
+      });
+    }
+
+    checkout.isPaid = paymentStatus === "paid";
+    checkout.paymentStatus = paymentStatus || "paid";
+    checkout.paymentDetails = {
+      paymentReference: String(paymentReference || "").trim(),
+    };
+    checkout.paidAt = new Date();
+    await checkout.save();
+
+    const order = await Order.create({
+      user: checkout.user,
+      checkoutId: checkout._id,
+      orderItems: checkout.checkoutItems,
+      shippingAddress: checkout.shippingAddress,
+      paymentMethod: checkout.paymentMethod,
+      totalPrice: checkout.totalPrice,
+      deliveryCharge: checkout.deliveryCharge,
+      couponCode: checkout.couponCode || "",
+      couponDiscount: checkout.couponDiscount || 0,
+      isPaid: true,
+      paidAt: checkout.paidAt,
+      isDelivered: false,
+      paymentStatus: "paid",
+      paymentId: String(paymentReference || "").trim(),
+      paymentDetails: checkout.paymentDetails,
+      customerName: checkout.customerName || "",
+      customerPhone: checkout.customerPhone || "",
+      customerEmail: checkout.customerEmail || "",
+      referral: checkout.referral,
+    });
+
+    checkout.isFinalized = true;
+    checkout.finalizedAt = new Date();
+    await checkout.save();
+
+    await Cart.findOneAndDelete({ user: checkout.user }).catch(() => null);
+
+    if (checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
+      const referredItem =
+        checkout.checkoutItems[0];
+
+      await processReferralPurchase({
+        orderId: String(order._id),
+        orderObjectId: order._id,
+        productId: referredItem?.productId,
+        vendorId: checkout.referral.vendorId,
+        assignedProductId: checkout.referral.assignedProductId,
+        shareCode: checkout.referral.shareCode,
+        customerName: checkout.customerName,
+        customerPhone: checkout.customerPhone,
+        customerEmail: checkout.customerEmail,
+        qty: referredItem?.quantity || 1,
+        orderAmount: Number(referredItem?.price || 0) * Number(referredItem?.quantity || 1),
+        paymentStatus: "paid",
+        paymentReference,
+        source: "mwellness-store",
+        metadata: {
+          checkoutId: checkout._id,
+        },
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      order,
+    });
+  } catch (error) {
+    console.error("Error marking payment success", error);
+    res.status(500).json({ message: "Failed to finalize paid order" });
+  }
+});
+
+module.exports = router;
