@@ -10,7 +10,6 @@ const {
   likeBlog,
   addComment,
 } = require("../controllers/blogController");
-
 const router = express.Router();
 
 // Public routes
