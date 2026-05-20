@@ -34,26 +34,30 @@ const allowedOrigins = [
   "https://metafit-omega.vercel.app",
 ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow non-browser tools like curl/postman and same-origin server requests
-    if (!origin) {
-      return callback(null, true);
-    }
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+  if (origin && allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  }
 
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+  return next();
+});
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
