@@ -99,8 +99,6 @@ app.use("/api/auth", otpRoutes);
 
 
 
-
-
 app.use("/api/upload", videoUploadRoute);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/vendor/product-requests", productRequestRoutes);
