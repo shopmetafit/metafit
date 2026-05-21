@@ -4,6 +4,22 @@ const router = express.Router();
 const { registerVendor, loginVendor, loginVendorWithOTP } = require("../controllers/vendorController");
 const { sendOtpController, verifyOtpController } = require("../controllers/otpController");
 const { protectVendor, vendorApproved } = require("../middleware/vendorAuthMiddleware");
+const ReferralAssignment = require("../models/ReferralAssignment");
+
+const buildShareUrl = (productId, vendorId, assignedProductId, shareCode) => {
+  const baseUrl =
+    process.env.MWELLNESS_FRONTEND_URL ||
+    process.env.FRONTEND_URL ||
+    "https://mwellnessbazaar.com";
+
+  const params = new URLSearchParams({
+    vendorId: String(vendorId),
+    assignedProductId: String(assignedProductId),
+    ref: String(shareCode),
+  });
+
+  return `${baseUrl.replace(/\/$/, "")}/product/${productId}?${params.toString()}`;
+};
 
 // REGISTER ROUTE
 router.post("/register", registerVendor);
@@ -219,6 +235,48 @@ router.get("/products", protectVendor, vendorApproved, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching vendor products"
+    });
+  }
+});
+
+// Get products assigned to the logged-in vendor with commission + share URL
+router.get("/assigned-products", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const assignments = await ReferralAssignment.find({
+      vendorId: req.user._id,
+      isActive: true,
+    })
+      .populate("productId", "name sku price discountPrice images brand category")
+      .sort({ createdAt: -1 });
+
+    const assignedProducts = assignments.map((assignment) => ({
+      _id: assignment._id,
+      product: assignment.productId,
+      commission: {
+        type: assignment.commissionType,
+        value: assignment.commissionValue,
+      },
+      shareCode: assignment.shareCode,
+      refCode: assignment.refCode || "",
+      assignedProductId: assignment.assignedProductId,
+      isActive: assignment.isActive,
+      shareUrl: buildShareUrl(
+        assignment.productId?._id || assignment.productId,
+        assignment.vendorId,
+        assignment.assignedProductId,
+        assignment.shareCode
+      ),
+    }));
+
+    res.json({
+      success: true,
+      assignedProducts,
+    });
+  } catch (error) {
+    console.error("Error fetching assigned products:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching assigned products",
     });
   }
 });
