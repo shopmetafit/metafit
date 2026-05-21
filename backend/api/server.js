@@ -32,6 +32,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://metafit-a5ll.vercel.app",
   "https://metafit-omega.vercel.app",
+  "https://mwellnessbazaar.com",
+  "https://www.mwellnessbazaar.com",
 ];
 
 app.use((req, res, next) => {

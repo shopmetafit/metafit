@@ -8,7 +8,6 @@ const WHATSAPP_API_URL = `https://graph.facebook.com/v24.0/${WHATSAPP_PHONE_NUMB
 
 const lastMessageTime = new Map();
 
-
 const validateParam = (value, name) => {
     if (value === null || value === undefined) {
         throw new Error(`${name} is required`);
