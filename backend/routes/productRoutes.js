@@ -1,6 +1,7 @@
 const express = require("express");
 const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
+const { getProductReadModel } = require("../utils/productDataAccess");
 const router = express.Router();
 
 // @route GET /api/products/all
@@ -8,7 +9,8 @@ const router = express.Router();
 // @access Public
 router.get("/all", async (req, res) => {
   try {
-    const products = await Product.find({});
+    const ProductReadModel = await getProductReadModel();
+    const products = await ProductReadModel.find({}).lean();
     res.json({ products });
   } catch (error) {
     console.error(error);
@@ -317,9 +319,11 @@ router.get("/", async (req, res) => {
     }
 
     // Fetch products, apply sorting & limit
-    let products = await Product.find(query)
+    const ProductReadModel = await getProductReadModel();
+    let products = await ProductReadModel.find(query)
       .sort(sort)
-      .limit(Number(limit) || 0);
+      .limit(Number(limit) || 0)
+      .lean();
 
     res.json(products);
   } catch (error) {
@@ -334,7 +338,8 @@ router.get("/", async (req, res) => {
 // @access Public
 router.get("/best-seller", async (req, res) => {
   try {
-    const bestSeller = await Product.findOne().sort({ rating: -1 });
+    const ProductReadModel = await getProductReadModel();
+    const bestSeller = await ProductReadModel.findOne().sort({ rating: -1 }).lean();
     if (bestSeller) {
       res.json(bestSeller);
     } else {
@@ -352,7 +357,8 @@ router.get("/best-seller", async (req, res) => {
 
 router.get("/new-arrivals", async (req, res) => {
   try {
-    const newArrivals = await Product.find().sort({ createdAt: -1 }).limit(8);
+    const ProductReadModel = await getProductReadModel();
+    const newArrivals = await ProductReadModel.find().sort({ createdAt: -1 }).limit(8).lean();
     res.json(newArrivals);
   } catch (error) {
     console.error(error);
@@ -366,7 +372,8 @@ router.get("/new-arrivals", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const ProductReadModel = await getProductReadModel();
+    const product = await ProductReadModel.findById(req.params.id).lean();
     if (product) {
       res.json(product);
     } else {
@@ -385,15 +392,16 @@ router.get("/:id", async (req, res) => {
 router.get("/similar/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const product = await Product.findById(id);
+    const ProductReadModel = await getProductReadModel();
+    const product = await ProductReadModel.findById(id).lean();
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    const similarProduct = await Product.find({
+    const similarProduct = await ProductReadModel.find({
       _id: { $ne: id },
       gender: product.gender,
       category: product.category,
-    }).limit(4);
+    }).limit(4).lean();
     res.json(similarProduct);
   } catch (error) {
     console.error(error);

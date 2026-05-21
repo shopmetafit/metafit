@@ -7,7 +7,11 @@ const products = require("./data/products");
 dotenv.config();
 
 // connect to mongoDB
-mongoose.connect(process.env.MONGO_URI);
+mongoose.connect(
+  process.env.METAFIT_WELLNESS_MONGO_URI ||
+    process.env.MONGO_URI ||
+    process.env.URI
+);
 
 // Function to send data
 const seedData = async () => {

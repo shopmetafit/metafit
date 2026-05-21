@@ -1,10 +1,13 @@
 const mongoose=require("mongoose");
 const connectDB=async()=>{
     try {
-        const mongoUri = process.env.MONGO_URI || process.env.URI;
+        const mongoUri =
+            process.env.METAFIT_WELLNESS_MONGO_URI ||
+            process.env.MONGO_URI ||
+            process.env.URI;
 
         if (!mongoUri) {
-            throw new Error("Missing MongoDB connection string. Set MONGO_URI or URI in environment.");
+            throw new Error("Missing MongoDB connection string. Set METAFIT_WELLNESS_MONGO_URI, MONGO_URI, or URI in environment.");
         }
 
         await mongoose.connect(mongoUri);

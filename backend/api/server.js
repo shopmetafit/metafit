@@ -25,9 +25,11 @@ const couponRoutes = require("../routes/couponRoutes");
 const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
+const adminCompatRoutes = require("../routes/adminCompatRoutes");
 const app= express();
 
 const allowedOrigins = [
+  "http://localhost:3000",
   "http://localhost:3005",
   "http://localhost:5173",
   "https://metafit-a5ll.vercel.app",
@@ -45,7 +47,10 @@ app.use((req, res, next) => {
     res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, x-auth-token"
+    );
   }
 
   if (req.method === "OPTIONS") {
@@ -57,7 +62,13 @@ app.use((req, res, next) => {
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
@@ -103,6 +114,7 @@ app.use("/api/auth", otpRoutes);
 app.use("/api/upload", videoUploadRoute);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/vendor/product-requests", productRequestRoutes);
+app.use("/admin/api/v2", adminCompatRoutes);
 
 
 app.listen(PORT, "0.0.0.0", () => {

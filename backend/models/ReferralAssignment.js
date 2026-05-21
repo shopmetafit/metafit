@@ -10,7 +10,40 @@ const referralAssignmentSchema = new mongoose.Schema(
     vendorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Vendor",
-      required: true,
+      default: null,
+    },
+    externalVendorId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    vendorSnapshot: {
+      mentorId: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      name: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      email: {
+        type: String,
+        trim: true,
+        lowercase: true,
+        default: "",
+      },
+      phone: {
+        type: String,
+        trim: true,
+        default: "",
+      },
+      role: {
+        type: String,
+        trim: true,
+        default: "",
+      },
     },
     assignedProductId: {
       type: String,
@@ -51,7 +84,11 @@ const referralAssignmentSchema = new mongoose.Schema(
 
 referralAssignmentSchema.index(
   { productId: 1, vendorId: 1, assignedProductId: 1 },
-  { unique: true }
+  { unique: true, partialFilterExpression: { vendorId: { $type: "objectId" } } }
+);
+referralAssignmentSchema.index(
+  { productId: 1, externalVendorId: 1, assignedProductId: 1 },
+  { unique: true, partialFilterExpression: { externalVendorId: { $type: "string", $ne: "" } } }
 );
 referralAssignmentSchema.index({ shareCode: 1 }, { unique: true });
 referralAssignmentSchema.index({ refCode: 1 }, { sparse: true });

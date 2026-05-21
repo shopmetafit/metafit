@@ -5,6 +5,7 @@ const Checkout = require("../models/Checkout");
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const { protect } = require("../middleware/authMiddleware");
+const { getProductReadModel } = require("../utils/productDataAccess");
 const { validateReferral, normalizeReferralCode, processReferralPurchase } = require("../utils/referralUtils");
 
 const router = express.Router();
@@ -74,7 +75,8 @@ router.get("/referrals/validate", async (req, res) => {
 
 router.get("/products/:id", async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const ProductReadModel = await getProductReadModel();
+    const product = await ProductReadModel.findById(req.params.id).lean();
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -133,7 +135,8 @@ router.post("/orders", protect, async (req, res) => {
 
   try {
     const productIds = orderItems.map((item) => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).lean();
+    const ProductReadModel = await getProductReadModel();
+    const products = await ProductReadModel.find({ _id: { $in: productIds } }).lean();
     const productMap = new Map(products.map((product) => [String(product._id), product]));
 
     const normalizedItems = orderItems.map((item) => {

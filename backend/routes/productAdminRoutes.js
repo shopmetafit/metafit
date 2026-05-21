@@ -1,6 +1,7 @@
 const express = require("express");
 const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
+const { getProductReadModel } = require("../utils/productDataAccess");
 const {
   getPendingProducts,
   approveProduct,
@@ -17,7 +18,8 @@ const router = express.Router();
 
 router.get("/", protect, admin, async (req, res) => {
   try {
-    const products = await Product.find({});
+    const ProductReadModel = await getProductReadModel();
+    const products = await ProductReadModel.find({}).lean();
     res.json(products);
   } catch (error) {
     console.log(error);

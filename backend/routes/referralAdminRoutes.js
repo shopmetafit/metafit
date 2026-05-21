@@ -1,10 +1,195 @@
 const express = require("express");
+const axios = require("axios");
 const ReferralAssignment = require("../models/ReferralAssignment");
 const ReferralPurchase = require("../models/ReferralPurchase");
 const Vendor = require("../models/Vendor");
 const { protect, admin } = require("../middleware/authMiddleware");
+const { fetchProductsByIds } = require("../utils/productDataAccess");
+const mongoose = require("mongoose");
 
 const router = express.Router();
+
+const normalizeCodeSegment = (value, fallback) => {
+  const normalized = String(value || "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase();
+
+  return normalized || fallback;
+};
+
+const buildBulkCode = (prefix, vendorId, productId) => {
+  const vendorPart = normalizeCodeSegment(vendorId, "VEND").slice(-4);
+  const productPart = normalizeCodeSegment(productId, "PROD").slice(-4);
+  return `${prefix}-${vendorPart}-${productPart}`;
+};
+
+const buildVendorSnapshot = (payload = {}) => ({
+  mentorId: String(payload.vendorId || payload.mentorId || "").trim(),
+  name: String(payload.vendorName || payload.name || "").trim(),
+  email: String(payload.vendorEmail || payload.email || "")
+    .trim()
+    .toLowerCase(),
+  phone: String(payload.vendorPhone || payload.phone || "").trim(),
+  role: String(payload.vendorRole || payload.role || "").trim(),
+});
+
+const METAFIT_ADMIN_API_BASE_URL =
+  (process.env.METAFIT_ADMIN_API_BASE_URL || "http://localhost:5001/admin/api/v2").replace(/\/+$/, "");
+
+const allowedExternalVendorRoles = new Set([
+  "Yoga Instructor",
+  "Ayurvedic Doctor",
+  "Lab Test",
+  "Treatment and Retreat",
+  "Treatment & Retreat",
+  "Naturopathy and Wellness",
+  "Naturopathy Doctor",
+  "Naturopathy",
+]);
+
+const normalizeExternalVendor = (vendor = {}) => {
+  const vendorId = String(vendor.mentorId || vendor._id || vendor.id || "").trim();
+  const role = String(vendor.role || "").trim();
+
+  return {
+    id: vendorId,
+    vendorId,
+    mentorId: vendorId,
+    name:
+      String(
+        vendor.vendorName ||
+          vendor.businessName ||
+          `${vendor.firstname || ""} ${vendor.lastname || ""}`.trim() ||
+          vendor.name ||
+          "Unnamed Vendor"
+      ).trim(),
+    email: String(vendor.useremail || vendor.email || "").trim().toLowerCase(),
+    phone: String(vendor.phone || vendor.phoneNo || vendor.mobile || "").trim(),
+    role,
+    status: String(vendor.status || (vendor.isApproved === false ? "pending" : "approved")).trim(),
+  };
+};
+
+const fetchMetafitVendors = async (authorizationHeader = "") => {
+  const requestConfig = {
+    headers: authorizationHeader ? { Authorization: authorizationHeader } : {},
+    timeout: 5000,
+  };
+
+  const [instructorsResponse, naturopathyResponse] = await Promise.allSettled([
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/all-instructor`, requestConfig),
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/naturopathy-vendors`, requestConfig),
+  ]);
+
+  const records = [];
+
+  if (instructorsResponse.status === "fulfilled" && Array.isArray(instructorsResponse.value.data)) {
+    records.push(...instructorsResponse.value.data);
+  }
+
+  if (naturopathyResponse.status === "fulfilled") {
+    const vendors =
+      naturopathyResponse.value.data?.vendors ||
+      naturopathyResponse.value.data?.data ||
+      [];
+
+    if (Array.isArray(vendors)) {
+      records.push(...vendors);
+    }
+  }
+
+  const seen = new Set();
+
+  return records
+    .map(normalizeExternalVendor)
+    .filter((vendor) => vendor.vendorId && allowedExternalVendorRoles.has(vendor.role))
+    .filter((vendor) => {
+      const key = vendor.vendorId.toLowerCase();
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+};
+
+const resolveAssignmentVendorFields = (payload = {}) => {
+  const rawVendorId = String(payload.vendorId || "").trim();
+  const snapshot = buildVendorSnapshot(payload);
+
+  if (mongoose.Types.ObjectId.isValid(rawVendorId)) {
+    return {
+      vendorId: rawVendorId,
+      externalVendorId: snapshot.mentorId || "",
+      vendorSnapshot: snapshot,
+    };
+  }
+
+  return {
+    vendorId: null,
+    externalVendorId: rawVendorId,
+    vendorSnapshot: {
+      ...snapshot,
+      mentorId: snapshot.mentorId || rawVendorId,
+    },
+  };
+};
+
+const buildAssignmentLookup = ({ productId, vendorId, externalVendorId, assignedProductId }) => {
+  const lookup = {
+    productId,
+    assignedProductId: String(assignedProductId || "").trim(),
+  };
+
+  if (vendorId) {
+    lookup.vendorId = vendorId;
+  } else {
+    lookup.externalVendorId = externalVendorId;
+  }
+
+  return lookup;
+};
+
+const hydrateAssignmentVendor = (assignmentObject) => {
+  const populatedVendor =
+    assignmentObject.vendorId && typeof assignmentObject.vendorId === "object"
+      ? assignmentObject.vendorId
+      : null;
+  const snapshot = assignmentObject.vendorSnapshot || {};
+
+  assignmentObject.vendor = {
+    id:
+      assignmentObject.externalVendorId ||
+      populatedVendor?._id ||
+      assignmentObject.vendorId ||
+      snapshot.mentorId ||
+      "",
+    vendorId:
+      assignmentObject.externalVendorId ||
+      snapshot.mentorId ||
+      populatedVendor?._id ||
+      assignmentObject.vendorId ||
+      "",
+    mentorId: snapshot.mentorId || assignmentObject.externalVendorId || "",
+    name:
+      snapshot.name ||
+      populatedVendor?.vendorName ||
+      populatedVendor?.businessName ||
+      "Unnamed Vendor",
+    email: snapshot.email || populatedVendor?.email || "",
+    phone: snapshot.phone || populatedVendor?.phone || "",
+    role: snapshot.role || "",
+  };
+
+  assignmentObject.vendorId =
+    assignmentObject.externalVendorId ||
+    snapshot.mentorId ||
+    populatedVendor?._id ||
+    assignmentObject.vendorId ||
+    "";
+
+  return assignmentObject;
+};
 
 router.post("/referral-assignments", protect, admin, async (req, res) => {
   try {
@@ -18,16 +203,20 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
       commissionValue,
       isActive,
     } = req.body;
+    const vendorFields = resolveAssignmentVendorFields(req.body);
 
     const assignment = await ReferralAssignment.findOneAndUpdate(
+      buildAssignmentLookup({
+        productId,
+        vendorId: vendorFields.vendorId,
+        externalVendorId: vendorFields.externalVendorId,
+        assignedProductId,
+      }),
       {
         productId,
-        vendorId,
-        assignedProductId: String(assignedProductId || "").trim(),
-      },
-      {
-        productId,
-        vendorId,
+        vendorId: vendorFields.vendorId,
+        externalVendorId: vendorFields.externalVendorId,
+        vendorSnapshot: vendorFields.vendorSnapshot,
         assignedProductId: String(assignedProductId || "").trim(),
         shareCode: String(shareCode || "").trim().toUpperCase(),
         refCode: refCode ? String(refCode).trim().toUpperCase() : undefined,
@@ -43,7 +232,8 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
       }
     );
 
-    res.status(201).json(assignment);
+    const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
+    res.status(201).json(assignmentObject);
   } catch (error) {
     console.error("Error creating referral assignment", error);
     res.status(500).json({
@@ -54,20 +244,126 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
   }
 });
 
+router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
+  try {
+    const {
+      productId,
+      commissionType,
+      commissionValue,
+      isActive,
+      shareCodePrefix,
+      assignedProductPrefix,
+      refCodePrefix,
+      vendors: requestedVendors,
+    } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
+    }
+
+    if (!Number.isFinite(Number(commissionValue)) || Number(commissionValue) < 0) {
+      return res.status(400).json({ message: "Valid commission value is required" });
+    }
+
+    const normalizedCommissionType =
+      String(commissionType || "").toLowerCase() === "flat" ? "fixed" : commissionType;
+
+    const vendors = Array.isArray(requestedVendors) && requestedVendors.length
+      ? requestedVendors
+      : await fetchMetafitVendors(req.headers.authorization || "");
+
+    if (!vendors.length) {
+      return res.status(404).json({ message: "No vendors found for bulk assignment" });
+    }
+
+    const assignments = await Promise.all(
+      vendors.map(async (vendor) => {
+        const vendorRef = String(vendor.vendorId || vendor.mentorId || vendor._id || vendor.id || "").trim();
+        const vendorFields = resolveAssignmentVendorFields({
+          vendorId: vendorRef,
+          vendorName: vendor.vendorName || vendor.businessName || vendor.name,
+          vendorEmail: vendor.email || vendor.useremail,
+          vendorPhone: vendor.phone || vendor.phoneNo,
+          vendorRole: vendor.role,
+        });
+        const assignedProductId =
+          buildBulkCode(assignedProductPrefix || "AP", vendorRef, productId);
+        const shareCode = buildBulkCode(shareCodePrefix || "MWREF", vendorRef, productId);
+        const refCode = buildBulkCode(refCodePrefix || "REF", vendorRef, productId);
+
+        const assignment = await ReferralAssignment.findOneAndUpdate(
+          buildAssignmentLookup({
+            productId,
+            vendorId: vendorFields.vendorId,
+            externalVendorId: vendorFields.externalVendorId,
+            assignedProductId,
+          }),
+          {
+            productId,
+            vendorId: vendorFields.vendorId,
+            externalVendorId: vendorFields.externalVendorId,
+            vendorSnapshot: vendorFields.vendorSnapshot,
+            assignedProductId,
+            shareCode,
+            refCode,
+            commissionType: normalizedCommissionType,
+            commissionValue: Number(commissionValue),
+            isActive: isActive !== false,
+          },
+          {
+            new: true,
+            upsert: true,
+            runValidators: true,
+            setDefaultsOnInsert: true,
+          }
+        );
+
+        return hydrateAssignmentVendor(assignment.toObject());
+      })
+    );
+
+    res.status(201).json({
+      message: `${assignments.length} vendors ko assignment create ho gaya`,
+      totalAssigned: assignments.length,
+      assignments,
+    });
+  } catch (error) {
+    console.error("Error creating bulk referral assignments", error);
+    res.status(500).json({
+      message:
+        error.code === 11000
+          ? "Bulk assignment me duplicate share code/ref code mila"
+          : "Failed to create bulk referral assignments",
+    });
+  }
+});
+
 router.get("/referral-assignments", protect, admin, async (req, res) => {
   try {
     const { productId, vendorId } = req.query;
     const query = {};
 
     if (productId) query.productId = productId;
-    if (vendorId) query.vendorId = vendorId;
+    if (vendorId) {
+      if (mongoose.Types.ObjectId.isValid(String(vendorId))) {
+        query.$or = [{ vendorId: String(vendorId) }, { externalVendorId: String(vendorId) }];
+      } else {
+        query.externalVendorId = String(vendorId);
+      }
+    }
 
     const assignments = await ReferralAssignment.find(query)
-      .populate("productId", "name sku discountPrice price")
       .populate("vendorId", "vendorName businessName email phone")
       .sort({ createdAt: -1 });
 
-    res.json(assignments);
+    const productMap = await fetchProductsByIds(assignments.map((assignment) => assignment.productId));
+    const hydratedAssignments = assignments.map((assignment) => {
+      const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
+      assignmentObject.productId = productMap.get(String(assignment.productId)) || assignment.productId;
+      return assignmentObject;
+    });
+
+    res.json(hydratedAssignments);
   } catch (error) {
     console.error("Error fetching referral assignments", error);
     res.status(500).json({ message: "Failed to fetch referral assignments" });
@@ -83,14 +379,17 @@ router.patch("/referral-assignments/:id/status", protect, admin, async (req, res
       { isActive: isActive !== false },
       { new: true }
     )
-      .populate("productId", "name sku discountPrice price")
       .populate("vendorId", "vendorName businessName email phone");
 
     if (!assignment) {
       return res.status(404).json({ message: "Referral assignment not found" });
     }
 
-    res.json(assignment);
+    const productMap = await fetchProductsByIds([assignment.productId]);
+    const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
+    assignmentObject.productId = productMap.get(String(assignment.productId)) || assignment.productId;
+
+    res.json(assignmentObject);
   } catch (error) {
     console.error("Error updating referral assignment status", error);
     res.status(500).json({ message: "Failed to update referral assignment status" });
@@ -99,9 +398,7 @@ router.patch("/referral-assignments/:id/status", protect, admin, async (req, res
 
 router.get("/vendors", protect, admin, async (req, res) => {
   try {
-    const vendors = await Vendor.find({})
-      .select("-password")
-      .sort({ createdAt: -1 });
+    const vendors = await fetchMetafitVendors(req.headers.authorization || "");
 
     res.json(vendors);
   } catch (error) {
@@ -121,11 +418,17 @@ router.get("/referrals/purchases", protect, admin, async (req, res) => {
 
     const purchases = await ReferralPurchase.find(query)
       .populate("vendorId", "vendorName businessName email phone")
-      .populate("productId", "name sku")
       .populate("assignmentId", "assignedProductId shareCode commissionType commissionValue")
       .sort({ createdAt: -1 });
 
-    res.json(purchases);
+    const productMap = await fetchProductsByIds(purchases.map((purchase) => purchase.productId));
+    const hydratedPurchases = purchases.map((purchase) => {
+      const purchaseObject = purchase.toObject();
+      purchaseObject.productId = productMap.get(String(purchase.productId)) || purchase.productId;
+      return purchaseObject;
+    });
+
+    res.json(hydratedPurchases);
   } catch (error) {
     console.error("Error fetching referral purchases", error);
     res.status(500).json({ message: "Failed to fetch referral purchases" });
@@ -195,9 +498,15 @@ router.get("/referral-sales", protect, admin, async (req, res) => {
 
     const latestSales = await ReferralPurchase.find({})
       .populate("vendorId", "vendorName businessName")
-      .populate("productId", "name sku")
       .sort({ createdAt: -1 })
       .limit(20);
+
+    const productMap = await fetchProductsByIds(latestSales.map((sale) => sale.productId));
+    const hydratedSales = latestSales.map((sale) => {
+      const saleObject = sale.toObject();
+      saleObject.productId = productMap.get(String(sale.productId)) || sale.productId;
+      return saleObject;
+    });
 
     res.json({
       summary: summary[0] || {
@@ -205,7 +514,7 @@ router.get("/referral-sales", protect, admin, async (req, res) => {
         totalSales: 0,
         totalCommission: 0,
       },
-      sales: latestSales,
+      sales: hydratedSales,
     });
   } catch (error) {
     console.error("Error fetching referral sales", error);

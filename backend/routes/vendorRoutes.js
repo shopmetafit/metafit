@@ -4,7 +4,11 @@ const router = express.Router();
 const { registerVendor, loginVendor, loginVendorWithOTP } = require("../controllers/vendorController");
 const { sendOtpController, verifyOtpController } = require("../controllers/otpController");
 const { protectVendor, vendorApproved } = require("../middleware/vendorAuthMiddleware");
+const { protect } = require("../middleware/authMiddleware");
 const ReferralAssignment = require("../models/ReferralAssignment");
+const Vendor = require("../models/Vendor");
+const { fetchProductsByIds } = require("../utils/productDataAccess");
+const mongoose = require("mongoose");
 
 const buildShareUrl = (productId, vendorId, assignedProductId, shareCode) => {
   const baseUrl =
@@ -239,34 +243,146 @@ router.get("/products", protectVendor, vendorApproved, async (req, res) => {
   }
 });
 
+const resolveAuthorizedVendorIds = (user) => {
+  if (!user || typeof user !== "object") {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      [
+        user.vendorId,
+        user.mentorId,
+        user.userId,
+        user.id,
+        user._id,
+      ]
+        .filter(Boolean)
+        .map((value) => String(value))
+    )
+  );
+};
+
+const normalizePhone = (value) => String(value || "").replace(/\D/g, "");
+
+const resolveAssignmentVendorId = async (requestedVendorId, user) => {
+  if (requestedVendorId && mongoose.Types.ObjectId.isValid(requestedVendorId)) {
+    return requestedVendorId;
+  }
+
+  const candidatePhones = [
+    user?.phone,
+    user?.mobile,
+    user?.phoneNo,
+  ]
+    .map(normalizePhone)
+    .filter(Boolean);
+
+  const phoneQueries = candidatePhones.flatMap((phone) => {
+    const queries = [{ phone }];
+    if (phone.length === 10) {
+      queries.push({ phone: `91${phone}` });
+    }
+    if (phone.length === 12 && phone.startsWith("91")) {
+      queries.push({ phone: phone.slice(2) });
+    }
+    return queries;
+  });
+
+  const vendor = await Vendor.findOne({
+    $or: [
+      ...(user?.email
+        ? [{ email: new RegExp(`^${String(user.email).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }]
+        : []),
+      ...phoneQueries,
+    ],
+  }).select("_id");
+
+  return vendor ? String(vendor._id) : null;
+};
+
 // Get products assigned to the logged-in vendor with commission + share URL
-router.get("/assigned-products", protectVendor, vendorApproved, async (req, res) => {
+router.get("/assigned-products", protect, async (req, res) => {
   try {
-    const assignments = await ReferralAssignment.find({
-      vendorId: req.user._id,
+    const requestedVendorId = String(
+      req.query.vendorId ||
+        req.user.vendorId ||
+        req.user.mentorId ||
+        req.user.userId ||
+        req.user.id ||
+        req.user._id ||
+        ""
+    ).trim();
+
+    const authorizedVendorIds = resolveAuthorizedVendorIds(req.user);
+    const isAdmin = String(req.user.role || "").toLowerCase() === "admin";
+
+    if (!requestedVendorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vendor ID is required",
+      });
+    }
+
+    if (!isAdmin && !authorizedVendorIds.includes(requestedVendorId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized for this vendor",
+      });
+    }
+
+    const assignmentVendorId = await resolveAssignmentVendorId(requestedVendorId, req.user);
+
+    if (!assignmentVendorId && !isAdmin && !requestedVendorId) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor mapping not found",
+      });
+    }
+
+    const assignmentQuery = {
       isActive: true,
-    })
-      .populate("productId", "name sku price discountPrice images brand category")
+      $or: [
+        { externalVendorId: requestedVendorId },
+        { "vendorSnapshot.mentorId": requestedVendorId },
+      ],
+    };
+
+    if (assignmentVendorId) {
+      assignmentQuery.$or.push({ vendorId: assignmentVendorId });
+    }
+
+    const assignments = await ReferralAssignment.find(assignmentQuery)
       .sort({ createdAt: -1 });
 
-    const assignedProducts = assignments.map((assignment) => ({
-      _id: assignment._id,
-      product: assignment.productId,
-      commission: {
-        type: assignment.commissionType,
-        value: assignment.commissionValue,
-      },
-      shareCode: assignment.shareCode,
-      refCode: assignment.refCode || "",
-      assignedProductId: assignment.assignedProductId,
-      isActive: assignment.isActive,
-      shareUrl: buildShareUrl(
-        assignment.productId?._id || assignment.productId,
-        assignment.vendorId,
-        assignment.assignedProductId,
-        assignment.shareCode
-      ),
-    }));
+    const productMap = await fetchProductsByIds(assignments.map((assignment) => assignment.productId));
+
+    const assignedProducts = assignments.map((assignment) => {
+      const effectiveVendorId =
+        assignment.externalVendorId ||
+        assignment.vendorSnapshot?.mentorId ||
+        String(assignment.vendorId || "");
+
+      return {
+        _id: assignment._id,
+        product: productMap.get(String(assignment.productId)) || assignment.productId,
+        vendorId: effectiveVendorId,
+        commission: {
+          type: assignment.commissionType,
+          value: assignment.commissionValue,
+        },
+        shareCode: assignment.shareCode,
+        refCode: assignment.refCode || "",
+        assignedProductId: assignment.assignedProductId,
+        isActive: assignment.isActive,
+        shareUrl: buildShareUrl(
+          assignment.productId,
+          effectiveVendorId,
+          assignment.assignedProductId,
+          assignment.shareCode
+        ),
+      };
+    });
 
     res.json({
       success: true,
