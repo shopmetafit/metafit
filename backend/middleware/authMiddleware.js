@@ -2,9 +2,14 @@ const jwt = require("jsonwebtoken");
 const axios = require("axios");
 const User = require("../models/User");
 
+const DEFAULT_EXTERNAL_ADMIN_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://metafitwellness.com/admin/api/v2"
+    : "http://localhost:5001/admin/api/v2";
+
 const EXTERNAL_ADMIN_VERIFY_URL =
   process.env.EXTERNAL_ADMIN_VERIFY_URL ||
-  "http://localhost:5001/admin/api/v2/verify-admin-details";
+  `${DEFAULT_EXTERNAL_ADMIN_BASE_URL}/verify-admin-details`;
 const EXTERNAL_ADMIN_JWT_SECRETS = [
   process.env.METAFIT_ADMIN_SECRET_KEY,
   process.env.SECRET_KEY,
