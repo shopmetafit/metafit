@@ -33,8 +33,13 @@ const buildVendorSnapshot = (payload = {}) => ({
   role: String(payload.vendorRole || payload.role || "").trim(),
 });
 
+const DEFAULT_METAFIT_ADMIN_API_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://metafitwellness.com/admin/api/v2"
+    : "http://localhost:5001/admin/api/v2";
+
 const METAFIT_ADMIN_API_BASE_URL =
-  (process.env.METAFIT_ADMIN_API_BASE_URL || "http://localhost:5001/admin/api/v2").replace(/\/+$/, "");
+  (process.env.METAFIT_ADMIN_API_BASE_URL || DEFAULT_METAFIT_ADMIN_API_BASE_URL).replace(/\/+$/, "");
 
 const allowedExternalVendorRoles = new Set([
   "Yoga Instructor",
