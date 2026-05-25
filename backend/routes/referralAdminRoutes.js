@@ -35,26 +35,26 @@ const buildVendorSnapshot = (payload = {}) => ({
 
 const DEFAULT_METAFIT_ADMIN_API_BASE_URL =
   process.env.NODE_ENV === "production"
-    ? "https://metafit-services.vercel.app"
-    : "http://localhost:5001/admin/api/v2";
+    ? "https://metafit-services.vercel.app/"
+    : "http://localhost:500/admin/api/v2";
 
 const METAFIT_ADMIN_API_BASE_URL =
   (process.env.METAFIT_ADMIN_API_BASE_URL || DEFAULT_METAFIT_ADMIN_API_BASE_URL).replace(/\/+$/, "");
 
 const allowedExternalVendorRoles = new Set([
-  "yoga instructor",
-  "ayurvedic doctor",
-  "lab test",
-  "treatment and retreat",
-  "treatment & retreat",
-  "naturopathy and wellness",
-  "naturopathy doctor",
-  "naturopathy",
+  "Yoga Instructor",
+  "Ayurvedic Doctor",
+  "Lab Test",
+  "Treatment and Retreat",
+  "Treatment & Retreat",
+  "Naturopathy and Wellness",
+  "Naturopathy Doctor",
+  "Naturopathy",
 ]);
 
 const normalizeExternalVendor = (vendor = {}) => {
   const vendorId = String(vendor.mentorId || vendor._id || vendor.id || "").trim();
-  const role = String(vendor.role || vendor.vendorRole || "").trim();
+  const role = String(vendor.role || "").trim();
 
   return {
     id: vendorId,
@@ -75,24 +75,6 @@ const normalizeExternalVendor = (vendor = {}) => {
   };
 };
 
-const extractExternalRecords = (payload) => {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (payload && typeof payload === "object") {
-    return (
-      payload.data ||
-      payload.vendors ||
-      payload.records ||
-      payload.items ||
-      []
-    );
-  }
-
-  return [];
-};
-
 const fetchMetafitVendors = async (authorizationHeader = "") => {
   const requestConfig = {
     headers: authorizationHeader ? { Authorization: authorizationHeader } : {},
@@ -100,21 +82,21 @@ const fetchMetafitVendors = async (authorizationHeader = "") => {
   };
 
   const [instructorsResponse, naturopathyResponse] = await Promise.allSettled([
-    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/all-instructor`, requestConfig),
-    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/naturopathy-vendors`, requestConfig),
+    axios.get(`https://metafit-services.vercel.app/admin/api/v2/all-instructor`, requestConfig),
+    axios.get(`https://metafit-services.vercel.app/admin/api/v2/naturopathy-vendors`, requestConfig),
   ]);
 
   const records = [];
 
-  if (instructorsResponse.status === "fulfilled") {
-    const instructors = extractExternalRecords(instructorsResponse.value.data);
-    if (Array.isArray(instructors)) {
-      records.push(...instructors);
-    }
+  if (instructorsResponse.status === "fulfilled" && Array.isArray(instructorsResponse.value.data)) {
+    records.push(...instructorsResponse.value.data);
   }
 
   if (naturopathyResponse.status === "fulfilled") {
-    const vendors = extractExternalRecords(naturopathyResponse.value.data);
+    const vendors =
+      naturopathyResponse.value.data?.vendors ||
+      naturopathyResponse.value.data?.data ||
+      [];
 
     if (Array.isArray(vendors)) {
       records.push(...vendors);
@@ -125,7 +107,7 @@ const fetchMetafitVendors = async (authorizationHeader = "") => {
 
   return records
     .map(normalizeExternalVendor)
-    .filter((vendor) => vendor.vendorId && allowedExternalVendorRoles.has(vendor.role.toLowerCase()))
+    .filter((vendor) => vendor.vendorId && allowedExternalVendorRoles.has(vendor.role))
     .filter((vendor) => {
       const key = vendor.vendorId.toLowerCase();
       if (seen.has(key)) {
