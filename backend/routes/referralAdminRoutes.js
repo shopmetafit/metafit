@@ -35,7 +35,7 @@ const buildVendorSnapshot = (payload = {}) => ({
 
 const DEFAULT_METAFIT_ADMIN_API_BASE_URL =
   process.env.NODE_ENV === "production"
-    ? "https://metafit-services.vercel.app/admin/api/v1"
+    ? "https://metafit-services.vercel.app/admin/api/v2"
     : "http://localhost:5001/admin/api/v2";
 
 const METAFIT_ADMIN_API_BASE_URL =
