@@ -196,7 +196,7 @@ const hydrateAssignmentVendor = (assignmentObject) => {
   return assignmentObject;
 };
 
-router.post("/referral-assignments", protect, admin, async (req, res) => {
+router.post("/api/referral-assignments", protect, admin, async (req, res) => {
   try {
     const {
       productId,
