@@ -76,11 +76,25 @@ const referralAssignmentSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    assignmentStatus: {
+      type: String,
+      enum: ["assigned", "removed"],
+      default: "assigned",
+    },
   },
   {
     timestamps: true,
   }
 );
+referralAssignmentSchema.index({
+  vendorId: 1,
+  assignmentStatus: 1,
+});
+
+referralAssignmentSchema.index({
+  externalVendorId: 1,
+  assignmentStatus: 1,
+});
 
 referralAssignmentSchema.index(
   { productId: 1, vendorId: 1, assignedProductId: 1 },

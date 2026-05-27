@@ -63,10 +63,10 @@ const normalizeExternalVendor = (vendor = {}) => {
     name:
       String(
         vendor.vendorName ||
-          vendor.businessName ||
-          `${vendor.firstname || ""} ${vendor.lastname || ""}`.trim() ||
-          vendor.name ||
-          "Unnamed Vendor"
+        vendor.businessName ||
+        `${vendor.firstname || ""} ${vendor.lastname || ""}`.trim() ||
+        vendor.name ||
+        "Unnamed Vendor"
       ).trim(),
     email: String(vendor.useremail || vendor.email || "").trim().toLowerCase(),
     phone: String(vendor.phone || vendor.phoneNo || vendor.mobile || "").trim(),
@@ -206,9 +206,17 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
       refCode,
       commissionType,
       commissionValue,
+      assignmentStatus,
       isActive,
     } = req.body;
+
     const vendorFields = resolveAssignmentVendorFields(req.body);
+
+    const normalizedAssignmentStatus =
+      typeof assignmentStatus === "string" &&
+      assignmentStatus.trim()
+        ? assignmentStatus.trim()
+        : "assigned";
 
     const assignment = await ReferralAssignment.findOneAndUpdate(
       buildAssignmentLookup({
@@ -222,12 +230,26 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
         vendorId: vendorFields.vendorId,
         externalVendorId: vendorFields.externalVendorId,
         vendorSnapshot: vendorFields.vendorSnapshot,
-        assignedProductId: String(assignedProductId || "").trim(),
-        shareCode: String(shareCode || "").trim().toUpperCase(),
-        refCode: refCode ? String(refCode).trim().toUpperCase() : undefined,
+
+        assignedProductId: String(
+          assignedProductId || ""
+        ).trim(),
+
+        shareCode: String(
+          shareCode || ""
+        ).trim().toUpperCase(),
+
+        refCode: refCode
+          ? String(refCode).trim().toUpperCase()
+          : undefined,
+
         commissionType,
+
         commissionValue: Number(commissionValue),
+
         isActive: isActive !== false,
+
+        assignmentStatus: normalizedAssignmentStatus,
       },
       {
         new: true,
@@ -237,111 +259,234 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
       }
     );
 
-    const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
-    res.status(201).json(assignmentObject);
-  } catch (error) {
-    console.error("Error creating referral assignment", error);
-    res.status(500).json({
-      message: error.code === 11000
-        ? "Share code, ref code, or assignment already exists"
-        : "Failed to create referral assignment",
-    });
-  }
-});
-
-router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
-  try {
-    const {
+    console.log("Referral Assignment Created:", {
       productId,
-      commissionType,
-      commissionValue,
-      isActive,
-      shareCodePrefix,
-      assignedProductPrefix,
-      refCodePrefix,
-      vendors: requestedVendors,
-    } = req.body;
+      vendorId: vendorFields.vendorId,
+      assignedProductId,
+      shareCode,
+      assignmentStatus: normalizedAssignmentStatus,
+    });
 
-    if (!productId) {
-      return res.status(400).json({ message: "Product ID is required" });
-    }
-
-    if (!Number.isFinite(Number(commissionValue)) || Number(commissionValue) < 0) {
-      return res.status(400).json({ message: "Valid commission value is required" });
-    }
-
-    const normalizedCommissionType =
-      String(commissionType || "").toLowerCase() === "flat" ? "fixed" : commissionType;
-
-    const vendors = Array.isArray(requestedVendors) && requestedVendors.length
-      ? requestedVendors
-      : await fetchMetafitVendors(req.headers.authorization || "");
-
-    if (!vendors.length) {
-      return res.status(404).json({ message: "No vendors found for bulk assignment" });
-    }
-
-    const assignments = await Promise.all(
-      vendors.map(async (vendor) => {
-        const vendorRef = String(vendor.vendorId || vendor.mentorId || vendor._id || vendor.id || "").trim();
-        const vendorFields = resolveAssignmentVendorFields({
-          vendorId: vendorRef,
-          vendorName: vendor.vendorName || vendor.businessName || vendor.name,
-          vendorEmail: vendor.email || vendor.useremail,
-          vendorPhone: vendor.phone || vendor.phoneNo,
-          vendorRole: vendor.role,
-        });
-        const assignedProductId =
-          buildBulkCode(assignedProductPrefix || "AP", vendorRef, productId);
-        const shareCode = buildBulkCode(shareCodePrefix || "MWREF", vendorRef, productId);
-        const refCode = buildBulkCode(refCodePrefix || "REF", vendorRef, productId);
-
-        const assignment = await ReferralAssignment.findOneAndUpdate(
-          buildAssignmentLookup({
-            productId,
-            vendorId: vendorFields.vendorId,
-            externalVendorId: vendorFields.externalVendorId,
-            assignedProductId,
-          }),
-          {
-            productId,
-            vendorId: vendorFields.vendorId,
-            externalVendorId: vendorFields.externalVendorId,
-            vendorSnapshot: vendorFields.vendorSnapshot,
-            assignedProductId,
-            shareCode,
-            refCode,
-            commissionType: normalizedCommissionType,
-            commissionValue: Number(commissionValue),
-            isActive: isActive !== false,
-          },
-          {
-            new: true,
-            upsert: true,
-            runValidators: true,
-            setDefaultsOnInsert: true,
-          }
-        );
-
-        return hydrateAssignmentVendor(assignment.toObject());
-      })
+    const assignmentObject = hydrateAssignmentVendor(
+      assignment.toObject()
     );
 
-    res.status(201).json({
-      message: `${assignments.length} vendors ko assignment create ho gaya`,
-      totalAssigned: assignments.length,
-      assignments,
-    });
+    res.status(201).json(assignmentObject);
+
   } catch (error) {
-    console.error("Error creating bulk referral assignments", error);
+    console.error(
+      "Error creating referral assignment",
+      error
+    );
+
     res.status(500).json({
       message:
         error.code === 11000
-          ? "Bulk assignment me duplicate share code/ref code mila"
-          : "Failed to create bulk referral assignments",
+          ? "Share code, ref code, or assignment already exists"
+          : "Failed to create referral assignment",
     });
   }
 });
+
+router.post("/referral-assignments/bulk",protect, admin,async (req, res) => {
+    try {
+      const {
+        productId,
+        commissionType,
+        commissionValue,
+        assignmentStatus,
+        isActive,
+        shareCodePrefix,
+        assignedProductPrefix,
+        refCodePrefix,
+        vendors: requestedVendors,
+      } = req.body;
+
+      if (!productId) {
+        return res.status(400).json({
+          message: "Product ID is required",
+        });
+      }
+
+      if (
+        !Number.isFinite(Number(commissionValue)) ||
+        Number(commissionValue) < 0
+      ) {
+        return res.status(400).json({
+          message: "Valid commission value is required",
+        });
+      }
+
+      const normalizedCommissionType =
+        String(commissionType || "").toLowerCase() === "flat"
+          ? "fixed"
+          : commissionType;
+
+      const normalizedAssignmentStatus =
+        typeof assignmentStatus === "string" &&
+        assignmentStatus.trim()
+          ? assignmentStatus.trim()
+          : "assigned";
+
+      const vendors =
+        Array.isArray(requestedVendors) &&
+        requestedVendors.length
+          ? requestedVendors
+          : await fetchMetafitVendors(
+              req.headers.authorization || ""
+            );
+
+      if (!vendors.length) {
+        return res.status(404).json({
+          message:
+            "No vendors found for bulk assignment",
+        });
+      }
+
+      const assignments = await Promise.all(
+        vendors.map(async (vendor) => {
+
+          const vendorRef = String(
+            vendor.vendorId ||
+            vendor.mentorId ||
+            vendor._id ||
+            vendor.id ||
+            ""
+          ).trim();
+
+          const vendorFields =
+            resolveAssignmentVendorFields({
+              vendorId: vendorRef,
+              vendorName:
+                vendor.vendorName ||
+                vendor.businessName ||
+                vendor.name,
+
+              vendorEmail:
+                vendor.email ||
+                vendor.useremail,
+
+              vendorPhone:
+                vendor.phone ||
+                vendor.phoneNo,
+
+              vendorRole: vendor.role,
+            });
+
+          const assignedProductId =
+            buildBulkCode(
+              assignedProductPrefix || "AP",
+              vendorRef,
+              productId
+            );
+
+          const shareCode =
+            buildBulkCode(
+              shareCodePrefix || "MWREF",
+              vendorRef,
+              productId
+            );
+
+          const refCode =
+            buildBulkCode(
+              refCodePrefix || "REF",
+              vendorRef,
+              productId
+            );
+
+          const assignment =
+            await ReferralAssignment.findOneAndUpdate(
+              buildAssignmentLookup({
+                productId,
+                vendorId: vendorFields.vendorId,
+                externalVendorId:
+                  vendorFields.externalVendorId,
+                assignedProductId,
+              }),
+              {
+                productId,
+
+                vendorId:
+                  vendorFields.vendorId,
+
+                externalVendorId:
+                  vendorFields.externalVendorId,
+
+                vendorSnapshot:
+                  vendorFields.vendorSnapshot,
+
+                assignedProductId,
+
+                shareCode,
+
+                refCode,
+
+                commissionType:
+                  normalizedCommissionType,
+
+                commissionValue:
+                  Number(commissionValue),
+
+                isActive:
+                  isActive !== false,
+
+                assignmentStatus:
+                  normalizedAssignmentStatus,
+              },
+              {
+                new: true,
+                upsert: true,
+                runValidators: true,
+                setDefaultsOnInsert: true,
+              }
+            );
+
+          console.log(
+            "Bulk Referral Assignment Created:",
+            {
+              vendorId:
+                vendorFields.vendorId,
+
+              productId,
+
+              assignedProductId,
+
+              shareCode,
+
+              refCode,
+
+              assignmentStatus:
+                normalizedAssignmentStatus,
+            }
+          );
+
+          return hydrateAssignmentVendor(
+            assignment.toObject()
+          );
+        })
+      );
+
+      res.status(201).json({
+        message: `${assignments.length} vendors ko assignment create ho gaya`,
+        totalAssigned: assignments.length,
+        assignments,
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Error creating bulk referral assignments",
+        error
+      );
+
+      res.status(500).json({
+        message:
+          error.code === 11000
+            ? "Bulk assignment me duplicate share code/ref code mila"
+            : "Failed to create bulk referral assignments",
+      });
+    }
+  });
 
 router.get("/referral-assignments", protect, admin, async (req, res) => {
   try {
@@ -377,12 +522,47 @@ router.get("/referral-assignments", protect, admin, async (req, res) => {
 
 router.patch("/referral-assignments/:id/status", protect, admin, async (req, res) => {
   try {
-    const { isActive } = req.body;
+    const { assignmentStatus, status, rejectionReason, isActive } = req.body;
+
+    const updatePayload = {
+      isActive: isActive !== false,
+    };
+
+    const rawAssignmentStatus =
+      typeof assignmentStatus === "string" && assignmentStatus.trim()
+        ? assignmentStatus.trim().toLowerCase()
+        : typeof status === "string" && status.trim()
+          ? status.trim().toLowerCase()
+          : "";
+
+    const normalizedAssignmentStatus =
+      rawAssignmentStatus === "approved"
+        ? "assigned"
+        : rawAssignmentStatus === "rejected"
+          ? "removed"
+          : rawAssignmentStatus;
+
+    if (
+      normalizedAssignmentStatus &&
+      !["assigned", "removed"].includes(normalizedAssignmentStatus)
+    ) {
+      return res.status(400).json({
+        message: "Valid assignmentStatus is required",
+      });
+    }
+
+    if (normalizedAssignmentStatus) {
+      updatePayload.assignmentStatus = normalizedAssignmentStatus;
+    }
+
+    if (typeof rejectionReason === "string") {
+      updatePayload.rejectionReason = rejectionReason.trim();
+    }
 
     const assignment = await ReferralAssignment.findByIdAndUpdate(
       req.params.id,
-      { isActive: isActive !== false },
-      { new: true }
+      updatePayload,
+      { new: true, runValidators: true }
     )
       .populate("vendorId", "vendorName businessName email phone");
 
