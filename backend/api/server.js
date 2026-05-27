@@ -1,6 +1,6 @@
-const dotenv =require("dotenv");
+const dotenv = require("dotenv");
 const express = require("express");
-const cors =require("cors");
+const cors = require("cors");
 const connectDB = require("../config/db");
 const trackingSync = require("../utils/tracking-sync");
 const userRoutes = require("../routes/userRoutes");
@@ -26,12 +26,12 @@ const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
-const app= express();
+const app = express();
 
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3005",
-  "http://localhost:5173",
+  "http://localhost:5174",
   "https://metafit-a5ll.vercel.app",
   "https://metafit-omega.vercel.app",
   "https://mwellnessbazaar.com",
@@ -77,33 +77,33 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 dotenv.config();
-const PORT=process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
-connectDB(); 
+connectDB();
 
-app.get("/",(req,res)=>{
-res.send("Welcome Mwellnessbazar Its API");    
+app.get("/", (req, res) => {
+  res.send("Welcome Mwellnessbazar Its API");
 })
 
 // API Routes
-app.use("/api/blogs",blogRoutes);
+app.use("/api/blogs", blogRoutes);
 
-app.use("/api",paymentRoutes);
-app.use("/api/users",userRoutes);
-app.use("/api/products",productRoutes);
-app.use("/api/cart",cartRoutes);
-app.use("/api/checkout",checkoutRoutes);
-app.use("/api/orders",orderRoutes);
-app.use("/api/shipment",shipmentRoutes);
-app.use("/api/upload",uploadRoutes);
-app.use("/api/contact",contactRoutes);
+app.use("/api", paymentRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/checkout", checkoutRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/shipment", shipmentRoutes);
+app.use("/api/upload", uploadRoutes);
+app.use("/api/contact", contactRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/store", referralStoreRoutes);
 app.use("/api/referrals", referralRoutes);
 
 
 //Admin
-app.use("/api/admin/users",adminRoutes);
+app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/admin/shipment", adminShipmentRoutes);
@@ -120,7 +120,7 @@ app.use("/admin/api/v2", adminCompatRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
-  
+
   // Start background tracking sync (only in production)
   if (process.env.NODE_ENV === "production") {
     trackingSync.start();
