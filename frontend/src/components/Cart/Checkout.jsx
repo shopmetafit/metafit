@@ -40,7 +40,7 @@ console.log(user);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
-  const deliveryCharge = 30;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 0) * Number(item.quantity || 1)), 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);

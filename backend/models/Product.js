@@ -6,6 +6,7 @@ const productSchema = new mongoose.Schema(
     description: { type: String, required: true },
     price: { type: Number, required: true },
     discountPrice: { type: Number },
+    shippingCharge: { type: Number, default: 0 },
     countInStock: { type: Number, required: true, default: 0 },
     sku: { type: String, required: true,},
     category: { type: String, required: true },
@@ -14,6 +15,7 @@ const productSchema = new mongoose.Schema(
     colors: { type: [String], default: [] },
     collection: { type: String, required: true },
     material: { type: String },
+    location: { type: String, trim: true },
     videoUrl: { type: String },
     gender: { type: String, enum: ["Men", "Women", "Unisex"] },
     images: [

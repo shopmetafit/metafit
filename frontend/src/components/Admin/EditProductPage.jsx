@@ -16,8 +16,8 @@ const EditProductPage = () => {
     name: "",
     description: "",
     price: 0,
-    
     discountPrice: 0,
+    shippingCharge: 0,
     countInStock: 0,
     sku: "",
     category: "",
@@ -26,6 +26,8 @@ const EditProductPage = () => {
     colors: [],
     collections: "",
     material: "",
+    location: "",
+    gender: "",
     gender: "",
     priority: 0,
     images: [
@@ -54,7 +56,7 @@ const EditProductPage = () => {
 
   useEffect(() => {
     if (selectedProduct) {
-      
+
       const product = {
 
         ...selectedProduct,
@@ -111,28 +113,28 @@ const EditProductPage = () => {
 
 
   const handleExtraImageUpload = async (e) => {
-  const file = e.target.files[0];
-  const formData = new FormData();
-  formData.append("image", file);
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("image", file);
 
-  try {
-    setUploading(true);
-    const { data } = await axios.post(
-      `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+    try {
+      setUploading(true);
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/upload`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-    setProductData((prevData) => ({
-      ...prevData,
-      extraImages: [...prevData.extraImages, { url: data.imageUrl, altText: "" }],
-    }));
-    setUploading(false);
-  } catch (error) {
-    console.log(error);
-    setUploading(false);
-  }
-};
+      setProductData((prevData) => ({
+        ...prevData,
+        extraImages: [...prevData.extraImages, { url: data.imageUrl, altText: "" }],
+      }));
+      setUploading(false);
+    } catch (error) {
+      console.log(error);
+      setUploading(false);
+    }
+  };
 
 
   const handleDeleteImage = (indexToDelete) => {
@@ -241,7 +243,7 @@ const EditProductPage = () => {
     const dataToSubmit = {
       ...productData,
       colors: newColors,
-      images: [...colorImages, ...otherImages].map(img => ({...img, altText: productData.name})),
+      images: [...colorImages, ...otherImages].map(img => ({ ...img, altText: productData.name })),
       videoUrl: finalVideoUrl,
       hasVariants: hasVariants,
       variants: hasVariants ? variants.map(v => ({
@@ -293,7 +295,7 @@ const EditProductPage = () => {
         </div>
         {/* price */}
 
-        <div className="grid grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div>
             <label className="block font-semibold mb-2">Price</label>
             <input
@@ -314,21 +316,31 @@ const EditProductPage = () => {
               className="w-full border p-2 rounded"
             />
           </div>
+          <div>
+            <label className="block font-semibold mb-2">Shipping Charge</label>
+            <input
+              type="number"
+              name="shippingCharge"
+              value={productData.shippingCharge || ""}
+              onChange={handleChange}
+              className="w-full border p-2 rounded"
+            />
+          </div>
         </div>
-            {/* Priority */}
-<div className="mb-6">
-  <label className="block font-semibold mb-2">Priority</label>
-  <input
-    type="number"
-    name="priority"
-    value={productData.priority}
-    onChange={handleChange}
-    className="w-full border border-gray-300 rounded-md p-2"
-  />
-  <p className="text-gray-500 text-sm mt-1">
-    Higher number = higher display priority
-  </p>
-</div>
+        {/* Priority */}
+        <div className="mb-6">
+          <label className="block font-semibold mb-2">Priority</label>
+          <input
+            type="number"
+            name="priority"
+            value={productData.priority}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2"
+          />
+          <p className="text-gray-500 text-sm mt-1">
+            Higher number = higher display priority
+          </p>
+        </div>
 
 
         {/* count in stock */}
@@ -373,6 +385,18 @@ const EditProductPage = () => {
             value={productData.brand}
             onChange={handleChange}
             className="w-full border border-gray-300 rounded-md p-2"
+          />
+        </div>
+        {/* Location */}
+        <div className="mb-6">
+          <label className="block font-semibold mb-2">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={productData.location || ""}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded-md p-2"
+            placeholder="e.g. Delhi"
           />
         </div>
         {/* sizes */}
@@ -637,7 +661,7 @@ const EditProductPage = () => {
           Update Product
         </button>
 
-        
+
       </form>
     </div>
   );

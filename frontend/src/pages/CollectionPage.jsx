@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { FaFilter } from "react-icons/fa";
-import { Search, SlidersHorizontal, X, ChevronRight, LayoutGrid, List } from "lucide-react";
+import { MapPin, Search, SlidersHorizontal, X, ChevronRight } from "lucide-react";
 
 import FilterSidebar from "../components/Products/FilterSidebar";
-import SortOptions from "../components/Products/SortOptions";
+
 import ProductGrid from "../components/Products/ProductGrid";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +13,8 @@ import FAQSection from "./FAQ";
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [allLocations, setAllLocations] = useState([]);
 
   const navigate = useNavigate();
   const { collection } = useParams();
@@ -24,12 +25,18 @@ const CollectionPage = () => {
   const { products, loading, error } = useSelector((state) => state.products);
 
   useEffect(() => {
-    dispatch(fetchProductsByFilters({ collection, ...queryParams }));
+    const params = { collection, ...queryParams };
+    delete params.location;
+    dispatch(fetchProductsByFilters(params));
   }, [dispatch, collection, searchParams]);
 
+  // Derive all unique locations from the (unfiltered) product list
   useEffect(() => {
-    setSearchTerm(searchParams.get("search") || "");
-  }, [searchParams]);
+    if (products && products.length) {
+      const locs = [...new Set(products.map((p) => p.location).filter(Boolean))];
+      setAllLocations(locs);
+    }
+  }, [products]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -42,12 +49,14 @@ const CollectionPage = () => {
     navigate(`/collections/all?${params.toString()}`);
   };
 
-  // Active filter chips derived from URL params
+  // Active filter chips derived from URL params and selected location
   const activeFilters = [];
   if (queryParams.category) activeFilters.push({ key: "category", label: queryParams.category });
   if (queryParams.brand) activeFilters.push({ key: "brand", label: `Brand: ${queryParams.brand}` });
   if (queryParams.search) activeFilters.push({ key: "search", label: `"${queryParams.search}"` });
+  if (selectedLocation) activeFilters.push({ key: "location", label: `Location: ${selectedLocation}` });
   if (queryParams.minPrice || queryParams.maxPrice) {
+
     activeFilters.push({
       key: "price",
       label: `₹${queryParams.minPrice || 0} – ₹${queryParams.maxPrice || "∞"}`,
@@ -55,6 +64,10 @@ const CollectionPage = () => {
   }
 
   const removeFilter = (key) => {
+    if (key === "location") {
+      clearLocation();
+      return;
+    }
     const params = new URLSearchParams(searchParams);
     if (key === "price") {
       params.delete("minPrice");
@@ -66,13 +79,21 @@ const CollectionPage = () => {
   };
 
   const clearAllFilters = () => {
-    setSearchParams({});
+    setSelectedLocation(null);
+    setSearchParams(new URLSearchParams());
+  };
+
+  const clearLocation = () => {
+    setSelectedLocation(null);
+    const params = new URLSearchParams(searchParams);
+    params.delete('location');
+    setSearchParams(params);
   };
 
   // Derive a page title from the active category or collection
   const pageTitle = queryParams.category
     ? queryParams.category.replace(/\b\w/g, (c) => c.toUpperCase())
-    : "All Wellness Products";
+    : "";
 
   return (
     <div className="min-h-screen bg-[#f0f2f2]">
@@ -110,49 +131,35 @@ const CollectionPage = () => {
         {/* ── Main Content ── */}
         <div className="flex-1 min-w-0 space-y-3">
 
-          {/* ── Top Bar ── */}
-          <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-            {/* Page title + count */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-base md:text-lg font-bold text-gray-900 truncate capitalize">
-                {pageTitle}
-              </h1>
-              <p className="text-xs text-gray-500 mt-0.5">
-                {loading ? "Loading..." : `${products?.length || 0} results`}
-              </p>
-            </div>
-
-            {/* Search */}
-            <form onSubmit={handleSearch} className="flex rounded-md overflow-hidden border border-gray-300 focus-within:border-[#047ca8] transition-colors w-full sm:w-64">
-              <input
-                type="text"
-                placeholder="Search in results..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm focus:outline-none text-gray-800 min-w-0"
-              />
+          {/* ── Location Bar ── */}
+          {allLocations.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+              <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              {/* All locations button to clear selection */}
               <button
-                type="submit"
-                className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-3 flex items-center justify-center flex-shrink-0 transition-colors"
+                key="all"
+                onClick={() => {
+                  setSelectedLocation(null);
+                }}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === null ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
               >
-                <Search className="h-4 w-4 text-white" />
+                All
               </button>
-            </form>
-
-            {/* Sort */}
-            <div className="flex-shrink-0">
-              <SortOptions />
+              {allLocations.map((loc) => (
+                <button
+                  key={loc}
+                  onClick={() => {
+                    setSelectedLocation(selectedLocation === loc ? null : loc);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === loc ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  {loc}
+                </button>
+              ))}
             </div>
+          )}
 
-            {/* Mobile filter button */}
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-2 px-3 py-2 bg-[#232f3e] text-white text-sm font-semibold rounded-md hover:bg-[#37475a] transition-colors flex-shrink-0"
-            >
-              <FaFilter size={14} />
-              Filters
-            </button>
-          </div>
 
           {/* ── Active Filter Chips ── */}
           {activeFilters.length > 0 && (
@@ -186,7 +193,7 @@ const CollectionPage = () => {
 
           {/* ── Product Grid ── */}
           <div className="bg-white rounded-lg shadow-sm p-4">
-            <ProductGrid products={products} loading={loading} error={error} />
+            <ProductGrid products={selectedLocation ? products.filter(p => p.location === selectedLocation) : products} loading={loading} error={error} onProductClick={clearLocation} />
           </div>
 
           {/* ── FAQ ── */}

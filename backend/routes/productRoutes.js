@@ -39,6 +39,7 @@ router.post("/", protect, admin, async (req, res) => {
       colors,
       collection,
       material,
+      location,
       gender,
       images,
       isFeatured,
@@ -61,6 +62,7 @@ router.post("/", protect, admin, async (req, res) => {
       colors,
       collection,
       material,
+      location,
       gender,
       images,
       isFeatured,
@@ -105,6 +107,7 @@ router.post("/admin/add-for-vendor/:vendorId", protect, admin, async (req, res) 
       colors,
       collection,
       material,
+      location,
       gender,
       images,
       isFeatured,
@@ -132,6 +135,7 @@ router.post("/admin/add-for-vendor/:vendorId", protect, admin, async (req, res) 
       colors: colors || [],
       collection,
       material,
+      location,
       gender: gender || "Unisex",
       images: images || [],
       isFeatured: isFeatured !== false,
@@ -183,6 +187,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       colors,
       collection,
       material,
+      location,
       gender,
       images,
       isFeatured,
@@ -208,6 +213,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.colors = colors ?? product.colors;
       product.collection = collection ?? product.collection;
       product.material = material ?? product.material;
+      product.location = location ?? product.location;
       product.gender = gender ?? product.gender;
       product.images = images ?? product.images;
       product.videoUrl = videoUrl ?? product.videoUrl;
@@ -270,6 +276,7 @@ router.get("/", async (req, res) => {
       search,
       category,
       material,
+      location,
       brand,
       limit,
       videoUrl
@@ -281,6 +288,7 @@ router.get("/", async (req, res) => {
     if (category && category.toLowerCase() !== "all") query.category = { $regex: category, $options: "i" };
     if (brand) query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
     if (material) query.material = { $in: material.split(",") };
+    if (location) query.location = { $regex: location, $options: "i" };
     if (size) query.sizes = { $in: size.split(",") };
     if (color) query.colors = { $in: [color] };
     if (gender) query.gender = gender;

@@ -16,11 +16,13 @@ const ProductRequestForm = () => {
     description: '',
     price: '',
     discountPrice: '',
+    shippingCharge: '',
     countInStock: '',
     sku: '',
     category: '',
     brand: '',
     collection: '',
+    location: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -67,11 +69,13 @@ const ProductRequestForm = () => {
             description: request.description || '',
             price: request.price || '',
             discountPrice: request.discountPrice || '',
+            shippingCharge: request.shippingCharge || '',
             countInStock: request.countInStock || '',
             sku: request.sku || '',
             category: request.category || '',
             brand: request.brand || '',
             collection: request.collection || '',
+            location: request.location || '',
           });
 
           setHasVariants(request.variants && request.variants.length > 0);
@@ -218,11 +222,13 @@ const ProductRequestForm = () => {
         description: form.description,
         price: form.price,
         discountPrice: form.discountPrice || undefined,
+        shippingCharge: form.shippingCharge || 0,
         countInStock: form.countInStock,
         sku: form.sku,
         category: form.category,
         brand: form.brand,
         collection: form.collection,
+        location: form.location,
         hasVariants,
         variants: hasVariants ? form.variants : [],
         // Format images for the backend
@@ -345,7 +351,7 @@ const ProductRequestForm = () => {
             </div>
 
             {/* Pricing and Inventory */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Price (₹) *
@@ -382,6 +388,25 @@ const ProductRequestForm = () => {
                   placeholder="0.00"
                 />
                 {errors.discountPrice && <p className="text-red-500 text-sm mt-1">{errors.discountPrice}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Shipping Charge (₹)
+                </label>
+                <input
+                  type="number"
+                  name="shippingCharge"
+                  value={form.shippingCharge}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    errors.shippingCharge ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="0.00"
+                />
+                {errors.shippingCharge && <p className="text-red-500 text-sm mt-1">{errors.shippingCharge}</p>}
               </div>
 
               <div>
@@ -454,6 +479,23 @@ const ProductRequestForm = () => {
                   placeholder="e.g., Summer, Winter, Premium"
                 />
                 {errors.collection && <p className="text-red-500 text-sm mt-1">{errors.collection}</p>}
+              </div>
+            </div>
+
+            {/* Location Information */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="location"
+                  value={form.location}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g. Delhi"
+                />
               </div>
             </div>
 

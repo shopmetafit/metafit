@@ -74,7 +74,7 @@ const orderSchema = new mongoose.Schema(
     },
     deliveryCharge: {
       type: Number,
-      default: 30,
+      default: 0,
     },
     couponCode: {
       type: String,
@@ -171,17 +171,6 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-// Method to calculate delivery charge based on city
-orderSchema.methods.calculateDeliveryCharge = function () {
-  return 30; // Fixed shipping charge for all cities
-};
 
-// Pre-save hook to auto-calculate delivery charge
-orderSchema.pre("save", function (next) {
-  if (!this.deliveryCharge) {
-    this.deliveryCharge = this.calculateDeliveryCharge();
-  }
-  next();
-});
 
 module.exports = mongoose.model("order", orderSchema);

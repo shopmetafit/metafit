@@ -1,17 +1,26 @@
 import { X, ShoppingCart, ShieldCheck, Truck } from "lucide-react";
 import CartContents from "../Cart/CartContents";
 import { useNavigate, Link } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import { fetchCart } from "../../redux/slices/cartSlice";
 
 const CartDrawer = ({ drawerOpen, togglerCartOpen }) => {
   const navigate = useNavigate();
   const { user, guestId } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
   const userId = user ? user._id : null;
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (drawerOpen && (userId || guestId)) {
+      dispatch(fetchCart({ userId, guestId }));
+    }
+  }, [drawerOpen, dispatch, userId, guestId]);
 
   const itemCount = cart?.products?.reduce((t, p) => t + p.quantity, 0) || 0;
   const subtotal = cart?.totalPrice ?? 0;
-  const deliveryCharge = subtotal >= 999 ? 0 : 30;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 0) * Number(item.quantity || 1)), 0) ?? 0;
   const total = subtotal + deliveryCharge;
 
   const handleCheckout = () => {
@@ -35,9 +44,8 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen }) => {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ${
-          drawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 flex flex-col transform transition-transform duration-300 ${drawerOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="bg-[#232f3e] text-white px-4 py-3.5 flex items-center justify-between flex-shrink-0">
@@ -56,19 +64,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen }) => {
           </button>
         </div>
 
-        {/* Free shipping banner */}
-        {subtotal > 0 && subtotal < 999 && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-xs text-amber-700 font-medium flex items-center gap-2 flex-shrink-0">
-            <Truck className="h-3.5 w-3.5 flex-shrink-0" />
-            Add ₹{(999 - subtotal).toLocaleString()} more for free delivery!
-          </div>
-        )}
-        {subtotal >= 999 && (
-          <div className="bg-green-50 border-b border-green-200 px-4 py-2 text-xs text-green-700 font-medium flex items-center gap-2 flex-shrink-0">
-            <Truck className="h-3.5 w-3.5 flex-shrink-0" />
-            You qualify for free delivery!
-          </div>
-        )}
+
 
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto px-4">

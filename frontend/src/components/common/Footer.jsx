@@ -109,7 +109,7 @@ const Footer = () => {
             {[
               { icon: "✓", title: "Quality Guaranteed", desc: "Premium wellness products only" },
               { icon: "🔒", title: "Secure Payments", desc: "100% safe & encrypted transactions" },
-              { icon: "📦", title: "Free Shipping", desc: "On orders over ₹999" },
+              { icon: "📦", title: "Fast Shipping", desc: "Across India" },
             ].map((badge) => (
               <div
                 key={badge.title}

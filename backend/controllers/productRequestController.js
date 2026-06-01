@@ -17,6 +17,7 @@ const createProductRequest = async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge,
       countInStock,
       sku,
       category,
@@ -25,6 +26,7 @@ const createProductRequest = async (req, res) => {
       colors,
       collection,
       material,
+      location,
       videoUrl,
       gender,
       images,
@@ -67,6 +69,7 @@ const createProductRequest = async (req, res) => {
       description,
       price: Number(price),
       discountPrice: discountPrice ? Number(discountPrice) : undefined,
+      shippingCharge: shippingCharge ? Number(shippingCharge) : 0,
       countInStock: Number(countInStock),
       sku,
       category,
@@ -75,6 +78,7 @@ const createProductRequest = async (req, res) => {
       colors: colors || [],
       collection,
       material,
+      location,
       videoUrl,
       gender: gender || "Unisex",
       images: images || [],
@@ -188,6 +192,7 @@ const updateProductRequest = async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge,
       countInStock,
       sku,
       category,
@@ -196,6 +201,7 @@ const updateProductRequest = async (req, res) => {
       colors,
       collection,
       material,
+      location,
       videoUrl,
       gender,
       images,
@@ -217,6 +223,7 @@ const updateProductRequest = async (req, res) => {
     request.description = description || request.description;
     request.price = price ? Number(price) : request.price;
     request.discountPrice = discountPrice ? Number(discountPrice) : request.discountPrice;
+    request.shippingCharge = shippingCharge !== undefined ? Number(shippingCharge) : request.shippingCharge;
     request.countInStock = countInStock ? Number(countInStock) : request.countInStock;
     request.sku = sku || request.sku;
     request.category = category || request.category;
@@ -225,6 +232,7 @@ const updateProductRequest = async (req, res) => {
     request.colors = colors || request.colors;
     request.collection = collection || request.collection;
     request.material = material || request.material;
+    request.location = location !== undefined ? location : request.location;
     request.videoUrl = videoUrl || request.videoUrl;
     request.gender = gender || request.gender;
     request.images = images || request.images;
@@ -411,6 +419,7 @@ const approveProductRequest = async (req, res) => {
       description: request.description,
       price: request.price,
       discountPrice: request.discountPrice,
+      shippingCharge: request.shippingCharge || 0,
       countInStock: request.countInStock,
       sku: request.sku,
       category: request.category,
@@ -419,6 +428,7 @@ const approveProductRequest = async (req, res) => {
       colors: request.colors,
       collection: request.collection,
       material: request.material,
+      location: request.location,
       videoUrl: request.videoUrl,
       gender: request.gender,
       images: request.images,

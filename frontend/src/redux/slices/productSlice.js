@@ -19,6 +19,7 @@ export const fetchProductsByFilters = createAsyncThunk(
     search,
     category,
     material,
+    location,
     brand,
     limit,
   }) => {
@@ -33,6 +34,7 @@ export const fetchProductsByFilters = createAsyncThunk(
     if (search) query.append("search", search);
     if (category) query.append("category", category);
     if (material) query.append("material", material);
+    if (location) query.append("location", location);
     if (brand) query.append("brand", brand);
     if (limit) query.append("limit", limit);
 
@@ -125,6 +127,7 @@ const productsSlice = createSlice({
       sortBy: "",
       search: "",
       material: "",
+      location: "",
       collection: "",
     },
   },
@@ -144,6 +147,7 @@ const productsSlice = createSlice({
         sortBy: "",
         search: "",
         material: "",
+        location: "",
         collection: "",
       };
     },

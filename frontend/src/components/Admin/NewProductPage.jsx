@@ -15,11 +15,13 @@ const NewProductPage = () => {
     description: "",
     price: "",
     discountPrice: "",
+    shippingCharge: "",
     countInStock: "",
     sku: "",
     category: "",
     brand: "",
     collection: "",
+    location: "",
   });
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -197,6 +199,7 @@ const NewProductPage = () => {
       ...form,
       price: Number(form.price),
       discountPrice: form.discountPrice ? Number(form.discountPrice) : undefined,
+      shippingCharge: form.shippingCharge ? Number(form.shippingCharge) : 0,
       countInStock: Number(form.countInStock),
       images: imageUrls,
       videoUrl,
@@ -286,6 +289,18 @@ const NewProductPage = () => {
           />
         </div>
 
+        {/* Shipping Charge */}
+        <div className="mb-4">
+          <label className="block text-gray-700">Shipping Charge</label>
+          <input
+            type="number"
+            name="shippingCharge"
+            value={form.shippingCharge}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded"
+          />
+        </div>
+
         {/* Count In Stock */}
         <div className="mb-4">
           <label className="block text-gray-700">Count In Stock</label>
@@ -348,6 +363,19 @@ const NewProductPage = () => {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded"
             required
+          />
+        </div>
+
+        {/* Location */}
+        <div className="mb-4">
+          <label className="block text-gray-700">Location</label>
+          <input
+            type="text"
+            name="location"
+            value={form.location}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded"
+            placeholder="e.g. Delhi"
           />
         </div>
 

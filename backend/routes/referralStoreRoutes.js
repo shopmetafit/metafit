@@ -152,11 +152,13 @@ router.post("/orders", protect, async (req, res) => {
       };
     });
 
-    const deliveryCharge = 30;
-    const itemsTotal = normalizedItems.reduce(
-      (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0),
-      0
-    );
+    let deliveryCharge = 0;
+    const itemsTotal = normalizedItems.reduce((sum, item) => {
+      const product = productMap.get(String(item.productId));
+      const shipping = Number(product?.shippingCharge || 0);
+      deliveryCharge += (shipping * item.quantity);
+      return sum + Number(item.price || 0) * Number(item.quantity || 0);
+    }, 0);
 
     const code = normalizeCode(couponCode);
     let discountAmount = 0;

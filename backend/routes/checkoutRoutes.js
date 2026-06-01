@@ -72,11 +72,22 @@ router.post("/", protect, async (req, res) => {
   }
 
   try {
-    // Calculate delivery charge (fixed 30 rupees for all cities)
-    const deliveryCharge = 30;
+    const productIds = checkoutItems.map(item => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } }).lean();
+    const productMap = new Map(products.map(p => [String(p._id), p]));
 
-    // Calculate total from items (authoritative source)
-    const itemsTotal = checkoutItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    let itemsTotal = 0;
+    let deliveryCharge = 0;
+
+    checkoutItems.forEach(item => {
+      const product = productMap.get(String(item.productId));
+      const qty = Number(item.quantity || 1);
+      const price = Number(item.price || 0);
+      const shipping = Number(product?.shippingCharge || 0);
+      
+      itemsTotal += (price * qty);
+      deliveryCharge += (shipping * qty);
+    });
     
     const code = normalizeCode(couponCode);
     let discountAmount = 0;

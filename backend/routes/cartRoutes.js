@@ -5,14 +5,37 @@ const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// helper function to get a cart by userId or guestId
 const getCart = async (userId, guestId) => {
+  let cart = null;
   if (userId) {
-    return await Cart.findOne({ user: userId });
+    cart = await Cart.findOne({ user: userId });
   } else if (guestId) {
-    return await Cart.findOne({ guestId });
+    cart = await Cart.findOne({ guestId });
   }
-  return null;
+
+  if (cart && cart.products && cart.products.length > 0) {
+    const productIds = cart.products.map(p => p.productId);
+    const products = await Product.find({ _id: { $in: productIds } }).lean();
+    const productMap = new Map(products.map(p => [String(p._id), p]));
+    
+    let isModified = false;
+    cart.products.forEach(p => {
+      const product = productMap.get(String(p.productId));
+      if (product) {
+        const expectedShippingCharge = product.shippingCharge || 0;
+        if (p.shippingCharge !== expectedShippingCharge) {
+          p.shippingCharge = expectedShippingCharge;
+          isModified = true;
+        }
+      }
+    });
+    
+    if (isModified) {
+      await cart.save();
+    }
+  }
+
+  return cart;
 };
 
 // @route POST  /api/cart
@@ -32,7 +55,7 @@ router.post("/", async (req, res) => {
 
     // determine whether a user logged in or guest
     let cart = await getCart(userId, guestId);
-    
+
     //  if cart exists , update it
     if (cart) {
       const productIndex = cart.products.findIndex(
@@ -58,6 +81,7 @@ router.post("/", async (req, res) => {
           quantity,
           vendorId: product.vendorId || null,
           createdBy: product.createdBy || "ADMIN",
+          shippingCharge: product.shippingCharge || 0,
         });
       }
 
@@ -85,6 +109,7 @@ router.post("/", async (req, res) => {
             quantity,
             vendorId: product.vendorId || null,
             createdBy: product.createdBy || "ADMIN",
+            shippingCharge: product.shippingCharge || 0,
           },
         ],
         totalPrice: product.discountPrice * quantity,
@@ -105,16 +130,16 @@ router.put("/", async (req, res) => {
 
   try {
     let cart = await getCart(userId, guestId);
-    
+
     // If cart not found, it means it was cleared after order - return empty cart
     if (!cart) {
-      return res.status(200).json({ 
-        products: [], 
+      return res.status(200).json({
+        products: [],
         totalPrice: 0,
         message: "Cart was cleared after order completion"
       });
     }
-    
+
     const productIndex = cart.products.findIndex(
       (p) => p.productId.toString() === productId
     );
@@ -150,11 +175,11 @@ router.delete("/", async (req, res) => {
   const { productId, size, color, guestId, userId } = req.body;
   try {
     let cart = await getCart(userId, guestId);
-    
+
     // If cart not found, return empty cart (already cleared after order)
     if (!cart) {
-      return res.status(200).json({ 
-        products: [], 
+      return res.status(200).json({
+        products: [],
         totalPrice: 0,
         message: "Cart was already cleared"
       });
@@ -251,7 +276,7 @@ router.post("/merge", protect, async (req, res) => {
         } catch (error) {
           console.error("Error deleting guest cart", error);
         }
-        
+
         console.log("✓ Cart merged successfully");
         res.status(200).json(userCart);
       } else {

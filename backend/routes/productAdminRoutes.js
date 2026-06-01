@@ -35,6 +35,7 @@ router.post("/", protect, admin, async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge,
       countInStock,
       sku,
       category,
@@ -42,6 +43,7 @@ router.post("/", protect, admin, async (req, res) => {
       sizes,
       colors,
       collection,
+      location,
       gender,
       images,
       extraImages,
@@ -54,6 +56,7 @@ router.post("/", protect, admin, async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge: shippingCharge || 0,
       countInStock,
       sku,
       category,
@@ -61,6 +64,7 @@ router.post("/", protect, admin, async (req, res) => {
       sizes,
       colors,
       collection,
+      location,
       gender,
       images,
       extraImages,
@@ -85,6 +89,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge,
       countInStock,
       sku,
       category,
@@ -93,6 +98,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       colors,
       collection,
       material,
+      location,
       videoUrl,
       gender,
       images,
@@ -110,6 +116,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.description = description || product.description;
       product.price = price ?? product.price;
       product.discountPrice = discountPrice || product.discountPrice;
+      product.shippingCharge = shippingCharge ?? product.shippingCharge;
       product.countInStock = countInStock || product.countInStock;
       product.category = category || product.category;
       product.brand = brand || product.brand;
@@ -117,6 +124,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.colors = colors || product.colors;
       product.collection = collection || product.collection;
       product.material = material || product.material;
+      product.location = location !== undefined ? location : product.location;
       product.videoUrl = videoUrl || product.videoUrl;
       product.gender = gender || product.gender;
       product.images = images || product.images;

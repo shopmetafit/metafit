@@ -4,7 +4,7 @@ import { addToCart } from "../../redux/slices/cartSlice";
 import { toast } from "sonner";
 import { useState } from "react";
 
-const ProductGrid = ({ products, loading, error }) => {
+const ProductGrid = ({ products, loading, error, onProductClick }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const guestId = useSelector((state) => state.auth.guestId);
@@ -42,7 +42,7 @@ const ProductGrid = ({ products, loading, error }) => {
             className="bg-white rounded-lg shadow-md overflow-hidden group flex flex-col h-full"
             onMouseLeave={() => setHoveredImage({})}
           >
-            <Link to={`/product/${product._id}`} className="block flex flex-col flex-1">
+            <Link to={`/product/${product._id}`} className="block flex flex-col flex-1" onClick={() => onProductClick && onProductClick()}>
               {/* Tags */}
               {product.tags && product.tags.length > 0 && (
                 <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
@@ -94,7 +94,7 @@ const ProductGrid = ({ products, loading, error }) => {
                             ₹{product.discountPrice}
                           </p>
                           <p className="text-xs text-gray-600 mt-1">
-                            + ₹30 Shipping
+                            {product.shippingCharge > 0 ? `+ ₹${product.shippingCharge} Shipping` : "Free Shipping"}
                           </p>
                         </div>
                         {product.price && product.discountPrice && (
@@ -116,7 +116,7 @@ const ProductGrid = ({ products, loading, error }) => {
                           From ₹{Math.min(...product.variants.map(v => v.discountPrice || v.price))}
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
-                          + ₹30 Shipping
+                          {product.shippingCharge > 0 ? `+ ₹${product.shippingCharge} Shipping` : "Free Shipping"}
                         </p>
                       </div>
                     </div>

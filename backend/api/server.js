@@ -31,7 +31,7 @@ const app = express();
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:3005",
-  "http://localhost:5174",
+  "http://localhost:5173",
   "https://metafit-a5ll.vercel.app",
   "https://metafit-omega.vercel.app",
   "https://mwellnessbazaar.com",

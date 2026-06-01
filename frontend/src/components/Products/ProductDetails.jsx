@@ -347,7 +347,9 @@ const ProductDetails = ({ productId }) => {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
-                  <p className="text-sm text-gray-600 mt-1">+ ₹30 delivery charge</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {selectedProduct.shippingCharge > 0 ? `+ ₹${selectedProduct.shippingCharge} delivery charge` : "Free Delivery"}
+                  </p>
                 </div>
               ) : (
                 <div className="mb-4">
@@ -529,7 +531,9 @@ const ProductDetails = ({ productId }) => {
                       ₹{selectedProduct.discountPrice?.toLocaleString()}
                     </p>
                   )}
-                  <p className="text-xs text-gray-500 mt-0.5">+ ₹30 delivery</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {selectedProduct.shippingCharge > 0 ? `+ ₹${selectedProduct.shippingCharge} delivery` : "Free Delivery"}
+                  </p>
                 </div>
 
                 {/* Stock status */}

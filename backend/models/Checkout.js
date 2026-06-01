@@ -69,7 +69,7 @@ const checkoutSchema = new mongoose.Schema(
     },
     deliveryCharge: {
       type: Number,
-      default: 30,
+      default: 0,
     },
     couponCode: {
       type: String,
@@ -132,17 +132,6 @@ const checkoutSchema = new mongoose.Schema(
   }
 );
 
-// Method to calculate delivery charge based on city
-checkoutSchema.methods.calculateDeliveryCharge = function () {
-  return 30; // Fixed shipping charge for all cities
-};
 
-// Pre-save hook to auto-calculate delivery charge
-checkoutSchema.pre("save", function (next) {
-  if (!this.deliveryCharge) {
-    this.deliveryCharge = this.calculateDeliveryCharge();
-  }
-  next();
-});
 
 module.exports = mongoose.model("Checkout", checkoutSchema);

@@ -78,7 +78,7 @@ const VendorManageProducts = () => {
                 onClick={() => navigate('/vendor/product-request/new')}
                 className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
               >
-                Add New Product
+                Add New
               </button>
             </div>
           </div>
@@ -114,15 +114,15 @@ const VendorManageProducts = () => {
                         <span>Brand: {product.brand}</span>
                         <span>Collection: {product.collection}</span>
                       </div>
-                      
+
                       {/* Product Images Preview */}
                       {product.images && product.images.length > 0 && (
                         <div className="mt-4">
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Product Images</h4>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                             {product.images.slice(0, 4).map((image, index) => (
-                              <div 
-                                key={index} 
+                              <div
+                                key={index}
                                 className="relative group cursor-pointer"
                                 onClick={() => handleImageClick(image.url)}
                               >
@@ -193,7 +193,7 @@ const VendorManageProducts = () => {
 
       {/* Image Modal */}
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedImage(null)}
         >
