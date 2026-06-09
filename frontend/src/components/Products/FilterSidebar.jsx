@@ -169,34 +169,8 @@ const FilterSidebar = () => {
   const MAX = 100000;
 
   return (
-<div className="bg-white w-full lg:w-80 lg:min-w-[320px] h-screen flex flex-col p-6 shadow-lg font-sans">
+<div className="w-full flex flex-col p-5 font-sans">
 <div className="flex-grow overflow-y-auto overscroll-contain scrollbar-custom pr-4 -mr-4">
-        {/* Category Section */}
-        <div className="mb-8">
-          <SectionHeader
-            title="Categories"
-            isOpen={openSections.category}
-            toggle={() => toggleSection("category")}
-          />
-          {openSections.category && (
-            <div className="mt-4 space-y-3">
-              {uniqueCategories.map((category) => (
-                <div
-                  key={category.normalizedName}
-                  className={`flex items-center p-3 -ml-3 rounded-lg cursor-pointer transition-colors duration-200 ${selectedCategory === category.normalizedName ? 'bg-green-100' : 'hover:bg-gray-50'}`}
-                  onClick={() => handleCategoryChange(category.normalizedName)}
-                >
-                  <div className={`mr-4 text-lg ${selectedCategory === category.normalizedName ? 'text-[#0FA958]' : 'text-gray-500'}`}>
-                    {categoryIcons[category.normalizedName] || <FaTags />}
-                  </div>
-                  <span className={`font-medium ${selectedCategory === category.normalizedName ? 'text-[#0FA958]' : 'text-gray-800'}`}>
-                    {category.displayName}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         {/* Price Filter */}
         <div className="mb-8">

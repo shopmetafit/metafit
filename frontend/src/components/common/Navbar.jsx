@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronRight, Phone } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchAllProducts } from "../../redux/slices/productSlice";
 
 const categories = [
   { label: "Ayurvedic Devices", link: "/collections/all?category=ayurvedic devices" },
@@ -28,6 +29,56 @@ const moreLinks = [
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { allProducts } = useSelector((state) => state.products || { allProducts: [] });
+
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, [dispatch]);
+
+  const typoCorrectionMap = {
+    "protien bite": "protein bite",
+    "hare care": "hair care",
+  };
+
+  const dynamicCategories = (allProducts || []).reduce((acc, product) => {
+    let category = product.category?.trim();
+    if (category) {
+      let normalizedCategory = category.toLowerCase();
+      if (typoCorrectionMap[normalizedCategory]) {
+        normalizedCategory = typoCorrectionMap[normalizedCategory];
+        if (category.toLowerCase() in typoCorrectionMap) {
+          category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, (s) => s.toUpperCase());
+        }
+      }
+      
+      if (!acc.find((c) => c.normalizedName === normalizedCategory)) {
+        acc.push({
+          label: category,
+          link: `/collections/all?category=${encodeURIComponent(normalizedCategory)}`,
+          normalizedName: normalizedCategory,
+        });
+      }
+    }
+    return acc;
+  }, []);
+
+  const displayedCategories = dynamicCategories.length > 0
+    ? [
+        ...dynamicCategories,
+        { label: "Blog", link: "/blog" },
+        { label: "Today's Deals", link: "/collections/all", highlight: true }
+      ]
+    : categories;
+
+  const dynamicProdCats = dynamicCategories;
+  const staticProdCats = categories.filter(c => c.link.includes("category"));
+
+  const displayedProdCats = dynamicProdCats.length > 0
+    ? dynamicProdCats
+    : staticProdCats;
+
+  const navbarProdCats = displayedProdCats.slice(0, 4);
 
   return (
     <>
@@ -40,27 +91,51 @@ const Navbar = () => {
           {/* All Menu Button */}
           <button
             onClick={() => setMenuOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2.5 hover:bg-white/10 font-bold text-sm whitespace-nowrap flex-shrink-0 rounded transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#0d4f45] hover:bg-[#116357] border border-white/10 hover:border-white/20 font-bold text-sm whitespace-nowrap flex-shrink-0 rounded transition-all text-teal-300 hover:text-white"
           >
-            <Menu className="h-5 w-5" />
-            <span>All</span>
+            <Menu className="h-4 w-4" />
+            <span>Search by Category</span>
           </button>
 
           {/* Divider */}
           <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
 
           {/* Category Links */}
-          {categories.map((cat) => (
+          {navbarProdCats.map((cat) => (
             <Link
               key={cat.label}
               to={cat.link}
-              className={`px-3 py-2.5 text-sm font-medium whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors ${
-                cat.highlight ? "text-orange-400 font-bold" : "text-white"
-              }`}
+              className="px-3 py-2.5 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
             >
               {cat.label}
             </Link>
           ))}
+
+          {/* ALL Button */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="px-3 py-2.5 text-sm font-bold text-orange-400 hover:bg-white/10 rounded flex-shrink-0 transition-colors whitespace-nowrap flex items-center gap-0.5"
+          >
+            ALL
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          {/* Divider */}
+          <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
+
+          {/* Blog & Today's Deals */}
+          <Link
+            to="/blog"
+            className="px-3 py-2.5 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+          >
+            Blog
+          </Link>
+          <Link
+            to="/collections/all"
+            className="px-3 py-2.5 text-sm font-bold text-orange-400 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+          >
+            Today's Deals
+          </Link>
 
           {/* Divider */}
           <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
@@ -127,7 +202,7 @@ const Navbar = () => {
                 Shop by Category
               </h3>
             </div>
-            {categories.map((cat) => (
+            {displayedCategories.map((cat) => (
               <Link
                 key={cat.label}
                 to={cat.link}
