@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Coupon = require("../models/Coupon");
 const Checkout = require("../models/Checkout");
@@ -193,8 +194,9 @@ router.post("/orders", protect, async (req, res) => {
       customerEmail,
       referral: productId && vendorId && assignedProductId && shareCode
         ? {
-            productId,
-            vendorId,
+            productId: mongoose.Types.ObjectId.isValid(productId) ? new mongoose.Types.ObjectId(productId) : null,
+            vendorId: mongoose.Types.ObjectId.isValid(vendorId) ? new mongoose.Types.ObjectId(vendorId) : null,
+            externalVendorId: !mongoose.Types.ObjectId.isValid(vendorId) ? String(vendorId) : "",
             assignedProductId,
             shareCode: normalizeReferralCode(shareCode),
           }
@@ -209,7 +211,7 @@ router.post("/orders", protect, async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating store order", error);
-    res.status(500).json({ message: "Failed to create order" });
+    res.status(500).json({ message: `Failed to create order: ${error.message}` });
   }
 });
 
@@ -267,7 +269,7 @@ router.post("/orders/:id/payment-success", protect, async (req, res) => {
 
     await Cart.findOneAndDelete({ user: checkout.user }).catch(() => null);
 
-    if (checkout.referral?.productId && checkout.referral?.vendorId && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
+    if (checkout.referral?.productId && (checkout.referral?.vendorId || checkout.referral?.externalVendorId) && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
       const referredItem = checkout.checkoutItems.find(
         (item) => String(item.productId) === String(checkout.referral.productId)
       );
@@ -277,7 +279,7 @@ router.post("/orders/:id/payment-success", protect, async (req, res) => {
           orderId: String(order._id),
           orderObjectId: order._id,
           productId: referredItem.productId,
-          vendorId: checkout.referral.vendorId,
+          vendorId: checkout.referral.vendorId || checkout.referral.externalVendorId,
           assignedProductId: checkout.referral.assignedProductId,
           shareCode: checkout.referral.shareCode,
           customerName: checkout.customerName,

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const ReferralAssignment = require("../models/ReferralAssignment");
 const ReferralPurchase = require("../models/ReferralPurchase");
 
@@ -25,13 +26,25 @@ const findAssignment = async ({ productId, vendorId, assignedProductId, ref }) =
     return null;
   }
 
-  return ReferralAssignment.findOne({
+  const query = {
     productId,
-    vendorId,
-    assignedProductId: String(assignedProductId).trim(),
     isActive: true,
     $or: [{ shareCode: normalizedRef }, { refCode: normalizedRef }],
-  });
+  };
+
+  if (mongoose.Types.ObjectId.isValid(assignedProductId)) {
+    query._id = new mongoose.Types.ObjectId(assignedProductId);
+  } else {
+    query.assignedProductId = String(assignedProductId).trim();
+  }
+
+  if (mongoose.Types.ObjectId.isValid(vendorId)) {
+    query.vendorId = new mongoose.Types.ObjectId(vendorId);
+  } else {
+    query.externalVendorId = String(vendorId).trim();
+  }
+
+  return ReferralAssignment.findOne(query);
 };
 
 const validateReferral = async ({ productId, vendorId, assignedProductId, ref }) => {
@@ -107,7 +120,8 @@ const processReferralPurchase = async (payload = {}) => {
     orderObjectId: orderObjectId || null,
     assignmentId: assignment._id,
     productId,
-    vendorId,
+    vendorId: mongoose.Types.ObjectId.isValid(vendorId) ? new mongoose.Types.ObjectId(vendorId) : null,
+    externalVendorId: !mongoose.Types.ObjectId.isValid(vendorId) ? String(vendorId) : "",
     assignedProductId: assignment.assignedProductId,
     shareCode: assignment.shareCode,
     refCode: assignment.refCode || "",

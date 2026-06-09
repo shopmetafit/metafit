@@ -114,6 +114,11 @@ const checkoutSchema = new mongoose.Schema(
         ref: "Vendor",
         default: null,
       },
+      externalVendorId: {
+        type: String,
+        default: "",
+        trim: true,
+      },
       assignedProductId: {
         type: String,
         default: "",

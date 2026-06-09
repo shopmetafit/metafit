@@ -84,6 +84,7 @@ const referralAssignmentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    collection: "referralassignments"
   }
 );
 referralAssignmentSchema.index({
