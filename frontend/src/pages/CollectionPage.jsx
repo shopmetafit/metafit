@@ -191,6 +191,20 @@ const CollectionPage = () => {
             </div>
           )}
 
+          {/* Mobile Filter & Refine Button */}
+          <div className="lg:hidden flex items-center justify-between bg-white rounded-lg shadow-sm px-4 py-3">
+            <span className="text-sm font-semibold text-gray-700">
+              Products ({selectedLocation ? products.filter(p => p.location === selectedLocation).length : products?.length || 0})
+            </span>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="flex items-center gap-2 bg-[#0FB7A3] hover:bg-[#0DA28E] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Filter & Refine
+            </button>
+          </div>
+
           {/* ── Product Grid ── */}
           <div className="bg-white rounded-lg shadow-sm p-4">
             <ProductGrid products={selectedLocation ? products.filter(p => p.location === selectedLocation) : products} loading={loading} error={error} onProductClick={clearLocation} />

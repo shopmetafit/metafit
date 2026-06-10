@@ -115,13 +115,13 @@ const Home = () => {
         {/* ── Our Products ── */}
         <section className="bg-white rounded-lg shadow-sm p-5">
           <SectionHeader title="Featured Products" link="/collections/all" />
-          <ProductGrid products={products} loading={loading} error={error} />
+          <ProductGrid products={products ? products.slice(0, 4) : []} loading={loading} error={error} />
           <div className="mt-6 text-center">
             <button
               onClick={() => navigate("/collections/all")}
               className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#047ca8] to-[#06b6d4] text-white font-semibold rounded-full hover:shadow-lg hover:shadow-cyan-200 transition-all duration-300 hover:scale-105"
             >
-              See All Products <ChevronRight className="h-4 w-4" />
+              ALL <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </section>

@@ -2,8 +2,8 @@ const { createRazorpayInstance } = require("../config/razorpay.config");
 const crypto = require("crypto");
 const razorpayInstance = createRazorpayInstance();
 const transporter = require("../utils/email");
-const {generateBuyerEmail, generateSellerEmail, generateAdminOrderEmail} = require("../utils/emailTemplate");
-const { sendWhatsAppOrderConfirmation , sendWhatsAppAdminOrderNotification, sendWhatsAppVendorOrderNotification} = require("../config/whatsappServices");
+const { generateBuyerEmail, generateSellerEmail, generateAdminOrderEmail } = require("../utils/emailTemplate");
+const { sendWhatsAppOrderConfirmation, sendWhatsAppAdminOrderNotification, sendWhatsAppVendorOrderNotification } = require("../config/whatsappServices");
 const Product = require("../models/Product");
 const Order = require("../models/Order");
 const User = require("../models/User");
@@ -89,6 +89,56 @@ exports.verifyPayment = async (req, res) => {
   }
 
   try {
+    // Fetch user early
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.warn("⚠️ User not found for email:", email);
+    }
+
+    // Resolve products and vendor details early
+    let primaryVendor = null;
+    const vendorMap = new Map(); // vendorId string -> { vendor, products: [] }
+    const orderItems = [];
+
+    if (Array.isArray(products) && products.length > 0) {
+      for (const p of products) {
+        // Fetch product from DB to get vendor info
+        const dbProduct = await Product.findById(p.productId);
+
+        if (dbProduct && dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
+          const vendorIdStr = dbProduct.vendorId.toString();
+          if (!vendorMap.has(vendorIdStr)) {
+            try {
+              const v = await Vendor.findById(dbProduct.vendorId);
+              if (v) {
+                vendorMap.set(vendorIdStr, { vendor: v, products: [p] });
+                if (!primaryVendor) {
+                  primaryVendor = v;
+                }
+              }
+            } catch (vendorErr) {
+              console.error("⚠️ Failed to fetch vendor details:", vendorErr.message);
+            }
+          } else {
+            vendorMap.get(vendorIdStr).products.push(p);
+          }
+        }
+
+        orderItems.push({
+          productId: p.productId,
+          name: p.name,
+          image: p.image,
+          price: p.price,
+          size: p.size || null,
+          color: p.color || null,
+          quantity: p.quantity || 1,
+        });
+      }
+    }
+
+    const vendorCity = primaryVendor ? primaryVendor.city : null;
+    const vendorPostalCode = primaryVendor ? primaryVendor.pincode : null;
+
     // Generate emails using template functions
     const buyerEmailHtml = generateBuyerEmail(firstName, productList, totalAmount, payment_id, address);
     const adminEmailHtml = generateAdminOrderEmail(firstName, email, lastName, process.env.SELLER_EMAIL, productList, totalAmount, payment_id, address);
@@ -126,18 +176,16 @@ exports.verifyPayment = async (req, res) => {
       // Don't throw - continue processing even if email fails
     }
 
-
-
     // Send WhatsApp order confirmation if phone number is available
     if (phone) {
       // console.log("📱 Attempting to send WhatsApp confirmation to:", phone);
       try {
-        const productName = products && products.length > 0 
-          ? products.map(p => p.name).join(", ") 
+        const productName = products && products.length > 0
+          ? products.map(p => p.name).join(", ")
           : "Order";
-        
-        const productQuantity = products && products.length > 0 
-          ? products.length.toString() 
+
+        const productQuantity = products && products.length > 0
+          ? products.length.toString()
           : "1";
 
         const whatsappPayload = {
@@ -172,7 +220,7 @@ exports.verifyPayment = async (req, res) => {
         // console.log("📱 Attempting to send WhatsApp admin notification");
         const productName = products.map(p => p.name).join(", ");
         const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
-        
+
         const adminNotificationPayload = {
           admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
           orderId: payment_id.toString(),
@@ -184,20 +232,23 @@ exports.verifyPayment = async (req, res) => {
           address: address || "Not provided"
         };
 
-        // console.log("📱 Admin WhatsApp Payload:", JSON.stringify(adminNotificationPayload, null, 2));
-
         const adminResult = await sendWhatsAppAdminOrderNotification(adminNotificationPayload);
-        // console.log("✓ WhatsApp admin notification sent successfully:", adminResult);
 
-        // Send vendor order notification via WhatsApp (only if vendor exists)
-        if (vendor) {
+        // Send vendor order notification via WhatsApp (for each unique vendor in the order)
+        for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
+          const currentVendor = vendorData.vendor;
+          const vendorProducts = vendorData.products;
+
           try {
+            const vendorProductName = vendorProducts.map(p => p.name).join(", ");
+            const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+
             const vendorNotificationPayload = {
-              vendor_phone: vendor.phone,
-              vendor_name: vendor.vendorName,
+              vendor_phone: currentVendor.phone,
+              vendor_name: currentVendor.vendorName,
               orderId: payment_id.toString(),
-              product: productName,
-              quantity: totalQuantity,
+              product: vendorProductName,
+              quantity: vendorTotalQuantity,
               total_amount: `${totalAmount}`,
               customer_name: firstName,
               customer_phone: phone,
@@ -205,18 +256,19 @@ exports.verifyPayment = async (req, res) => {
               number: process.env.ADMIN_WHATSAPP_PHONE
             };
 
+            // console.log(`📱 Sending WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
             const vendorResult = await sendWhatsAppVendorOrderNotification(vendorNotificationPayload);
-            // console.log("✓ WhatsApp vendor notification sent successfully:", vendorResult);
           } catch (whatsappErr) {
             console.error("✗ Failed to send WhatsApp vendor notification:", {
               message: whatsappErr.message,
               error: whatsappErr,
-              vendorPhone: vendor.phone
+              vendorPhone: currentVendor.phone
             });
-            // Don't throw - continue processing even if WhatsApp fails
           }
-        } else {
-          console.warn("⚠️ No vendor found for this order - skipping vendor notification");
+        }
+
+        if (vendorMap.size === 0) {
+          console.warn("⚠️ No vendors found for this order - skipping vendor notification");
         }
       } catch (adminWhatsappErr) {
         console.error("✗ Failed to send WhatsApp admin notification:", {
@@ -226,63 +278,15 @@ exports.verifyPayment = async (req, res) => {
         // Don't throw - continue processing even if admin WhatsApp fails
       }
     } else {
-      console.warn("⚠️ Skipping admin WhatsApp notification - missing required data", {
+      console.warn("⚠️ Skipping admin/vendor WhatsApp notification - missing required data", {
         payment_id,
         firstName,
         phone
       });
     }
 
-    if (products && products.length > 0) {
-      // Vendor WhatsApp notifications removed
-    } else {
-      console.warn("⚠️ No products available for vendor notification");
-    }
-
     // Save order to database
     try {
-      // Find user by email
-      const user = await User.findOne({ email });
-      if (!user) {
-        console.warn("⚠️ User not found for email:", email);
-      }
-
-      // Build order items from products and fetch vendor details if needed
-      let vendorCity = null;
-      let vendorPostalCode = null;
-      let vendor = null;
-
-      const orderItems = await Promise.all(
-        products.map(async (p) => {
-          // Fetch product from DB to get vendor info
-          const dbProduct = await Product.findById(p.productId);
-          
-          // If product is from vendor, fetch vendor details
-          if (dbProduct && dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
-            try {
-              vendor = await Vendor.findOne({ userId: dbProduct.vendorId });
-              if (vendor && vendor.pickupAddress) {
-                vendorCity = vendor.pickupAddress.city;
-                vendorPostalCode = vendor.pickupAddress.pincode;
-                // console.log("📍 Using vendor address - City:", vendorCity, "Pincode:", vendorPostalCode);
-              }
-            } catch (vendorErr) {
-              console.error("⚠️ Failed to fetch vendor details:", vendorErr.message);
-            }
-          }
-
-          return {
-            productId: p.productId,
-            name: p.name,
-            image: p.image,
-            price: p.price,
-            size: p.size || null,
-            color: p.color || null,
-            quantity: p.quantity || 1,
-          };
-        })
-      );
-
       // Extract address components (assuming address is a string)
       const addressParts = address.split(",").map((part) => part.trim());
 

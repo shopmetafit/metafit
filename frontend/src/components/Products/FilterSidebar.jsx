@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Range, getTrackBackground } from "react-range";
 import {
   FaLeaf,
   FaHeartbeat,
@@ -66,14 +65,14 @@ const FilterSidebar = () => {
           category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, s => s.toUpperCase()); // Capitalize corrected name for display
         }
       }
-      
+
       if (!acc.find(c => c.normalizedName === normalizedCategory)) {
         acc.push({ normalizedName: normalizedCategory, displayName: category });
       }
     }
     return acc;
   }, []);
-  
+
   const [openSections, setOpenSections] = useState({
     category: true,
     price: true,
@@ -83,20 +82,20 @@ const FilterSidebar = () => {
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category")?.toLowerCase() || ""
   );
-  const [priceValues, setPriceValues] = useState([
-    parseInt(searchParams.get("minPrice")) || 0,
-    parseInt(searchParams.get("maxPrice")) || 100000,
-  ]);
+  const [minPriceInput, setMinPriceInput] = useState(
+    searchParams.get("minPrice") || ""
+  );
+  const [maxPriceInput, setMaxPriceInput] = useState(
+    searchParams.get("maxPrice") || ""
+  );
   const [selectedBrands, setSelectedBrands] = useState(
     searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
   );
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category")?.toLowerCase() || "");
-    setPriceValues([
-      parseInt(searchParams.get("minPrice")) || 0,
-      parseInt(searchParams.get("maxPrice")) || 100000,
-    ]);
+    setMinPriceInput(searchParams.get("minPrice") || "");
+    setMaxPriceInput(searchParams.get("maxPrice") || "");
     setSelectedBrands(
       searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
     );
@@ -105,11 +104,11 @@ const FilterSidebar = () => {
   const handleCategoryChange = (normalizedCategory) => {
     const newCategory = selectedCategory === normalizedCategory ? "" : normalizedCategory;
     setSelectedCategory(newCategory);
-    
+
     // Apply filters directly
     const params = new URLSearchParams(searchParams);
     params.delete("search");
-    
+
     if (newCategory) {
       params.set("category", newCategory);
     } else {
@@ -130,11 +129,11 @@ const FilterSidebar = () => {
       ? selectedBrands.filter((b) => b !== normalizedBrand)
       : [normalizedBrand]; // Only one brand can be selected
     setSelectedBrands(newSelectedBrands);
-    
+
     // Apply filters directly
     const params = new URLSearchParams(searchParams);
     params.delete("search");
-    
+
     if (selectedCategory) {
       params.set("category", selectedCategory);
     } else {
@@ -157,6 +156,8 @@ const FilterSidebar = () => {
     if (searchTerm) {
       params.set("search", searchTerm);
     }
+    setMinPriceInput("");
+    setMaxPriceInput("");
     setSearchParams(params);
   };
 
@@ -164,13 +165,34 @@ const FilterSidebar = () => {
     setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
-  const STEP = 10;
-  const MIN = 0;
-  const MAX = 100000;
+  const applyPriceFilter = () => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("search");
+
+    if (minPriceInput.trim()) {
+      params.set("minPrice", minPriceInput.trim());
+    } else {
+      params.delete("minPrice");
+    }
+
+    if (maxPriceInput.trim()) {
+      params.set("maxPrice", maxPriceInput.trim());
+    } else {
+      params.delete("maxPrice");
+    }
+
+    setSearchParams(params);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      applyPriceFilter();
+    }
+  };
 
   return (
-<div className="w-full flex flex-col p-5 font-sans">
-<div className="flex-grow overflow-y-auto overscroll-contain scrollbar-custom pr-4 -mr-4">
+    <div className="w-full flex flex-col p-5 font-sans">
+      <div className="flex-grow overflow-y-auto overscroll-contain scrollbar-custom pr-4 -mr-4">
 
         {/* Price Filter */}
         <div className="mb-8">
@@ -180,50 +202,47 @@ const FilterSidebar = () => {
             toggle={() => toggleSection("price")}
           />
           {openSections.price && (
-            <div className="mt-6 relative px-2">
-              <Range
-                values={priceValues}
-                step={STEP}
-                min={MIN}
-                max={MAX}
-                onChange={(values) => setPriceValues(values)}
-                renderTrack={({ props, children }) => (
-                  <div
-                    {...props}
-                    className="h-1 w-full rounded-full"
-                    style={{
-                      background: getTrackBackground({
-                        values: priceValues,
-                        colors: ["#ccc", "#0FA958", "#ccc"],
-                        min: MIN,
-                        max: MAX,
-                      }),
-                    }}
+            <div className="mt-4 px-1">
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <label htmlFor="min-price-input" className="text-xs text-gray-500 font-medium mb-1 block">From (₹)</label>
+                  <input
+                    id="min-price-input"
+                    type="number"
+                    placeholder="Min"
+                    value={minPriceInput}
+                    onChange={(e) => setMinPriceInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#0FA958] focus:ring-1 focus:ring-[#0FA958] transition-colors"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label htmlFor="max-price-input" className="text-xs text-gray-500 font-medium mb-1 block">To (₹)</label>
+                  <input
+                    id="max-price-input"
+                    type="number"
+                    placeholder="Max"
+                    value={maxPriceInput}
+                    onChange={(e) => setMaxPriceInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#0FA958] focus:ring-1 focus:ring-[#0FA958] transition-colors"
+                  />
+                </div>
+                <div className="self-end pb-0.5">
+                  <button
+                    onClick={applyPriceFilter}
+                    className="bg-[#0FA958] hover:bg-[#0c8e4a] text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors duration-300 shadow-sm"
                   >
-                    {children}
-                  </div>
-                )}
-                renderThumb={({ props: thumbProps }) => {
-                  const { key, ...rest } = thumbProps;
-                  return (
-                    <div
-                      key={key}
-                      {...rest}
-                      className="h-5 w-5 bg-white rounded-full shadow-md border-2 border-[#0FA958] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0FA958]"
-                    />
-                  );
-                }}
-              />
-              <div className="flex justify-between mt-4 text-sm text-gray-600">
-                <span>₹{priceValues[0]}</span>
-                <span>₹{priceValues[1]}</span>
+                    Go
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
 
         {/* Brand Filter */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <SectionHeader
             title="Brand"
             isOpen={openSections.brand}
@@ -232,29 +251,29 @@ const FilterSidebar = () => {
           {openSections.brand && (
             <div className="mt-4 space-y-3">
               {uniqueBrands.map((brand) => (
-                <Checkbox 
-                  key={brand.normalizedName} 
-                  label={brand.displayName} 
+                <Checkbox
+                  key={brand.normalizedName}
+                  label={brand.displayName}
                   checked={selectedBrands.includes(brand.normalizedName)}
                   onChange={() => handleBrandChange(brand.normalizedName)}
                 />
               ))}
             </div>
           )}
-        </div>
-        
+        </div> */}
+
         <div className="pt-6 border-t border-gray-200">
-          <button 
+          <button
             onClick={resetFilters}
             className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold text-base hover:bg-gray-300 transition-colors duration-300"
           >
             Reset Filters
           </button>
         </div>
-        </div>
+      </div>
 
-        </div>
-        );
+    </div>
+  );
 };
 
 // Helper component for section headers

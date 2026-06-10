@@ -107,9 +107,9 @@ const Topbar = () => {
             <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg transition-all group-hover:shadow-teal-400/40">
               <span className="text-white font-black text-lg">M</span>
             </div>
-            <div className="hidden sm:block leading-tight">
-              <div className="text-[15px] font-black text-white">M Wellness</div>
-              <div className="text-xs text-teal-300 font-semibold -mt-0.5">Bazaar</div>
+            <div className="leading-tight">
+              <div className="text-[13px] sm:text-[15px] font-black text-white whitespace-nowrap">M Wellness</div>
+              <div className="text-[9px] sm:text-xs text-teal-300 font-semibold -mt-0.5">Bazaar</div>
             </div>
           </Link>
 

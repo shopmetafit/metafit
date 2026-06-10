@@ -78,15 +78,14 @@ const Navbar = () => {
     ? dynamicProdCats
     : staticProdCats;
 
-  const navbarProdCats = displayedProdCats.slice(0, 4);
+  const navbarProdCats = displayedProdCats.slice(0, 5);
 
   return (
     <>
       {/* Amazon-style Category Nav Bar */}
       <nav className="bg-[#0a3d35] text-white">
         <div
-          className="max-w-screen-2xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className="max-w-screen-2xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto no-scrollbar"
         >
           {/* All Menu Button */}
           <button
