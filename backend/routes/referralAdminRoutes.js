@@ -511,19 +511,12 @@ router.post("/referral-assignments/bulk-deassign", protect, admin, async (req, r
       });
     }
 
-    const result = await ReferralAssignment.updateMany(
-      { productId },
-      {
-        $set: {
-          assignmentStatus: "removed",
-          isActive: false,
-        },
-      }
-    );
+    const result = await ReferralAssignment.deleteMany({ productId });
 
     res.json({
-      message: `${result.modifiedCount} vendors se product deassign ho gaya`,
-      modifiedCount: result.modifiedCount,
+      message: `${result.deletedCount} Deassigned product from vendors`,
+      modifiedCount: result.deletedCount,
+      deletedCount: result.deletedCount,
     });
   } catch (error) {
     console.error("Error creating bulk referral deassignment", error);
