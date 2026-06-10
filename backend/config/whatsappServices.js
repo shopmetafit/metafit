@@ -9,17 +9,17 @@ const WHATSAPP_API_URL = `https://graph.facebook.com/v24.0/${WHATSAPP_PHONE_NUMB
 const lastMessageTime = new Map();
 
 const validateParam = (value, name) => {
-    if (value === null || value === undefined) {
-        throw new Error(`${name} is required`);
-    }
+  if (value === null || value === undefined) {
+    throw new Error(`${name} is required`);
+  }
 
-    const str = String(value).trim();
+  const str = String(value).trim();
 
-    if (!str || str === "null" || str === "undefined") {
-        throw new Error(`${name} is invalid`);
-    }
+  if (!str || str === "null" || str === "undefined") {
+    throw new Error(`${name} is invalid`);
+  }
 
-    return str;
+  return str;
 };
 
 
@@ -27,70 +27,70 @@ const validateParam = (value, name) => {
 const otpStore = new Map();
 
 const sendWhatsAppOTP = async (customer_phone, otp) => {
-    if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
-        throw new Error("WhatsApp credentials missing");
-    }
+  if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
+    throw new Error("WhatsApp credentials missing");
+  }
 
-    // Validate OTP
-    const validatedOTP = validateParam(otp, "otp");
-    if (!/^\d{6}$/.test(validatedOTP)) {
-        throw new Error("OTP must be 6 digits");
-    }
+  // Validate OTP
+  const validatedOTP = validateParam(otp, "otp");
+  if (!/^\d{6}$/.test(validatedOTP)) {
+    throw new Error("OTP must be 6 digits");
+  }
 
-    // Format phone number (India)
-    let phoneNumber = customer_phone.replace(/\D/g, "");
-    if (phoneNumber.length === 10) {
-        phoneNumber = "91" + phoneNumber;
-    }
+  // Format phone number (India)
+  let phoneNumber = customer_phone.replace(/\D/g, "");
+  if (phoneNumber.length === 10) {
+    phoneNumber = "91" + phoneNumber;
+  }
 
-    if (!/^\d{10,15}$/.test(phoneNumber)) {
-        throw new Error("Invalid phone number");
-    }
+  if (!/^\d{10,15}$/.test(phoneNumber)) {
+    throw new Error("Invalid phone number");
+  }
 
-    const payload = {
-        messaging_product: "whatsapp",
-        to: phoneNumber,
-        type: "template",
-        template: {
-            name: "otp_mbazaar",
-            language: { code: "en" },
-            components: [
-                {
-                    type: "body",
-                    parameters: [
-                        { type: "text", text: validatedOTP }
-                    ]
-                },
-                {
-                    type: "button",
-                    sub_type: "url",
-                    index: "0",
-                    parameters: [
-                        { type: "text", text: validatedOTP }
-                    ]
-                }
-            ]
-        }
-    };
-
-    const response = await fetch(WHATSAPP_API_URL, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${WHATSAPP_TOKEN}`,
-            "Content-Type": "application/json"
+  const payload = {
+    messaging_product: "whatsapp",
+    to: phoneNumber,
+    type: "template",
+    template: {
+      name: "otp_mbazaar",
+      language: { code: "en" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: validatedOTP }
+          ]
         },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            data?.error?.message || "WhatsApp OTP send failed"
-        );
+        {
+          type: "button",
+          sub_type: "url",
+          index: "0",
+          parameters: [
+            { type: "text", text: validatedOTP }
+          ]
+        }
+      ]
     }
-    
-    return data;
+  };
+
+  const response = await fetch(WHATSAPP_API_URL, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message || "WhatsApp OTP send failed"
+    );
+  }
+
+  return data;
 };
 
 
@@ -103,30 +103,16 @@ const sendWhatsAppOrderConfirmation = async ({
   product_amount,
   payment_status
 }) => {
-  console.log("\n🔴 ========== WHATSAPP ORDER CONFIRMATION START ==========");
-  console.log("📱 Input Phone:", customer_phone);
-  console.log("👤 Customer Name:", customer_name);
-  console.log("💰 Amount:", product_amount);
-  
-  // Validate payment status - only send if payment is successful
-  console.log("🔍 Checking payment_status:", payment_status, "Type:", typeof payment_status);
-  
+
   if (payment_status !== "completed" && payment_status !== "success") {
     console.error("❌ Payment status validation failed. Expected 'completed' or 'success', got:", payment_status);
     throw new Error("Order confirmation can only be sent after successful payment");
   }
-  
-  console.log("✅ Payment status validated");
 
-  console.log("🔑 Checking credentials...");
-  console.log("   WHATSAPP_TOKEN exists:", !!WHATSAPP_TOKEN);
-  console.log("   WHATSAPP_PHONE_NUMBER_ID:", WHATSAPP_PHONE_NUMBER_ID);
-  
   if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
     console.error("❌ Credentials missing!");
     throw new Error("WhatsApp credentials missing");
   }
-  console.log("✅ Credentials verified");
 
   const name = validateParam(customer_name, "customer_name");
   const successName = validateParam(product_success_name, "product_success_name");
@@ -141,22 +127,17 @@ const sendWhatsAppOrderConfirmation = async ({
   const quantity = validateParam(product_quantity, "product_quantity");
   const amount = validateParam(product_amount, "product_amount");
 
-  console.log("📞 Formatting phone number...");
   let phoneNumber = customer_phone.replace(/\D/g, "");
-  console.log("   After removing non-digits:", phoneNumber);
-  
+
   if (phoneNumber.length === 10) {
     phoneNumber = "91" + phoneNumber;
-    console.log("   Added country code 91:", phoneNumber);
+
   }
 
-  console.log("   Final formatted number:", phoneNumber);
-  
   if (!/^\d{10,15}$/.test(phoneNumber)) {
     console.error("❌ Invalid phone number format:", phoneNumber);
     throw new Error("Invalid phone number");
   }
-  console.log("✅ Phone number valid");
 
   const payload = {
     messaging_product: "whatsapp",
@@ -188,14 +169,9 @@ const sendWhatsAppOrderConfirmation = async ({
 
   if (timeSinceLastMessage < MIN_DELAY) {
     const waitTime = MIN_DELAY - timeSinceLastMessage;
-    console.log(`⏳ Rate limiting: Waiting ${waitTime}ms before sending to ${phoneNumber}`);
+
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
-
-  console.log("\n📤 Sending to WhatsApp API...");
-  console.log("   URL:", WHATSAPP_API_URL);
-  console.log("   Payload:", JSON.stringify(payload, null, 2));
-  
   const response = await fetch(WHATSAPP_API_URL, {
     method: "POST",
     headers: {
@@ -205,14 +181,12 @@ const sendWhatsAppOrderConfirmation = async ({
     body: JSON.stringify(payload)
   });
 
-  console.log("📥 API Response Status:", response.status, response.statusText);
-  
   const data = await response.json();
-  console.log("WhatsApp API Response:", JSON.stringify(data, null, 2));
-  
+
+
   // Record the time this message was sent
   lastMessageTime.set(normalizedPhone, Date.now());
-  
+
   if (!response.ok) {
     console.error("❌ WhatsApp API Error:");
     console.error("   Status:", response.status);
@@ -222,9 +196,6 @@ const sendWhatsAppOrderConfirmation = async ({
     );
   }
 
-  console.log("✅ Message sent successfully!");
-  console.log("🔴 ========== WHATSAPP ORDER CONFIRMATION END ==========\n");
-  
   return data;
 };
 
@@ -238,11 +209,6 @@ const sendWhatsAppAdminOrderNotification = async ({
   phone,
   address
 }) => {
-  console.log("\n🔵 ========== WHATSAPP ADMIN ORDER NOTIFICATION START ==========");
-
-  console.log("📱 Admin Phone:", admin_phone);
-  console.log("🧾 Order ID:", orderId);
-  console.log("📦 Product:", product);
 
   if (!WHATSAPP_TOKEN || !WHATSAPP_PHONE_NUMBER_ID) {
     console.error("❌ WhatsApp credentials missing");
@@ -257,8 +223,6 @@ const sendWhatsAppAdminOrderNotification = async ({
   const customerPhone = validateParam(phone, "phone");
   const shippingAddress = validateParam(address, "address");
 
-  console.log("📞 Formatting admin phone number...");
-
   let phoneNumber = admin_phone.replace(/\D/g, "");
 
   if (phoneNumber.length === 10) {
@@ -269,8 +233,6 @@ const sendWhatsAppAdminOrderNotification = async ({
     console.error("❌ Invalid phone number:", phoneNumber);
     throw new Error("Invalid phone number");
   }
-
-  console.log("✅ Admin phone number validated:", phoneNumber);
 
   const payload = {
     messaging_product: "whatsapp",
@@ -303,12 +265,9 @@ const sendWhatsAppAdminOrderNotification = async ({
 
   if (timeSinceLastMessage < MIN_DELAY) {
     const waitTime = MIN_DELAY - timeSinceLastMessage;
-    console.log(`⏳ Rate limiting: waiting ${waitTime}ms`);
+
     await new Promise(resolve => setTimeout(resolve, waitTime));
   }
-
-  console.log("📤 Sending Admin Notification to WhatsApp API...");
-
   const response = await fetch(WHATSAPP_API_URL, {
     method: "POST",
     headers: {
@@ -319,18 +278,12 @@ const sendWhatsAppAdminOrderNotification = async ({
   });
 
   const data = await response.json();
-
-  console.log("📥 WhatsApp API Response:", JSON.stringify(data, null, 2));
-
   lastMessageTime.set(normalizedPhone, Date.now());
 
   if (!response.ok) {
     console.error("❌ WhatsApp API Error:", data?.error);
     throw new Error(data?.error?.message || "WhatsApp admin notification failed");
   }
-
-  console.log("✅ Admin notification sent successfully");
-  console.log("🔵 ========== WHATSAPP ADMIN ORDER NOTIFICATION END ==========\n");
 
   return data;
 };
@@ -414,15 +367,12 @@ const sendWhatsAppVendorOrderNotification = async ({
     throw new Error(data?.error?.message || "Vendor notification failed");
   }
 
-  console.log("✅ Vendor notification sent successfully");
-  console.log("🟢 ===== VENDOR ORDER NOTIFICATION END =====\n");
-
   return data;
 };
-module.exports = { 
-  sendWhatsAppOTP, 
-  sendWhatsAppOrderConfirmation, 
-  sendWhatsAppAdminOrderNotification, 
+module.exports = {
+  sendWhatsAppOTP,
+  sendWhatsAppOrderConfirmation,
+  sendWhatsAppAdminOrderNotification,
   sendWhatsAppVendorOrderNotification,
   otpStore
 };

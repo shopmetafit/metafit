@@ -33,10 +33,7 @@ const buildVendorSnapshot = (payload = {}) => ({
   role: String(payload.vendorRole || payload.role || "").trim(),
 });
 
-const DEFAULT_METAFIT_ADMIN_API_BASE_URL =
-  process.env.NODE_ENV === "production"
-    ? "https://metafit-services.vercel.app/"
-    : "http://localhost:500/admin/api/v2";
+const DEFAULT_METAFIT_ADMIN_API_BASE_URL = "https://metafit-services.vercel.app";
 
 const METAFIT_ADMIN_API_BASE_URL =
   (process.env.METAFIT_ADMIN_API_BASE_URL || DEFAULT_METAFIT_ADMIN_API_BASE_URL).replace(/\/+$/, "");
@@ -45,16 +42,22 @@ const allowedExternalVendorRoles = new Set([
   "Yoga Instructor",
   "Ayurvedic Doctor",
   "Lab Test",
+  "lab test",
   "Treatment and Retreat",
   "Treatment & Retreat",
   "Naturopathy and Wellness",
   "Naturopathy Doctor",
   "Naturopathy",
+  "Human Psychology",
 ]);
 
 const normalizeExternalVendor = (vendor = {}) => {
   const vendorId = String(vendor.mentorId || vendor._id || vendor.id || "").trim();
-  const role = String(vendor.role || "").trim();
+  let role = String(vendor.role || "").trim();
+
+  if (role.toLowerCase() === "lab test") {
+    role = "Lab Test";
+  }
 
   return {
     id: vendorId,
@@ -81,23 +84,60 @@ const fetchMetafitVendors = async (authorizationHeader = "") => {
     timeout: 5000,
   };
 
-  const [instructorsResponse, naturopathyResponse] = await Promise.allSettled([
-    axios.get(`https://metafit-services.vercel.app/admin/api/v2/all-instructor`, requestConfig),
-    axios.get(`https://metafit-services.vercel.app/admin/api/v2/naturopathy-vendors`, requestConfig),
+  const [
+    instructorsResponse,
+    naturopathyResponse,
+    ayurvedicResponse,
+    psychologyResponse,
+    labTestResponse
+  ] = await Promise.allSettled([
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/api/v2/all-instructor`, requestConfig),
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/api/v2/admin/naturopathy-vendors`, requestConfig),
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/api/v2/ayurvedic-doctors`, requestConfig),
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/api/v2/human-psychology-instructors`, requestConfig),
+    axios.get(`${METAFIT_ADMIN_API_BASE_URL}/admin/api/v2/view-all-vendor-lab-tests`, requestConfig),
   ]);
 
   const records = [];
 
+  // 1. Instructors (Yoga Instructors / general)
   if (instructorsResponse.status === "fulfilled" && Array.isArray(instructorsResponse.value.data)) {
     records.push(...instructorsResponse.value.data);
   }
 
+  // 2. Naturopathy Vendors
   if (naturopathyResponse.status === "fulfilled") {
     const vendors =
       naturopathyResponse.value.data?.vendors ||
       naturopathyResponse.value.data?.data ||
       [];
+    if (Array.isArray(vendors)) {
+      records.push(...vendors);
+    }
+  }
 
+  // 3. Ayurvedic Doctors
+  if (ayurvedicResponse.status === "fulfilled") {
+    const doctors =
+      ayurvedicResponse.value.data?.doctors ||
+      ayurvedicResponse.value.data?.data ||
+      [];
+    if (Array.isArray(doctors)) {
+      records.push(...doctors);
+    }
+  }
+
+  // 4. Human Psychology
+  if (psychologyResponse.status === "fulfilled" && Array.isArray(psychologyResponse.value.data)) {
+    records.push(...psychologyResponse.value.data);
+  }
+
+  // 5. Lab Test Vendors
+  if (labTestResponse.status === "fulfilled") {
+    const vendors =
+      labTestResponse.value.data?.vendors ||
+      labTestResponse.value.data?.data ||
+      [];
     if (Array.isArray(vendors)) {
       records.push(...vendors);
     }
@@ -214,7 +254,7 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
 
     const normalizedAssignmentStatus =
       typeof assignmentStatus === "string" &&
-      assignmentStatus.trim()
+        assignmentStatus.trim()
         ? assignmentStatus.trim()
         : "assigned";
 
@@ -259,14 +299,6 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
       }
     );
 
-    console.log("Referral Assignment Created:", {
-      productId,
-      vendorId: vendorFields.vendorId,
-      assignedProductId,
-      shareCode,
-      assignmentStatus: normalizedAssignmentStatus,
-    });
-
     const assignmentObject = hydrateAssignmentVendor(
       assignment.toObject()
     );
@@ -288,166 +320,132 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
   }
 });
 
-router.post("/referral-assignments/bulk",protect, admin,async (req, res) => {
-    try {
-      const {
-        productId,
-        commissionType,
-        commissionValue,
-        assignmentStatus,
-        isActive,
-        shareCodePrefix,
-        assignedProductPrefix,
-        refCodePrefix,
-        vendors: requestedVendors,
-      } = req.body;
+router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
+  try {
+    const {
+      productId,
+      commissionType,
+      commissionValue,
+      assignmentStatus,
+      isActive,
+      shareCodePrefix,
+      assignedProductPrefix,
+      refCodePrefix,
+      vendors: requestedVendors,
+    } = req.body;
 
-      if (!productId) {
-        return res.status(400).json({
-          message: "Product ID is required",
-        });
-      }
+    if (!productId) {
+      return res.status(400).json({
+        message: "Product ID is required",
+      });
+    }
 
-      if (
-        !Number.isFinite(Number(commissionValue)) ||
-        Number(commissionValue) < 0
-      ) {
-        return res.status(400).json({
-          message: "Valid commission value is required",
-        });
-      }
+    if (
+      !Number.isFinite(Number(commissionValue)) ||
+      Number(commissionValue) < 0
+    ) {
+      return res.status(400).json({
+        message: "Valid commission value is required",
+      });
+    }
 
-      const normalizedCommissionType =
-        String(commissionType || "").toLowerCase() === "flat"
-          ? "fixed"
-          : commissionType;
+    const normalizedCommissionType =
+      String(commissionType || "").toLowerCase() === "flat"
+        ? "fixed"
+        : commissionType;
 
-      const normalizedAssignmentStatus =
-        typeof assignmentStatus === "string" &&
+    const normalizedAssignmentStatus =
+      typeof assignmentStatus === "string" &&
         assignmentStatus.trim()
-          ? assignmentStatus.trim()
-          : "assigned";
+        ? assignmentStatus.trim()
+        : "assigned";
 
-      const vendors =
-        Array.isArray(requestedVendors) &&
+    const vendors =
+      Array.isArray(requestedVendors) &&
         requestedVendors.length
-          ? requestedVendors
-          : await fetchMetafitVendors(
-              req.headers.authorization || ""
-            );
+        ? requestedVendors
+        : await fetchMetafitVendors(
+          req.headers.authorization || ""
+        );
 
-      if (!vendors.length) {
-        return res.status(404).json({
-          message:
-            "No vendors found for bulk assignment",
-        });
-      }
+    if (!vendors.length) {
+      return res.status(404).json({
+        message:
+          "No vendors found for bulk assignment",
+      });
+    }
 
-      const assignments = await Promise.all(
-        vendors.map(async (vendor) => {
+    const assignments = await Promise.all(
+      vendors.map(async (vendor) => {
 
-          const vendorRef = String(
-            vendor.vendorId ||
-            vendor.mentorId ||
-            vendor._id ||
-            vendor.id ||
-            ""
-          ).trim();
+        const vendorRef = String(
+          vendor.vendorId ||
+          vendor.mentorId ||
+          vendor._id ||
+          vendor.id ||
+          ""
+        ).trim();
 
-          const vendorFields =
-            resolveAssignmentVendorFields({
-              vendorId: vendorRef,
-              vendorName:
-                vendor.vendorName ||
-                vendor.businessName ||
-                vendor.name,
+        const vendorFields =
+          resolveAssignmentVendorFields({
+            vendorId: vendorRef,
+            vendorName:
+              vendor.vendorName ||
+              vendor.businessName ||
+              vendor.name,
 
-              vendorEmail:
-                vendor.email ||
-                vendor.useremail,
+            vendorEmail:
+              vendor.email ||
+              vendor.useremail,
 
-              vendorPhone:
-                vendor.phone ||
-                vendor.phoneNo,
+            vendorPhone:
+              vendor.phone ||
+              vendor.phoneNo,
 
-              vendorRole: vendor.role,
-            });
+            vendorRole: vendor.role,
+          });
 
-          const assignedProductId =
-            buildBulkCode(
-              assignedProductPrefix || "AP",
-              vendorRef,
-              productId
-            );
+        const assignedProductId =
+          buildBulkCode(
+            assignedProductPrefix || "AP",
+            vendorRef,
+            productId
+          );
 
-          const shareCode =
-            buildBulkCode(
-              shareCodePrefix || "MWREF",
-              vendorRef,
-              productId
-            );
+        const shareCode =
+          buildBulkCode(
+            shareCodePrefix || "MWREF",
+            vendorRef,
+            productId
+          );
 
-          const refCode =
-            buildBulkCode(
-              refCodePrefix || "REF",
-              vendorRef,
-              productId
-            );
+        const refCode =
+          buildBulkCode(
+            refCodePrefix || "REF",
+            vendorRef,
+            productId
+          );
 
-          const assignment =
-            await ReferralAssignment.findOneAndUpdate(
-              buildAssignmentLookup({
-                productId,
-                vendorId: vendorFields.vendorId,
-                externalVendorId:
-                  vendorFields.externalVendorId,
-                assignedProductId,
-              }),
-              {
-                productId,
-
-                vendorId:
-                  vendorFields.vendorId,
-
-                externalVendorId:
-                  vendorFields.externalVendorId,
-
-                vendorSnapshot:
-                  vendorFields.vendorSnapshot,
-
-                assignedProductId,
-
-                shareCode,
-
-                refCode,
-
-                commissionType:
-                  normalizedCommissionType,
-
-                commissionValue:
-                  Number(commissionValue),
-
-                isActive:
-                  isActive !== false,
-
-                assignmentStatus:
-                  normalizedAssignmentStatus,
-              },
-              {
-                new: true,
-                upsert: true,
-                runValidators: true,
-                setDefaultsOnInsert: true,
-              }
-            );
-
-          console.log(
-            "Bulk Referral Assignment Created:",
+        const assignment =
+          await ReferralAssignment.findOneAndUpdate(
+            buildAssignmentLookup({
+              productId,
+              vendorId: vendorFields.vendorId,
+              externalVendorId:
+                vendorFields.externalVendorId,
+              assignedProductId,
+            }),
             {
+              productId,
+
               vendorId:
                 vendorFields.vendorId,
 
-              productId,
+              externalVendorId:
+                vendorFields.externalVendorId,
+
+              vendorSnapshot:
+                vendorFields.vendorSnapshot,
 
               assignedProductId,
 
@@ -455,38 +453,85 @@ router.post("/referral-assignments/bulk",protect, admin,async (req, res) => {
 
               refCode,
 
+              commissionType:
+                normalizedCommissionType,
+
+              commissionValue:
+                Number(commissionValue),
+
+              isActive:
+                isActive !== false,
+
               assignmentStatus:
                 normalizedAssignmentStatus,
+            },
+            {
+              new: true,
+              upsert: true,
+              runValidators: true,
+              setDefaultsOnInsert: true,
             }
           );
 
-          return hydrateAssignmentVendor(
-            assignment.toObject()
-          );
-        })
-      );
+        return hydrateAssignmentVendor(
+          assignment.toObject()
+        );
+      })
+    );
 
-      res.status(201).json({
-        message: `${assignments.length} vendors ko assignment create ho gaya`,
-        totalAssigned: assignments.length,
-        assignments,
-      });
+    res.status(201).json({
+      message: `${assignments.length} vendors ko assignment create ho gaya`,
+      totalAssigned: assignments.length,
+      assignments,
+    });
 
-    } catch (error) {
+  } catch (error) {
 
-      console.error(
-        "Error creating bulk referral assignments",
-        error
-      );
+    console.error(
+      "Error creating bulk referral assignments",
+      error
+    );
 
-      res.status(500).json({
-        message:
-          error.code === 11000
-            ? "Bulk assignment me duplicate share code/ref code mila"
-            : "Failed to create bulk referral assignments",
+    res.status(500).json({
+      message:
+        error.code === 11000
+          ? "Bulk assignment me duplicate share code/ref code mila"
+          : "Failed to create bulk referral assignments",
+    });
+  }
+});
+
+router.post("/referral-assignments/bulk-deassign", protect, admin, async (req, res) => {
+  try {
+    const { productId } = req.body;
+
+    if (!productId) {
+      return res.status(400).json({
+        message: "Product ID is required",
       });
     }
-  });
+
+    const result = await ReferralAssignment.updateMany(
+      { productId },
+      {
+        $set: {
+          assignmentStatus: "removed",
+          isActive: false,
+        },
+      }
+    );
+
+    res.json({
+      message: `${result.modifiedCount} vendors se product deassign ho gaya`,
+      modifiedCount: result.modifiedCount,
+    });
+  } catch (error) {
+    console.error("Error creating bulk referral deassignment", error);
+    res.status(500).json({
+      message: "Failed to deassign product in bulk",
+    });
+  }
+});
 
 router.get("/referral-assignments", protect, admin, async (req, res) => {
   try {
