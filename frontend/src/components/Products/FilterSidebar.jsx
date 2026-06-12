@@ -242,7 +242,7 @@ const FilterSidebar = () => {
         </div>
 
         {/* Brand Filter */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <SectionHeader
             title="Brand"
             isOpen={openSections.brand}
@@ -260,7 +260,7 @@ const FilterSidebar = () => {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className="pt-6 border-t border-gray-200">
           <button
