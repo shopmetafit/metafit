@@ -37,7 +37,8 @@ const allowedOrigins = [
   "https://mwellnessbazaar.com",
   "https://www.mwellnessbazaar.com",
   "http://metafitwellness.com",
-  "https://role-management-frontend.vercel.app"
+  "https://role-management-frontend.vercel.app",
+  "https://partner.metafitwellness.com"
 ];
 
 app.use((req, res, next) => {
