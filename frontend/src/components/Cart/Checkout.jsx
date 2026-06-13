@@ -270,6 +270,12 @@ console.log(user);
   const handleCreateCheckout = async (e) => {
     e.preventDefault();
 
+    if (!user) {
+      toast.error("Please login first");
+      navigate("/login?redirect=checkout");
+      return;
+    }
+
     const formData = {
       email: user ? user.email : "",
       shippingAddress,

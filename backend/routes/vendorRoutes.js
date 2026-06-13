@@ -25,6 +25,19 @@ const buildShareUrl = (productId, vendorId, assignedProductId, shareCode) => {
   return `${baseUrl.replace(/\/$/, "")}/product/${productId}?${params.toString()}`;
 };
 
+const normalizeCodeSegment = (value, fallback) => {
+  const normalized = String(value || "")
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase();
+  return normalized || fallback;
+};
+
+const buildBulkCode = (prefix, vendorId, productId) => {
+  const vendorPart = normalizeCodeSegment(vendorId, "VEND").slice(-4);
+  const productPart = normalizeCodeSegment(productId, "PROD").slice(-4);
+  return `${prefix}-${vendorPart}-${productPart}`;
+};
+
 // REGISTER ROUTE
 router.post("/register", registerVendor);
 
@@ -352,8 +365,66 @@ router.get("/assigned-products", protect, async (req, res) => {
       assignmentQuery.$or.push({ vendorId: assignmentVendorId });
     }
 
-    const assignments = await ReferralAssignment.find(assignmentQuery)
+    let assignments = await ReferralAssignment.find(assignmentQuery)
       .sort({ createdAt: -1 });
+
+    // Lazy Auto-Assign: Fetch globally assigned products
+    try {
+      const Product = require("../models/Product");
+      const globalProducts = await Product.find({ isAssignedToAll: true, isPublished: true, productApprovalStatus: "approved" });
+
+      if (globalProducts.length > 0) {
+        // Find which global products the vendor doesn't have an assignment for yet
+        const existingProductIds = new Set(assignments.map(a => String(a.productId)));
+        const missingGlobalProducts = globalProducts.filter(p => !existingProductIds.has(String(p._id)));
+
+        if (missingGlobalProducts.length > 0) {
+          const vendorSnapshotObj = {
+            mentorId: requestedVendorId,
+            name: req.user.name || req.user.vendorName || "Partner",
+            email: req.user.email || "",
+            phone: req.user.phone || "",
+            role: req.user.role || "vendor",
+          };
+
+          const newAssignments = missingGlobalProducts.map((product) => {
+            const prodId = String(product._id);
+            return {
+              productId: prodId,
+              vendorId: assignmentVendorId || null,
+              externalVendorId: requestedVendorId,
+              vendorSnapshot: vendorSnapshotObj,
+              assignedProductId: buildBulkCode("AP", requestedVendorId, prodId),
+              shareCode: buildBulkCode("MWREF", requestedVendorId, prodId),
+              refCode: buildBulkCode("REF", requestedVendorId, prodId),
+              commissionType: "percentage",
+              commissionValue: 10,
+              isActive: true,
+              assignmentStatus: "assigned",
+            };
+          });
+
+          const bulkOps = newAssignments.map((assignment) => ({
+            updateOne: {
+              filter: {
+                productId: assignment.productId,
+                externalVendorId: assignment.externalVendorId,
+                assignedProductId: assignment.assignedProductId
+              },
+              update: { $setOnInsert: assignment },
+              upsert: true
+            }
+          }));
+
+          await ReferralAssignment.bulkWrite(bulkOps);
+
+          // Re-fetch assignments after generating missing ones
+          assignments = await ReferralAssignment.find(assignmentQuery).sort({ createdAt: -1 });
+        }
+      }
+    } catch (autoAssignErr) {
+      console.error("Error during auto-assignment of global products:", autoAssignErr);
+    }
 
     const productMap = await fetchProductsByIds(assignments.map((assignment) => assignment.productId));
 
