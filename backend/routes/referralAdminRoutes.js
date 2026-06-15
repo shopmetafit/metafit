@@ -375,118 +375,97 @@ router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
       });
     }
 
-    const assignments = await Promise.all(
-      vendors.map(async (vendor) => {
+    const bulkOps = vendors.map((vendor) => {
+      const vendorRef = String(
+        vendor.vendorId ||
+        vendor.mentorId ||
+        vendor._id ||
+        vendor.id ||
+        ""
+      ).trim();
 
-        const vendorRef = String(
-          vendor.vendorId ||
-          vendor.mentorId ||
-          vendor._id ||
-          vendor.id ||
-          ""
-        ).trim();
+      const vendorFields =
+        resolveAssignmentVendorFields({
+          vendorId: vendorRef,
+          vendorName:
+            vendor.vendorName ||
+            vendor.businessName ||
+            vendor.name,
 
-        const vendorFields =
-          resolveAssignmentVendorFields({
-            vendorId: vendorRef,
-            vendorName:
-              vendor.vendorName ||
-              vendor.businessName ||
-              vendor.name,
+          vendorEmail:
+            vendor.email ||
+            vendor.useremail,
 
-            vendorEmail:
-              vendor.email ||
-              vendor.useremail,
+          vendorPhone:
+            vendor.phone ||
+            vendor.phoneNo,
 
-            vendorPhone:
-              vendor.phone ||
-              vendor.phoneNo,
+          vendorRole: vendor.role,
+        });
 
-            vendorRole: vendor.role,
-          });
-
-        const assignedProductId =
-          buildBulkCode(
-            assignedProductPrefix || "AP",
-            vendorRef,
-            productId
-          );
-
-        const shareCode =
-          buildBulkCode(
-            shareCodePrefix || "MWREF",
-            vendorRef,
-            productId
-          );
-
-        const refCode =
-          buildBulkCode(
-            refCodePrefix || "REF",
-            vendorRef,
-            productId
-          );
-
-        const assignment =
-          await ReferralAssignment.findOneAndUpdate(
-            buildAssignmentLookup({
-              productId,
-              vendorId: vendorFields.vendorId,
-              externalVendorId:
-                vendorFields.externalVendorId,
-              assignedProductId,
-            }),
-            {
-              productId,
-
-              vendorId:
-                vendorFields.vendorId,
-
-              externalVendorId:
-                vendorFields.externalVendorId,
-
-              vendorSnapshot:
-                vendorFields.vendorSnapshot,
-
-              assignedProductId,
-
-              shareCode,
-
-              refCode,
-
-              commissionType:
-                normalizedCommissionType,
-
-              commissionValue:
-                Number(commissionValue),
-
-              isActive:
-                isActive !== false,
-
-              assignmentStatus:
-                normalizedAssignmentStatus,
-            },
-            {
-              new: true,
-              upsert: true,
-              runValidators: true,
-              setDefaultsOnInsert: true,
-            }
-          );
-
-        return hydrateAssignmentVendor(
-          assignment.toObject()
+      const assignedProductId =
+        buildBulkCode(
+          assignedProductPrefix || "AP",
+          vendorRef,
+          productId
         );
-      })
-    );
+
+      const shareCode =
+        buildBulkCode(
+          shareCodePrefix || "MWREF",
+          vendorRef,
+          productId
+        );
+
+      const refCode =
+        buildBulkCode(
+          refCodePrefix || "REF",
+          vendorRef,
+          productId
+        );
+
+      const filter = buildAssignmentLookup({
+        productId: new mongoose.Types.ObjectId(String(productId)),
+        vendorId: vendorFields.vendorId ? new mongoose.Types.ObjectId(String(vendorFields.vendorId)) : null,
+        externalVendorId: vendorFields.externalVendorId,
+        assignedProductId,
+      });
+
+      return {
+        updateOne: {
+          filter,
+          update: {
+            $set: {
+              productId: new mongoose.Types.ObjectId(String(productId)),
+              vendorId: vendorFields.vendorId ? new mongoose.Types.ObjectId(String(vendorFields.vendorId)) : null,
+              externalVendorId: vendorFields.externalVendorId,
+              vendorSnapshot: vendorFields.vendorSnapshot,
+              assignedProductId,
+              shareCode,
+              refCode,
+              commissionType: normalizedCommissionType,
+              commissionValue: Number(commissionValue),
+              isActive: isActive !== false,
+              assignmentStatus: normalizedAssignmentStatus,
+            }
+          },
+          upsert: true,
+        }
+      };
+    });
+
+    const bulkResult = await ReferralAssignment.bulkWrite(bulkOps);
+
+    const totalCount = bulkResult.upsertedCount + bulkResult.modifiedCount || vendors.length;
 
     res.status(201).json({
-      message: `${assignments.length} vendors ko assignment create ho gaya`,
-      totalAssigned: assignments.length,
-      assignments,
+      message: `Successfully assigned product to ${totalCount} vendors`,
+      totalAssigned: totalCount,
+      upsertedCount: bulkResult.upsertedCount,
+      modifiedCount: bulkResult.modifiedCount,
     });
 
   } catch (error) {
-
     console.error(
       "Error creating bulk referral assignments",
       error
@@ -541,12 +520,32 @@ router.get("/referral-assignments", protect, admin, async (req, res) => {
     }
 
     const assignments = await ReferralAssignment.find(query)
-      .populate("vendorId", "vendorName businessName email phone")
-      .sort({ createdAt: -1 });
+      .select("productId vendorId externalVendorId vendorSnapshot assignedProductId shareCode refCode commissionType commissionValue isActive assignmentStatus createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const validVendorIds = [...new Set(
+      assignments
+        .map((a) => a.vendorId)
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(String(id)))
+        .map((id) => String(id))
+    )];
+
+    let vendorMap = new Map();
+    if (validVendorIds.length > 0) {
+      const Vendor = mongoose.model("Vendor");
+      const vendors = await Vendor.find({ _id: { $in: validVendorIds } })
+        .select("vendorName businessName email phone")
+        .lean();
+      vendorMap = new Map(vendors.map((v) => [String(v._id), v]));
+    }
 
     const productMap = await fetchProductsByIds(assignments.map((assignment) => assignment.productId));
     const hydratedAssignments = assignments.map((assignment) => {
-      const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
+      if (assignment.vendorId && vendorMap.has(String(assignment.vendorId))) {
+        assignment.vendorId = vendorMap.get(String(assignment.vendorId));
+      }
+      const assignmentObject = hydrateAssignmentVendor(assignment);
       assignmentObject.productId = productMap.get(String(assignment.productId)) || assignment.productId;
       return assignmentObject;
     });
@@ -597,19 +596,28 @@ router.patch("/referral-assignments/:id/status", protect, admin, async (req, res
       updatePayload.rejectionReason = rejectionReason.trim();
     }
 
-    const assignment = await ReferralAssignment.findByIdAndUpdate(
+    let assignment = await ReferralAssignment.findByIdAndUpdate(
       req.params.id,
       updatePayload,
       { new: true, runValidators: true }
-    )
-      .populate("vendorId", "vendorName businessName email phone");
+    ).lean();
 
     if (!assignment) {
       return res.status(404).json({ message: "Referral assignment not found" });
     }
 
+    if (assignment.vendorId && mongoose.Types.ObjectId.isValid(String(assignment.vendorId))) {
+      const Vendor = mongoose.model("Vendor");
+      const vendorInfo = await Vendor.findById(assignment.vendorId)
+        .select("vendorName businessName email phone")
+        .lean();
+      if (vendorInfo) {
+        assignment.vendorId = vendorInfo;
+      }
+    }
+
     const productMap = await fetchProductsByIds([assignment.productId]);
-    const assignmentObject = hydrateAssignmentVendor(assignment.toObject());
+    const assignmentObject = hydrateAssignmentVendor(assignment);
     assignmentObject.productId = productMap.get(String(assignment.productId)) || assignment.productId;
 
     res.json(assignmentObject);
@@ -640,13 +648,50 @@ router.get("/referrals/purchases", protect, admin, async (req, res) => {
     if (shareCode) query.shareCode = String(shareCode).trim().toUpperCase();
 
     const purchases = await ReferralPurchase.find(query)
-      .populate("vendorId", "vendorName businessName email phone")
-      .populate("assignmentId", "assignedProductId shareCode commissionType commissionValue")
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const validVendorIds = [...new Set(
+      purchases
+        .map((p) => p.vendorId)
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(String(id)))
+        .map((id) => String(id))
+    )];
+
+    const validAssignmentIds = [...new Set(
+      purchases
+        .map((p) => p.assignmentId)
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(String(id)))
+        .map((id) => String(id))
+    )];
+
+    let vendorMap = new Map();
+    if (validVendorIds.length > 0) {
+      const Vendor = mongoose.model("Vendor");
+      const vendors = await Vendor.find({ _id: { $in: validVendorIds } })
+        .select("vendorName businessName email phone")
+        .lean();
+      vendorMap = new Map(vendors.map((v) => [String(v._id), v]));
+    }
+
+    let assignmentMap = new Map();
+    if (validAssignmentIds.length > 0) {
+      const assignments = await ReferralAssignment.find({ _id: { $in: validAssignmentIds } })
+        .select("assignedProductId shareCode commissionType commissionValue")
+        .lean();
+      assignmentMap = new Map(assignments.map((a) => [String(a._id), a]));
+    }
 
     const productMap = await fetchProductsByIds(purchases.map((purchase) => purchase.productId));
     const hydratedPurchases = purchases.map((purchase) => {
-      const purchaseObject = purchase.toObject();
+      if (purchase.vendorId && vendorMap.has(String(purchase.vendorId))) {
+        purchase.vendorId = vendorMap.get(String(purchase.vendorId));
+      }
+      if (purchase.assignmentId && assignmentMap.has(String(purchase.assignmentId))) {
+        purchase.assignmentId = assignmentMap.get(String(purchase.assignmentId));
+      }
+
+      const purchaseObject = purchase;
       purchaseObject.productId = productMap.get(String(purchase.productId)) || purchase.productId;
       return purchaseObject;
     });
@@ -720,13 +765,32 @@ router.get("/referral-sales", protect, admin, async (req, res) => {
     ]);
 
     const latestSales = await ReferralPurchase.find({})
-      .populate("vendorId", "vendorName businessName")
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(20)
+      .lean();
+
+    const validVendorIds = [...new Set(
+      latestSales
+        .map((sale) => sale.vendorId)
+        .filter((id) => id && mongoose.Types.ObjectId.isValid(String(id)))
+        .map((id) => String(id))
+    )];
+
+    let vendorMap = new Map();
+    if (validVendorIds.length > 0) {
+      const Vendor = mongoose.model("Vendor");
+      const vendors = await Vendor.find({ _id: { $in: validVendorIds } })
+        .select("vendorName businessName")
+        .lean();
+      vendorMap = new Map(vendors.map((v) => [String(v._id), v]));
+    }
 
     const productMap = await fetchProductsByIds(latestSales.map((sale) => sale.productId));
     const hydratedSales = latestSales.map((sale) => {
-      const saleObject = sale.toObject();
+      if (sale.vendorId && vendorMap.has(String(sale.vendorId))) {
+        sale.vendorId = vendorMap.get(String(sale.vendorId));
+      }
+      const saleObject = sale;
       saleObject.productId = productMap.get(String(sale.productId)) || sale.productId;
       return saleObject;
     });

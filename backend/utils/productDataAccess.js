@@ -65,7 +65,9 @@ const fetchProductsByIds = async (productIds = []) => {
   const ProductReadModel = await getProductReadModel();
   const products = await ProductReadModel.find({
     _id: { $in: uniqueIds },
-  }).lean();
+  })
+    .select("name description price discountPrice images category brand status isPublished productApprovalStatus")
+    .lean();
 
   return new Map(products.map((product) => [String(product._id), product]));
 };
