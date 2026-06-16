@@ -81,6 +81,10 @@ const referralAssignmentSchema = new mongoose.Schema(
       enum: ["assigned", "removed"],
       default: "assigned",
     },
+    isAssignedToAll: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

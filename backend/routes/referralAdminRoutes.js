@@ -3,6 +3,7 @@ const axios = require("axios");
 const ReferralAssignment = require("../models/ReferralAssignment");
 const ReferralPurchase = require("../models/ReferralPurchase");
 const Vendor = require("../models/Vendor");
+const Product = require("../models/Product");
 const { protect, admin } = require("../middleware/authMiddleware");
 const { fetchProductsByIds } = require("../utils/productDataAccess");
 const mongoose = require("mongoose");
@@ -33,7 +34,7 @@ const buildVendorSnapshot = (payload = {}) => ({
   role: String(payload.vendorRole || payload.role || "").trim(),
 });
 
-const DEFAULT_METAFIT_ADMIN_API_BASE_URL = "https://metafit-services.vercel.app";
+const DEFAULT_METAFIT_ADMIN_API_BASE_URL = "http://localhost:5000";
 
 const METAFIT_ADMIN_API_BASE_URL =
   (process.env.METAFIT_ADMIN_API_BASE_URL || DEFAULT_METAFIT_ADMIN_API_BASE_URL).replace(/\/+$/, "");
@@ -447,6 +448,7 @@ router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
               commissionValue: Number(commissionValue),
               isActive: isActive !== false,
               assignmentStatus: normalizedAssignmentStatus,
+              isAssignedToAll: true,
             }
           },
           upsert: true,
@@ -455,6 +457,13 @@ router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
     });
 
     const bulkResult = await ReferralAssignment.bulkWrite(bulkOps);
+
+    // Mark the product as globally assigned
+    try {
+      await Product.findByIdAndUpdate(productId, { isAssignedToAll: true });
+    } catch (productUpdateErr) {
+      console.error("Error setting isAssignedToAll on product:", productUpdateErr);
+    }
 
     const totalCount = bulkResult.upsertedCount + bulkResult.modifiedCount || vendors.length;
 
@@ -492,6 +501,13 @@ router.post("/referral-assignments/bulk-deassign", protect, admin, async (req, r
 
     const result = await ReferralAssignment.deleteMany({ productId });
 
+    // Mark the product as not globally assigned
+    try {
+      await Product.findByIdAndUpdate(productId, { isAssignedToAll: false });
+    } catch (productUpdateErr) {
+      console.error("Error setting isAssignedToAll on product to false:", productUpdateErr);
+    }
+
     res.json({
       message: `${result.deletedCount} Deassigned product from vendors`,
       modifiedCount: result.deletedCount,
@@ -520,7 +536,7 @@ router.get("/referral-assignments", protect, admin, async (req, res) => {
     }
 
     const assignments = await ReferralAssignment.find(query)
-      .select("productId vendorId externalVendorId vendorSnapshot assignedProductId shareCode refCode commissionType commissionValue isActive assignmentStatus createdAt")
+      .select("productId vendorId externalVendorId vendorSnapshot assignedProductId shareCode refCode commissionType commissionValue isActive assignmentStatus isAssignedToAll createdAt")
       .sort({ createdAt: -1 })
       .lean();
 

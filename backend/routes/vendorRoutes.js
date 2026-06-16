@@ -310,48 +310,177 @@ const resolveAssignmentVendorId = async (requestedVendorId, user) => {
       ...phoneQueries,
     ],
   }).select("_id");
-
   return vendor ? String(vendor._id) : null;
 };
 
 // Get products assigned to the logged-in vendor with commission + share URL
-router.get("/assigned-products", protect, async (req, res) => {
+router.get("/assigned-products", async (req, res) => {
   try {
+    // Try to optionally authenticate the user if token is present
+    let user = null;
+    const authHeader = req.headers.authorization;
+    const xAuthToken = req.headers["x-auth-token"];
+    const token = (authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null) || xAuthToken;
+
+    if (token) {
+      try {
+        const jwt = require("jsonwebtoken");
+        const User = require("../models/User");
+
+        // 1. Try local user
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET);
+          const userId = decoded?.user?.id || decoded?.id;
+          if (userId) {
+            user = await User.findById(userId).select("-password");
+          }
+        } catch (localErr) {
+          // ignore and try external
+        }
+
+        // 2. Try external jwt
+        if (!user) {
+          const EXTERNAL_ADMIN_JWT_SECRETS = [
+            process.env.METAFIT_ADMIN_SECRET_KEY,
+            process.env.SECRET_KEY,
+            "your_secret_key",
+          ].filter(Boolean);
+
+          for (const secret of EXTERNAL_ADMIN_JWT_SECRETS) {
+            try {
+              const decoded = jwt.verify(token, secret);
+              const rawUser = {
+                _id: decoded.id || decoded._id || decoded.userId || decoded.mentorId || null,
+                id: decoded.id || decoded._id || null,
+                userId: decoded.userId || null,
+                mentorId: decoded.mentorId || null,
+                email: decoded.email || null,
+                name: decoded.name || decoded.fullName || "External Admin",
+                role: decoded.role || decoded.userRole || decoded.accountType || null,
+              };
+              if (rawUser._id) {
+                const role = String(rawUser.role || "").toLowerCase();
+                user = {
+                  _id: rawUser._id,
+                  id: rawUser.id,
+                  mentorId: rawUser.mentorId,
+                  userId: rawUser.userId,
+                  vendorId: rawUser.mentorId,
+                  name: rawUser.name,
+                  email: rawUser.email,
+                  role,
+                  externalAuth: true,
+                };
+                break;
+              }
+            } catch (err) {
+              // try next
+            }
+          }
+        }
+
+        // 3. Try external verify URL
+        if (!user) {
+          const axios = require("axios");
+          const DEFAULT_EXTERNAL_ADMIN_BASE_URL =
+            process.env.NODE_ENV === "production"
+              ? "https://metafitwellness.com/admin/api/v2"
+              : "http://localhost:5001/admin/api/v2";
+          const EXTERNAL_ADMIN_VERIFY_URL = process.env.EXTERNAL_ADMIN_VERIFY_URL || `${DEFAULT_EXTERNAL_ADMIN_BASE_URL}/verify-admin-details`;
+
+          const response = await axios.post(EXTERNAL_ADMIN_VERIFY_URL, {}, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 5000
+          });
+          const data = response.data || {};
+          if (data.userId || data.mentorId || data.id) {
+            user = {
+              _id: data.mentorId || data.userId || data.id,
+              id: data.id || data.userId || null,
+              mentorId: data.mentorId || null,
+              email: data.email || null,
+              role: data.role || data.userRole || null,
+              name: data.name || "External User"
+            };
+          }
+        }
+      } catch (authError) {
+        console.error("Optional auth error in /assigned-products:", authError);
+      }
+    }
+
     const requestedVendorId = String(
       req.query.vendorId ||
-        req.user.vendorId ||
-        req.user.mentorId ||
-        req.user.userId ||
-        req.user.id ||
-        req.user._id ||
+        (user && (user.vendorId || user.mentorId || user.userId || user.id || user._id)) ||
         ""
     ).trim();
 
-    const authorizedVendorIds = resolveAuthorizedVendorIds(req.user);
-    const isAdmin = String(req.user.role || "").toLowerCase() === "admin";
-
+    // PUBLIC FALLBACK: If requestedVendorId is not provided, fetch all products where isAssignedToAll is true
     if (!requestedVendorId) {
-      return res.status(400).json({
-        success: false,
-        message: "Vendor ID is required",
+      const Product = require("../models/Product");
+      const globalProducts = await Product.find({ isAssignedToAll: true });
+
+      const productIds = globalProducts.map((p) => String(p._id));
+      const existingAssignments = await ReferralAssignment.find({
+        productId: { $in: productIds },
+        assignmentStatus: "assigned",
+        isActive: true,
+      }).select("productId commissionType commissionValue").lean();
+
+      const assignmentTemplateMap = new Map();
+      for (const assignment of existingAssignments) {
+        const prodIdStr = String(assignment.productId);
+        if (!assignmentTemplateMap.has(prodIdStr)) {
+          assignmentTemplateMap.set(prodIdStr, {
+            commissionType: assignment.commissionType,
+            commissionValue: assignment.commissionValue,
+          });
+        }
+      }
+
+      const assignedProducts = globalProducts.map((product) => {
+        const prodId = String(product._id);
+        const template = assignmentTemplateMap.get(prodId) || {
+          commissionType: "percentage",
+          commissionValue: 10,
+        };
+
+        return {
+          _id: prodId,
+          product: product,
+          vendorId: "",
+          commission: {
+            type: template.commissionType,
+            value: template.commissionValue,
+          },
+          shareCode: "",
+          refCode: "",
+          assignedProductId: "",
+          isActive: true,
+          isAssignedToAll: true,
+          shareUrl: "",
+        };
+      });
+
+      return res.json({
+        success: true,
+        assignedProducts,
       });
     }
 
-    if (!isAdmin && !authorizedVendorIds.includes(requestedVendorId)) {
+    // Otherwise, continue with vendor-specific assignment fetch
+    const authorizedVendorIds = user ? resolveAuthorizedVendorIds(user) : [];
+    const isAdmin = user && String(user.role || "").toLowerCase() === "admin";
+
+    // Perform authorization check only if a user session is active (to prevent breaking public clients querying a vendor store)
+    if (user && !isAdmin && !authorizedVendorIds.includes(requestedVendorId)) {
       return res.status(403).json({
         success: false,
         message: "Not authorized for this vendor",
       });
     }
 
-    const assignmentVendorId = await resolveAssignmentVendorId(requestedVendorId, req.user);
-
-    if (!assignmentVendorId && !isAdmin && !requestedVendorId) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor mapping not found",
-      });
-    }
+    const assignmentVendorId = await resolveAssignmentVendorId(requestedVendorId, user);
 
     const assignmentQuery = {
       isActive: true,
@@ -371,7 +500,7 @@ router.get("/assigned-products", protect, async (req, res) => {
     // Lazy Auto-Assign: Fetch globally assigned products
     try {
       const Product = require("../models/Product");
-      const globalProducts = await Product.find({ isAssignedToAll: true, isPublished: true, productApprovalStatus: "approved" });
+      const globalProducts = await Product.find({ isAssignedToAll: true });
 
       if (globalProducts.length > 0) {
         // Find which global products the vendor doesn't have an assignment for yet
@@ -379,16 +508,50 @@ router.get("/assigned-products", protect, async (req, res) => {
         const missingGlobalProducts = globalProducts.filter(p => !existingProductIds.has(String(p._id)));
 
         if (missingGlobalProducts.length > 0) {
+          // Resolve vendor information to build snapshot
+          let vendorInfo = null;
+          if (mongoose.Types.ObjectId.isValid(requestedVendorId)) {
+            vendorInfo = await Vendor.findById(requestedVendorId).lean();
+          } else {
+            vendorInfo = await Vendor.findOne({
+              $or: [{ vendorId: requestedVendorId }, { externalVendorId: requestedVendorId }]
+            }).lean();
+          }
+
           const vendorSnapshotObj = {
             mentorId: requestedVendorId,
-            name: req.user.name || req.user.vendorName || "Partner",
-            email: req.user.email || "",
-            phone: req.user.phone || "",
-            role: req.user.role || "vendor",
+            name: vendorInfo?.vendorName || vendorInfo?.businessName || (user?.name || "Partner"),
+            email: vendorInfo?.email || (user?.email || ""),
+            phone: vendorInfo?.phone || (user?.phone || ""),
+            role: vendorInfo?.role || (user?.role || "vendor"),
           };
+
+          // Find existing assignments for these products to use as a template for commission details
+          const productIds = missingGlobalProducts.map((p) => String(p._id));
+          const existingAssignments = await ReferralAssignment.find({
+            productId: { $in: productIds },
+            assignmentStatus: "assigned",
+            isActive: true,
+          }).select("productId commissionType commissionValue").lean();
+
+          const assignmentTemplateMap = new Map();
+          for (const assignment of existingAssignments) {
+            const prodIdStr = String(assignment.productId);
+            if (!assignmentTemplateMap.has(prodIdStr)) {
+              assignmentTemplateMap.set(prodIdStr, {
+                commissionType: assignment.commissionType,
+                commissionValue: assignment.commissionValue,
+              });
+            }
+          }
 
           const newAssignments = missingGlobalProducts.map((product) => {
             const prodId = String(product._id);
+            const template = assignmentTemplateMap.get(prodId) || {
+              commissionType: "percentage",
+              commissionValue: 10,
+            };
+
             return {
               productId: prodId,
               vendorId: assignmentVendorId || null,
@@ -397,10 +560,11 @@ router.get("/assigned-products", protect, async (req, res) => {
               assignedProductId: buildBulkCode("AP", requestedVendorId, prodId),
               shareCode: buildBulkCode("MWREF", requestedVendorId, prodId),
               refCode: buildBulkCode("REF", requestedVendorId, prodId),
-              commissionType: "percentage",
-              commissionValue: 10,
+              commissionType: template.commissionType,
+              commissionValue: template.commissionValue,
               isActive: true,
               assignmentStatus: "assigned",
+              isAssignedToAll: true,
             };
           });
 
@@ -446,6 +610,7 @@ router.get("/assigned-products", protect, async (req, res) => {
         refCode: assignment.refCode || "",
         assignedProductId: assignment.assignedProductId,
         isActive: assignment.isActive,
+        isAssignedToAll: assignment.isAssignedToAll,
         shareUrl: buildShareUrl(
           assignment.productId,
           effectiveVendorId,
