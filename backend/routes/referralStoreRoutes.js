@@ -145,7 +145,7 @@ router.post("/orders", protect, async (req, res) => {
       return {
         productId: item.productId,
         name: item.name || product?.name || "Product",
-        image: item.image || product?.images?.[0]?.url || "",
+        image: item.image || product?.images?.[0]?.url || "https://via.placeholder.com/150",
         price: Number(item.price ?? product?.discountPrice ?? product?.price ?? 0),
         quantity: Number(item.quantity || item.qty || 1),
         size: item.size,

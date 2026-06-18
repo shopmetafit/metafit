@@ -47,15 +47,14 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
               {product.tags && product.tags.length > 0 && (
                 <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
                   <span
-                    className={`text-white text-xs font-semibold px-2 py-1 rounded-full ${
-                      product.tags.includes("NEW")
+                    className={`text-white text-xs font-semibold px-2 py-1 rounded-full ${product.tags.includes("NEW")
                         ? "bg-blue-500"
                         : product.tags.includes("BESTSELLER")
-                        ? "bg-yellow-500"
-                        : product.tags.includes("SALE")
-                        ? "bg-red-500"
-                        : "bg-gray-500"
-                    }`}
+                          ? "bg-yellow-500"
+                          : product.tags.includes("SALE")
+                            ? "bg-red-500"
+                            : "bg-gray-500"
+                      }`}
                   >
                     {product.tags.join(" / ")}
                   </span>
@@ -102,7 +101,7 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
                             {Math.round(
                               ((product.price - product.discountPrice) /
                                 product.price) *
-                                100
+                              100
                             )}% OFF
                           </span>
                         )}

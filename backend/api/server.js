@@ -1,4 +1,5 @@
 const dotenv = require("dotenv");
+dotenv.config();
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("../config/db");
@@ -77,7 +78,7 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-dotenv.config();
+
 const PORT = process.env.PORT || 3000;
 
 connectDB();

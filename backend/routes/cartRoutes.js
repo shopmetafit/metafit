@@ -17,7 +17,7 @@ const getCart = async (userId, guestId) => {
     const productIds = cart.products.map(p => p.productId);
     const products = await Product.find({ _id: { $in: productIds } }).lean();
     const productMap = new Map(products.map(p => [String(p._id), p]));
-    
+
     let isModified = false;
     cart.products.forEach(p => {
       const product = productMap.get(String(p.productId));
@@ -29,7 +29,7 @@ const getCart = async (userId, guestId) => {
         }
       }
     });
-    
+
     if (isModified) {
       await cart.save();
     }
@@ -44,10 +44,6 @@ const getCart = async (userId, guestId) => {
 
 router.post("/", async (req, res) => {
   const { productId, quantity, size, color, guestId, userId } = req.body;
-
-  console.log("🛒 POST /api/cart - Adding to cart");
-  console.log(`   productId: ${productId}, quantity: ${quantity}, userId: ${userId}, guestId: ${guestId}`);
-  console.log(`   size: ${size}, color: ${color}`);
 
   try {
     const product = await Product.findById(productId);
@@ -66,15 +62,13 @@ router.post("/", async (req, res) => {
       );
       if (productIndex > -1) {
         // if product already exist with same size/color, update the quantity
-        console.log(`✓ Updating quantity for product ${productId}: ${cart.products[productIndex].quantity} + ${quantity}`);
         cart.products[productIndex].quantity += quantity;
       } else {
         // add new product (different size/color or new product)
-        console.log(`✓ Adding new product ${productId} to cart with size: ${size}, color: ${color}`);
         cart.products.push({
           productId,
           name: product.name,
-          image: product.images[0].url,
+          image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
           price: product.discountPrice,
           size: size || null,
           color: color || null,
@@ -102,7 +96,7 @@ router.post("/", async (req, res) => {
           {
             productId,
             name: product.name,
-            image: product.images[0].url,
+            image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
             price: product.discountPrice,
             size: size || null,
             color: color || null,

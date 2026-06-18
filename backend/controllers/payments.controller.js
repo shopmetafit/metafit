@@ -42,7 +42,6 @@ exports.createOrder = (req, res) => {
 };
 
 exports.verifyPayment = async (req, res) => {
-  // console.log("verifyPayment req.body:", req.body); // Debugging line
   const {
     order_id,
     payment_id,
@@ -161,24 +160,75 @@ exports.verifyPayment = async (req, res) => {
 
     // Send emails with better error handling
     try {
+
       await transporter.sendMail(buyerMailOptions);
-      // console.log("✓ Buyer email sent successfully");
+
     } catch (emailErr) {
       console.error("✗ Failed to send buyer email:", emailErr.message);
       // Don't throw - continue processing even if email fails
     }
 
     try {
+
       await transporter.sendMail(adminMailOptions);
-      // console.log("✓ Admin email sent successfully");
+
     } catch (emailErr) {
       console.error("✗ Failed to send admin email:", emailErr.message);
       // Don't throw - continue processing even if email fails
     }
 
-    // Send WhatsApp order confirmation if phone number is available
+    // ---------------- SELLER EMAILS ----------------
+    for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
+      const currentVendor = vendorData.vendor;
+      const vendorProducts = vendorData.products;
+
+      let vendorProductListHtml = "";
+      let vendorTotalAmount = 0;
+
+      vendorProducts.forEach((item) => {
+        const itemTotal = item.price * (item.quantity || 1);
+        vendorTotalAmount += itemTotal;
+        vendorProductListHtml += `
+          <li style="margin-bottom: 10px;">
+            <b>${item.name}</b> (x${item.quantity || 1})
+            <br />
+            <span style="color:#9ca3af; font-size:14px;">Price: ₹${item.price} | Total: ₹${itemTotal}</span>
+          </li>
+        `;
+      });
+
+      const sellerEmailHtml = generateSellerEmail(
+        firstName,
+        lastName,
+        email,
+        vendorProductListHtml,
+        vendorTotalAmount,
+        payment_id,
+        address
+      );
+
+      const sellerMailOptions = {
+        from: process.env.SELLER_EMAIL,
+        to: currentVendor.email,
+        subject: `🎉 New Order Alert - ${firstName} ${lastName}`,
+        html: sellerEmailHtml,
+      };
+
+
+      try {
+        console.log(`📧 SENDING SELLER EMAIL TO:`, currentVendor.email);
+        if (transporter.sellerTransporter) {
+          await transporter.sellerTransporter.sendMail(sellerMailOptions);
+        } else {
+          await transporter.sendMail(sellerMailOptions); // Fallback
+        }
+        console.log(`✓ Seller email sent successfully to ${currentVendor.email}`);
+      } catch (emailErr) {
+        console.error(`✗ Failed to send seller email to ${currentVendor.email}:`, emailErr.message);
+      }
+    }
+
     if (phone) {
-      // console.log("📱 Attempting to send WhatsApp confirmation to:", phone);
       try {
         const productName = products && products.length > 0
           ? products.map(p => p.name).join(", ")
@@ -226,7 +276,7 @@ exports.verifyPayment = async (req, res) => {
           orderId: payment_id.toString(),
           product: productName,
           quantity: totalQuantity,
-          total_amount: `${totalAmount}`,
+          total_amount: `${totalAmount} `,
           name: firstName,
           phone: phone,
           address: address || "Not provided"
@@ -249,14 +299,14 @@ exports.verifyPayment = async (req, res) => {
               orderId: payment_id.toString(),
               product: vendorProductName,
               quantity: vendorTotalQuantity,
-              total_amount: `${totalAmount}`,
+              total_amount: `${totalAmount} `,
               customer_name: firstName,
               customer_phone: phone,
               address: address || "Not provided",
               number: process.env.ADMIN_WHATSAPP_PHONE
             };
 
-            // console.log(`📱 Sending WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
+            // console.log(`📱 Sending WhatsApp vendor notification to: ${ currentVendor.vendorName } (${ currentVendor.phone })`);
             const vendorResult = await sendWhatsAppVendorOrderNotification(vendorNotificationPayload);
           } catch (whatsappErr) {
             console.error("✗ Failed to send WhatsApp vendor notification:", {

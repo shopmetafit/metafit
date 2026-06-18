@@ -119,7 +119,7 @@ const productSchema = new mongoose.Schema(
     ],
     hasVariants: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true, suppressReservedKeysWarning: true }
 );
 
 module.exports = mongoose.model("Product", productSchema);

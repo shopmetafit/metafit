@@ -1,4 +1,4 @@
-import { sendWhatsAppOTP } from "../config/whatsappServices.js";
+const { sendWhatsAppOTP } = require("../config/whatsappServices.js");
 
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
@@ -67,7 +67,7 @@ const isPhoneRateLimited = (phone) => {
  * POST /auth/send-otp
  * Body: { phone }
  */
-export const sendOtpController = async (req, res) => {
+exports.sendOtpController = async (req, res) => {
   try {
     let { phone } = req.body;
 
@@ -155,7 +155,7 @@ export const sendOtpController = async (req, res) => {
  * POST /auth/verify-otp
  * Body: { phone, otp }
  */
-export const verifyOtpController = async (req, res) => {
+exports.verifyOtpController = async (req, res) => {
   try {
     let { phone, otp } = req.body;
 

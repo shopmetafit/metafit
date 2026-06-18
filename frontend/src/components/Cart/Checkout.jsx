@@ -123,17 +123,35 @@ console.log(user);
 
   const loadScript = useCallback((src) => {
     return new Promise((resolve) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        return resolve(true);
+      }
       const script = document.createElement("script");
       script.src = src;
+      script.id = "razorpay-checkout-js";
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
   }, []);
 
+  // Cleanup Razorpay scripts when component unmounts
   useEffect(() => {
-    loadScript("https://checkout.razorpay.com/v1/checkout.js");
-  }, [loadScript]);
+    return () => {
+      const script = document.getElementById("razorpay-checkout-js");
+      if (script) {
+        script.remove();
+      }
+      const iframes = document.querySelectorAll('iframe[src*="razorpay"]');
+      iframes.forEach(iframe => iframe.remove());
+      
+      // Also remove any razorpay-container elements
+      const container = document.querySelector('.razorpay-container');
+      if (container) {
+        container.remove();
+      }
+    };
+  }, []);
 
   const handlePaymentSuccess = async (details, checkoutId) => {
     try {

@@ -6,13 +6,14 @@ const transporter = nodemailer.createTransport({
   secure: false, // TLS (STARTTLS) for port 587
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // MUST be App Password
+    pass: process.env.EMAIL_PASS,
   },
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
 });
-
+console.log(process.env.EMAIL_USER);
+console.log(process.env.EMAIL_PASS);
 transporter.verify((error, success) => {
   if (error) {
     console.error("SMTP Error:", error);
@@ -28,13 +29,16 @@ const sellerTransporter = nodemailer.createTransport({
   secure: false, // TLS (STARTTLS) for port 587
   auth: {
     user: process.env.SELLER_EMAIL,
-    pass: process.env.SELLER_PASS, // MUST be App Password
+    pass: process.env.SELLER_PASS,
   },
+
   connectionTimeout: 10000,
   greetingTimeout: 10000,
   socketTimeout: 10000,
 });
 
+console.log(process.env.SELLER_EMAIL);
+console.log(process.env.SELLER_PASS);
 sellerTransporter.verify((error, success) => {
   if (error) {
     console.error("Seller SMTP Error:", error);

@@ -47,7 +47,8 @@ userSchema.pre("save", async function (next) {
 // Match User entered password to Hash password
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
-return await bcrypt.compare(enteredPassword, this.password);    
+  if (!this.password) return false;
+  return await bcrypt.compare(enteredPassword, this.password);    
 };
 
 module.exports = mongoose.model("User",userSchema);

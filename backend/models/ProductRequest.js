@@ -146,7 +146,7 @@ const productRequestSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true, suppressReservedKeysWarning: true }
 );
 
 module.exports = mongoose.model("ProductRequest", productRequestSchema);
