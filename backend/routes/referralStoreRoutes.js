@@ -241,27 +241,41 @@ router.post("/orders/:id/payment-success", protect, async (req, res) => {
     checkout.paidAt = new Date();
     await checkout.save();
 
-    const order = await Order.create({
-      user: checkout.user,
-      checkoutId: checkout._id,
-      orderItems: checkout.checkoutItems,
-      shippingAddress: checkout.shippingAddress,
-      paymentMethod: checkout.paymentMethod,
-      totalPrice: checkout.totalPrice,
-      deliveryCharge: checkout.deliveryCharge,
-      couponCode: checkout.couponCode || "",
-      couponDiscount: checkout.couponDiscount || 0,
-      isPaid: true,
-      paidAt: checkout.paidAt,
-      isDelivered: false,
-      paymentStatus: "paid",
-      paymentId: String(paymentReference || "").trim(),
-      paymentDetails: checkout.paymentDetails,
-      customerName: checkout.customerName || "",
-      customerPhone: checkout.customerPhone || "",
-      customerEmail: checkout.customerEmail || "",
-      referral: checkout.referral,
-    });
+    let order = await Order.findOne({ paymentId: String(paymentReference || "").trim() });
+    
+    if (order) {
+      // Order was already created by verifyPayment, so just update it with missing fields
+      order.checkoutId = checkout._id;
+      order.customerName = checkout.customerName || "";
+      order.customerPhone = checkout.customerPhone || "";
+      order.customerEmail = checkout.customerEmail || "";
+      order.referral = checkout.referral;
+      order.couponCode = checkout.couponCode || "";
+      order.couponDiscount = checkout.couponDiscount || 0;
+      await order.save();
+    } else {
+      order = await Order.create({
+        user: checkout.user,
+        checkoutId: checkout._id,
+        orderItems: checkout.checkoutItems,
+        shippingAddress: checkout.shippingAddress,
+        paymentMethod: checkout.paymentMethod,
+        totalPrice: checkout.totalPrice,
+        deliveryCharge: checkout.deliveryCharge,
+        couponCode: checkout.couponCode || "",
+        couponDiscount: checkout.couponDiscount || 0,
+        isPaid: true,
+        paidAt: checkout.paidAt,
+        isDelivered: false,
+        paymentStatus: "paid",
+        paymentId: String(paymentReference || "").trim(),
+        paymentDetails: checkout.paymentDetails,
+        customerName: checkout.customerName || "",
+        customerPhone: checkout.customerPhone || "",
+        customerEmail: checkout.customerEmail || "",
+        referral: checkout.referral,
+      });
+    }
 
     checkout.isFinalized = true;
     checkout.finalizedAt = new Date();

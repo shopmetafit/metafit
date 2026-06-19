@@ -112,6 +112,7 @@ exports.verifyPayment = async (req, res) => {
     let primaryVendor = null;
     const vendorMap = new Map(); // vendorId string -> { vendor, products: [] }
     const orderItems = [];
+    let calculatedShipping = 0;
 
     if (Array.isArray(products) && products.length > 0) {
       const productIds = products.map((p) => p.productId);
@@ -140,6 +141,7 @@ exports.verifyPayment = async (req, res) => {
       vendors.forEach(v => vendorsById.set(v._id.toString(), v));
 
       let calculatedAmount = 0;
+
       for (const item of products) {
         const dbProduct = dbProductMap.get(item.productId.toString());
         if (dbProduct) {
@@ -160,15 +162,19 @@ exports.verifyPayment = async (req, res) => {
           if (item.price && validPrices.includes(Number(item.price))) {
             validItemPrice = Number(item.price);
           } else {
-             console.warn(`Price check fallback for ${item.name}: frontend sent ${item.price}, using DB price ${validItemPrice}`);
+            console.warn(`Price check fallback for ${item.name}: frontend sent ${item.price}, using DB price ${validItemPrice}`);
           }
 
           calculatedAmount += validItemPrice * (item.quantity || 1);
+          calculatedShipping += (dbProduct.shippingCharge || 0) * (item.quantity || 1);
         }
       }
 
-      if (Number(calculatedAmount) !== Number(totalAmount)) {
-        console.error("Amount mismatch:", { calculatedAmount, totalAmount: Number(totalAmount) });
+      // Compare against the expected total (products + shipping)
+      const expectedTotal = calculatedAmount + calculatedShipping;
+
+      if (Number(expectedTotal) !== Number(totalAmount)) {
+        console.error("Amount mismatch:", { expectedTotal, calculatedAmount, calculatedShipping, totalAmount: Number(totalAmount) });
         return res.status(400).json({
           success: false,
           message: "Amount mismatch",
@@ -229,11 +235,16 @@ exports.verifyPayment = async (req, res) => {
         },
         paymentMethod: "Razorpay",
         totalPrice: totalAmount,
-        deliveryCharge: 30,
+        deliveryCharge: calculatedShipping,
         isPaid: true,
         paidAt: new Date(),
         paymentStatus: "Completed",
         paymentId: payment_id,
+        paymentDetails: {
+          razorpay_order_id: order_id,
+          razorpay_payment_id: payment_id,
+          razorpay_signature: signature,
+        },
         status: "Processing",
       });
 
@@ -276,194 +287,194 @@ exports.verifyPayment = async (req, res) => {
       address
     );
 
-    // ---------------- BUYER EMAIL ----------------
-    const buyerMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Order Confirmed 🎉",
-      html: buyerEmailHtml,
-    };
+    // // ---------------- BUYER EMAIL ----------------
+    // const buyerMailOptions = {
+    //   from: process.env.EMAIL_USER,
+    //   to: email,
+    //   subject: "Order Confirmed 🎉",
+    //   html: buyerEmailHtml,
+    // };
 
-    // ---------------- ADMIN EMAIL ----------------
-    const adminMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.SELLER_EMAIL,
-      subject: `📦 New Order Alert - ${firstName} ${lastName}`,
-      html: adminEmailHtml,
-    };
+    // // ---------------- ADMIN EMAIL ----------------
+    // const adminMailOptions = {
+    //   from: process.env.EMAIL_USER,
+    //   to: process.env.SELLER_EMAIL,
+    //   subject: `📦 New Order Alert - ${firstName} ${lastName}`,
+    //   html: adminEmailHtml,
+    // };
 
-    // Send emails with better error handling
-    try {
-      console.log("📧 Sending buyer and admin emails...");
-      await Promise.all([
-        transporter.sendMail(buyerMailOptions).catch(e => console.error("✗ Failed buyer email:", e.message)),
-        transporter.sendMail(adminMailOptions).catch(e => console.error("✗ Failed admin email:", e.message))
-      ]);
-      console.log("✓ Buyer and admin emails processed");
-    } catch (emailErr) {
-      console.error("✗ Failed to process main emails:", emailErr.message);
-    }
+    // // Send emails with better error handling
+    // try {
+    //   console.log("📧 Sending buyer and admin emails...");
+    //   await Promise.all([
+    //     transporter.sendMail(buyerMailOptions).catch(e => console.error("✗ Failed buyer email:", e.message)),
+    //     transporter.sendMail(adminMailOptions).catch(e => console.error("✗ Failed admin email:", e.message))
+    //   ]);
+    //   console.log("✓ Buyer and admin emails processed");
+    // } catch (emailErr) {
+    //   console.error("✗ Failed to process main emails:", emailErr.message);
+    // }
 
-    // ---------------- SELLER EMAILS ----------------
-    const vendorMailOptions = [];
+    // // ---------------- SELLER EMAILS ----------------
+    // const vendorMailOptions = [];
 
-    for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
-      const currentVendor = vendorData.vendor;
-      const vendorProducts = vendorData.products;
+    // for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
+    //   const currentVendor = vendorData.vendor;
+    //   const vendorProducts = vendorData.products;
 
-      let vendorProductListHtml = "";
-      let vendorTotalAmount = 0;
+    //   let vendorProductListHtml = "";
+    //   let vendorTotalAmount = 0;
 
-      vendorProducts.forEach((item) => {
-        const itemTotal = item.price * (item.quantity || 1);
-        vendorTotalAmount += itemTotal;
-        vendorProductListHtml += `
-          <li style="margin-bottom: 10px;">
-            <b>${item.name}</b> (x${item.quantity || 1})
-            <br />
-            <span style="color:#9ca3af; font-size:14px;">Price: ₹${item.price} | Total: ₹${itemTotal}</span>
-          </li>
-        `;
-      });
+    //   vendorProducts.forEach((item) => {
+    //     const itemTotal = item.price * (item.quantity || 1);
+    //     vendorTotalAmount += itemTotal;
+    //     vendorProductListHtml += `
+    //       <li style="margin-bottom: 10px;">
+    //         <b>${item.name}</b> (x${item.quantity || 1})
+    //         <br />
+    //         <span style="color:#9ca3af; font-size:14px;">Price: ₹${item.price} | Total: ₹${itemTotal}</span>
+    //       </li>
+    //     `;
+    //   });
 
-      const sellerEmailHtml = generateSellerEmail(
-        firstName,
-        lastName,
-        email,
-        phone,
-        vendorProductListHtml,
-        vendorTotalAmount,
-        payment_id,
-        address
-      );
+    //   const sellerEmailHtml = generateSellerEmail(
+    //     firstName,
+    //     lastName,
+    //     email,
+    //     phone,
+    //     vendorProductListHtml,
+    //     vendorTotalAmount,
+    //     payment_id,
+    //     address
+    //   );
 
-      vendorMailOptions.push({
-        from: process.env.SELLER_EMAIL,
-        to: currentVendor.email,
-        subject: `🎉 New Order Alert - ${firstName} ${lastName}`,
-        html: sellerEmailHtml,
-      });
-    }
+    //   vendorMailOptions.push({
+    //     from: process.env.SELLER_EMAIL,
+    //     to: currentVendor.email,
+    //     subject: `🎉 New Order Alert - ${firstName} ${lastName}`,
+    //     html: sellerEmailHtml,
+    //   });
+    // }
 
-    if (vendorMailOptions.length > 0) {
-      try {
-        console.log(`📧 Sending ${vendorMailOptions.length} seller emails...`);
-        const sender = transporter.sellerTransporter || transporter;
-        await Promise.all(
-          vendorMailOptions.map((mail) => sender.sendMail(mail).catch(e => console.error(`✗ Failed seller email to ${mail.to}:`, e.message)))
-        );
-        console.log("✓ Seller emails processed");
-      } catch (emailErr) {
-        console.error("✗ Failed to process seller emails:", emailErr.message);
-      }
-    }
+    // if (vendorMailOptions.length > 0) {
+    //   try {
+    //     console.log(`📧 Sending ${vendorMailOptions.length} seller emails...`);
+    //     const sender = transporter.sellerTransporter || transporter;
+    //     await Promise.all(
+    //       vendorMailOptions.map((mail) => sender.sendMail(mail).catch(e => console.error(`✗ Failed seller email to ${mail.to}:`, e.message)))
+    //     );
+    //     console.log("✓ Seller emails processed");
+    //   } catch (emailErr) {
+    //     console.error("✗ Failed to process seller emails:", emailErr.message);
+    //   }
+    // }
 
-    // ---------------- WHATSAPP NOTIFICATIONS ----------------
-    const whatsappPromises = [];
+    // // ---------------- WHATSAPP NOTIFICATIONS ----------------
+    // const whatsappPromises = [];
 
-    // 1. Buyer Notification
-    if (phone) {
-      const productName = products && products.length > 0
-        ? products.map(p => p.name).join(", ")
-        : "Order";
+    // // 1. Buyer Notification
+    // if (phone) {
+    //   const productName = products && products.length > 0
+    //     ? products.map(p => p.name).join(", ")
+    //     : "Order";
 
-      const productQuantity = products && products.length > 0
-        ? products.length.toString()
-        : "1";
+    //   const productQuantity = products && products.length > 0
+    //     ? products.length.toString()
+    //     : "1";
 
-      const whatsappPayload = {
-        customer_phone: phone,
-        customer_name: firstName,
-        product_success_name: payment_id,
-        product_name: productName,
-        product_quantity: productQuantity,
-        product_amount: `${totalAmount}`,
-        payment_status: "completed"
-      };
+    //   const whatsappPayload = {
+    //     customer_phone: phone,
+    //     customer_name: firstName,
+    //     product_success_name: payment_id,
+    //     product_name: productName,
+    //     product_quantity: productQuantity,
+    //     product_amount: `${totalAmount}`,
+    //     payment_status: "completed"
+    //   };
 
-      console.log("📱 Preparing WhatsApp Buyer Payload");
-      whatsappPromises.push(
-        sendWhatsAppOrderConfirmation(whatsappPayload).catch(whatsappErr => {
-          console.error("✗ Failed to send WhatsApp buyer confirmation:", {
-            message: whatsappErr.message,
-            phone: phone
-          });
-        })
-      );
-    } else {
-      console.warn("⚠️ Phone number not provided - skipping WhatsApp buyer confirmation");
-    }
+    //   console.log("📱 Preparing WhatsApp Buyer Payload");
+    //   whatsappPromises.push(
+    //     sendWhatsAppOrderConfirmation(whatsappPayload).catch(whatsappErr => {
+    //       console.error("✗ Failed to send WhatsApp buyer confirmation:", {
+    //         message: whatsappErr.message,
+    //         phone: phone
+    //       });
+    //     })
+    //   );
+    // } else {
+    //   console.warn("⚠️ Phone number not provided - skipping WhatsApp buyer confirmation");
+    // }
 
-    // 2. Admin & Vendor Notifications
-    if (payment_id && firstName && phone && products && products.length > 0) {
-      console.log("📱 Preparing WhatsApp Admin/Vendor notifications");
-      const productName = products.map(p => p.name).join(", ");
-      const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+    // // 2. Admin & Vendor Notifications
+    // if (payment_id && firstName && phone && products && products.length > 0) {
+    //   console.log("📱 Preparing WhatsApp Admin/Vendor notifications");
+    //   const productName = products.map(p => p.name).join(", ");
+    //   const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
 
-      const adminNotificationPayload = {
-        admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
-        orderId: payment_id.toString(),
-        product: productName,
-        quantity: totalQuantity,
-        total_amount: `${totalAmount} `,
-        name: firstName,
-        phone: phone,
-        address: address || "Not provided"
-      };
+    //   const adminNotificationPayload = {
+    //     admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
+    //     orderId: payment_id.toString(),
+    //     product: productName,
+    //     quantity: totalQuantity,
+    //     total_amount: `${totalAmount} `,
+    //     name: firstName,
+    //     phone: phone,
+    //     address: address || "Not provided"
+    //   };
 
-      whatsappPromises.push(
-        sendWhatsAppAdminOrderNotification(adminNotificationPayload).catch(adminWhatsappErr => {
-          console.error("✗ Failed to send WhatsApp admin notification:", {
-            message: adminWhatsappErr.message
-          });
-        })
-      );
+    //   whatsappPromises.push(
+    //     sendWhatsAppAdminOrderNotification(adminNotificationPayload).catch(adminWhatsappErr => {
+    //       console.error("✗ Failed to send WhatsApp admin notification:", {
+    //         message: adminWhatsappErr.message
+    //       });
+    //     })
+    //   );
 
-      for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
-        const currentVendor = vendorData.vendor;
-        const vendorProducts = vendorData.products;
+    //   for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
+    //     const currentVendor = vendorData.vendor;
+    //     const vendorProducts = vendorData.products;
 
-        const vendorProductName = vendorProducts.map(p => p.name).join(", ");
-        const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+    //     const vendorProductName = vendorProducts.map(p => p.name).join(", ");
+    //     const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
 
-        const vendorNotificationPayload = {
-          vendor_phone: currentVendor.phone,
-          vendor_name: currentVendor.vendorName,
-          orderId: payment_id.toString(),
-          product: vendorProductName,
-          quantity: vendorTotalQuantity,
-          total_amount: `${totalAmount} `,
-          customer_name: firstName,
-          customer_phone: phone,
-          address: address || "Not provided",
-          number: process.env.ADMIN_WHATSAPP_PHONE
-        };
+    //     const vendorNotificationPayload = {
+    //       vendor_phone: currentVendor.phone,
+    //       vendor_name: currentVendor.vendorName,
+    //       orderId: payment_id.toString(),
+    //       product: vendorProductName,
+    //       quantity: vendorTotalQuantity,
+    //       total_amount: `${totalAmount} `,
+    //       customer_name: firstName,
+    //       customer_phone: phone,
+    //       address: address || "Not provided",
+    //       number: process.env.ADMIN_WHATSAPP_PHONE
+    //     };
 
-        console.log(`📱 Preparing WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
-        
-        whatsappPromises.push(
-          sendWhatsAppVendorOrderNotification(vendorNotificationPayload).catch(whatsappErr => {
-            console.error("✗ Failed to send WhatsApp vendor notification:", {
-              message: whatsappErr.message,
-              vendorPhone: currentVendor.phone
-            });
-          })
-        );
-      }
-    } else {
-      console.warn("⚠️ Skipping admin/vendor WhatsApp notification - missing required data");
-    }
+    //     console.log(`📱 Preparing WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
 
-    // Execute all WhatsApp requests concurrently
-    if (whatsappPromises.length > 0) {
-      try {
-        console.log(`📱 Sending ${whatsappPromises.length} WhatsApp notifications concurrently...`);
-        await Promise.all(whatsappPromises);
-        console.log("✓ All WhatsApp notifications processed successfully");
-      } catch (overallWhatsappErr) {
-        console.error("✗ Failed during WhatsApp notification processing:", overallWhatsappErr.message);
-      }
-    }
+    //     whatsappPromises.push(
+    //       sendWhatsAppVendorOrderNotification(vendorNotificationPayload).catch(whatsappErr => {
+    //         console.error("✗ Failed to send WhatsApp vendor notification:", {
+    //           message: whatsappErr.message,
+    //           vendorPhone: currentVendor.phone
+    //         });
+    //       })
+    //     );
+    //   }
+    // } else {
+    //   console.warn("⚠️ Skipping admin/vendor WhatsApp notification - missing required data");
+    // }
+
+    // // Execute all WhatsApp requests concurrently
+    // if (whatsappPromises.length > 0) {
+    //   try {
+    //     console.log(`📱 Sending ${whatsappPromises.length} WhatsApp notifications concurrently...`);
+    //     await Promise.all(whatsappPromises);
+    //     console.log("✓ All WhatsApp notifications processed successfully");
+    //   } catch (overallWhatsappErr) {
+    //     console.error("✗ Failed during WhatsApp notification processing:", overallWhatsappErr.message);
+    //   }
+    // }
 
   } catch (err) {
     console.error("✗ Error in verifyPayment:", err);
