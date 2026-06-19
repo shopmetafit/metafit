@@ -116,7 +116,10 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen }) => {
 
             {/* Continue shopping */}
             <button
-              onClick={togglerCartOpen}
+              onClick={() => {
+                togglerCartOpen();
+                navigate("/collections/all");
+              }}
               className="w-full text-center text-sm text-[#047ca8] hover:underline font-medium"
             >
               Continue Shopping

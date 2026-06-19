@@ -106,7 +106,8 @@ const orderSchema = new mongoose.Schema(
     },
     paymentId: {
       type: String,
-      default: null,
+      required: true,
+      unique: true,
     },
     paymentDetails: {
       type: mongoose.Schema.Types.Mixed,

@@ -9,7 +9,7 @@ const Order = require("../models/Order");
 const User = require("../models/User");
 const Vendor = require("../models/Vendor");
 
-exports.createOrder = (req, res) => {
+exports.createOrder = async (req, res) => {
   const { courseId, amount } = req.body;
   if (!courseId || !amount) {
     return res.status(400).json({
@@ -24,16 +24,10 @@ exports.createOrder = (req, res) => {
   };
 
   try {
-    razorpayInstance.orders.create(option, (err, order) => {
-      if (err) {
-        return res.status(500).json({
-          success: false,
-          message: " Something went wrong",
-        });
-      }
-      return res.status(200).json(order);
-    });
+    const order = await razorpayInstance.orders.create(option);
+    return res.status(200).json(order);
   } catch (error) {
+    console.error("✗ Failed to create Razorpay order:", error);
     return res.status(500).json({
       success: false,
       message: " Something went wrong",
@@ -55,6 +49,9 @@ exports.verifyPayment = async (req, res) => {
     phone,
   } = req.body;
 
+  console.log("---- STARTING PAYMENT VERIFICATION ----");
+  console.log("Received data:", { order_id, payment_id, email, totalAmount, phone, signature_received: signature ? 'yes' : 'no' });
+
   // Generate HMAC signature to verify payment
   const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET_KEY);
   hmac.update(order_id + "|" + payment_id);
@@ -64,6 +61,20 @@ exports.verifyPayment = async (req, res) => {
     return res.status(400).json({
       success: false,
       message: "Payment not verified",
+    });
+  }
+
+  console.log("✓ Signature verified successfully");
+
+  const existingOrder = await Order.findOne({
+    paymentId: payment_id,
+  });
+
+  if (existingOrder) {
+    return res.status(200).json({
+      success: true,
+      message: "Order already processed",
+      orderId: existingOrder._id,
     });
   }
 
@@ -89,9 +100,12 @@ exports.verifyPayment = async (req, res) => {
 
   try {
     // Fetch user early
+    console.log("Fetching user for email:", email);
     const user = await User.findOne({ email });
     if (!user) {
       console.warn("⚠️ User not found for email:", email);
+    } else {
+      console.log("✓ User found:", user._id);
     }
 
     // Resolve products and vendor details early
@@ -100,26 +114,83 @@ exports.verifyPayment = async (req, res) => {
     const orderItems = [];
 
     if (Array.isArray(products) && products.length > 0) {
+      const productIds = products.map((p) => p.productId);
+
+      const dbProducts = await Product.find({
+        _id: { $in: productIds },
+      }).lean();
+
+      // Create a map for quick product lookup
+      const dbProductMap = new Map();
+      dbProducts.forEach(dbP => dbProductMap.set(dbP._id.toString(), dbP));
+
+      const vendorIds = [
+        ...new Set(
+          dbProducts
+            .filter(p => p.vendorId)
+            .map(p => p.vendorId.toString())
+        )
+      ];
+
+      const vendors = await Vendor.find({
+        _id: { $in: vendorIds }
+      }).lean();
+
+      const vendorsById = new Map();
+      vendors.forEach(v => vendorsById.set(v._id.toString(), v));
+
+      let calculatedAmount = 0;
+      for (const item of products) {
+        const dbProduct = dbProductMap.get(item.productId.toString());
+        if (dbProduct) {
+          // Gather all valid prices for this product from the database
+          const validPrices = [dbProduct.price, dbProduct.discountPrice].filter(Boolean);
+          
+          if (dbProduct.variants && dbProduct.variants.length > 0) {
+            dbProduct.variants.forEach(v => {
+              if (v.price) validPrices.push(v.price);
+              if (v.discountPrice) validPrices.push(v.discountPrice);
+            });
+          }
+
+          // If the frontend item.price is one of the valid DB prices, use it.
+          // Otherwise, fallback to the main dbProduct.discountPrice or dbProduct.price
+          let validItemPrice = (dbProduct.discountPrice || dbProduct.price);
+          
+          if (item.price && validPrices.includes(Number(item.price))) {
+            validItemPrice = Number(item.price);
+          } else {
+             console.warn(`Price check fallback for ${item.name}: frontend sent ${item.price}, using DB price ${validItemPrice}`);
+          }
+
+          calculatedAmount += validItemPrice * (item.quantity || 1);
+        }
+      }
+
+      if (Number(calculatedAmount) !== Number(totalAmount)) {
+        console.error("Amount mismatch:", { calculatedAmount, totalAmount: Number(totalAmount) });
+        return res.status(400).json({
+          success: false,
+          message: "Amount mismatch",
+        });
+      }
+
       for (const p of products) {
-        // Fetch product from DB to get vendor info
-        const dbProduct = await Product.findById(p.productId);
+        const dbProduct = dbProductMap.get(p.productId.toString());
 
         if (dbProduct && dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
           const vendorIdStr = dbProduct.vendorId.toString();
-          if (!vendorMap.has(vendorIdStr)) {
-            try {
-              const v = await Vendor.findById(dbProduct.vendorId);
-              if (v) {
-                vendorMap.set(vendorIdStr, { vendor: v, products: [p] });
-                if (!primaryVendor) {
-                  primaryVendor = v;
-                }
+          const vendorObj = vendorsById.get(vendorIdStr);
+
+          if (vendorObj) {
+            if (!vendorMap.has(vendorIdStr)) {
+              vendorMap.set(vendorIdStr, { vendor: vendorObj, products: [p] });
+              if (!primaryVendor) {
+                primaryVendor = vendorObj;
               }
-            } catch (vendorErr) {
-              console.error("⚠️ Failed to fetch vendor details:", vendorErr.message);
+            } else {
+              vendorMap.get(vendorIdStr).products.push(p);
             }
-          } else {
-            vendorMap.get(vendorIdStr).products.push(p);
           }
         }
 
@@ -138,9 +209,72 @@ exports.verifyPayment = async (req, res) => {
     const vendorCity = primaryVendor ? primaryVendor.city : null;
     const vendorPostalCode = primaryVendor ? primaryVendor.pincode : null;
 
+    console.log("✓ Vendor details and products mapped. Total vendors:", vendorMap.size);
+
+    // Save order to database BEFORE sending emails
+    let savedOrderId = null;
+    try {
+      const addressParts = address.split(",").map((part) => part.trim());
+      const finalCity = vendorCity || addressParts[1] || "Not provided";
+      const finalPostalCode = vendorPostalCode || addressParts[2] || "Not provided";
+
+      const newOrder = new Order({
+        user: user ? user._id : null,
+        orderItems,
+        shippingAddress: {
+          address: addressParts[0] || address,
+          city: finalCity,
+          postalCode: finalPostalCode,
+          country: "India",
+        },
+        paymentMethod: "Razorpay",
+        totalPrice: totalAmount,
+        deliveryCharge: 30,
+        isPaid: true,
+        paidAt: new Date(),
+        paymentStatus: "Completed",
+        paymentId: payment_id,
+        status: "Processing",
+      });
+
+      await newOrder.save();
+      savedOrderId = newOrder._id;
+      console.log("✓ Order saved successfully with ID:", savedOrderId);
+    } catch (orderErr) {
+      console.error("✗ Failed to save order:", orderErr.message);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save order",
+        error: orderErr.message
+      });
+    }
+
+    // Return Success immediately to the client
+    res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+      orderId: savedOrderId
+    });
+
     // Generate emails using template functions
     const buyerEmailHtml = generateBuyerEmail(firstName, productList, totalAmount, payment_id, address);
-    const adminEmailHtml = generateAdminOrderEmail(firstName, email, lastName, process.env.SELLER_EMAIL, productList, totalAmount, payment_id, address);
+
+    const adminSellerName = primaryVendor ? primaryVendor.vendorName : (vendorMap.size > 0 ? "Multiple Vendors" : "MetaFit Direct");
+    const adminSellerEmail = primaryVendor ? primaryVendor.email : process.env.SELLER_EMAIL;
+    const adminSellerPhone = primaryVendor ? primaryVendor.phone : "N/A";
+
+    const adminEmailHtml = generateAdminOrderEmail(
+      `${firstName} ${lastName || ""}`.trim(),
+      email,
+      phone,
+      adminSellerName,
+      adminSellerEmail,
+      adminSellerPhone,
+      productList,
+      totalAmount,
+      payment_id,
+      address
+    );
 
     // ---------------- BUYER EMAIL ----------------
     const buyerMailOptions = {
@@ -160,24 +294,19 @@ exports.verifyPayment = async (req, res) => {
 
     // Send emails with better error handling
     try {
-
-      await transporter.sendMail(buyerMailOptions);
-
+      console.log("📧 Sending buyer and admin emails...");
+      await Promise.all([
+        transporter.sendMail(buyerMailOptions).catch(e => console.error("✗ Failed buyer email:", e.message)),
+        transporter.sendMail(adminMailOptions).catch(e => console.error("✗ Failed admin email:", e.message))
+      ]);
+      console.log("✓ Buyer and admin emails processed");
     } catch (emailErr) {
-      console.error("✗ Failed to send buyer email:", emailErr.message);
-      // Don't throw - continue processing even if email fails
-    }
-
-    try {
-
-      await transporter.sendMail(adminMailOptions);
-
-    } catch (emailErr) {
-      console.error("✗ Failed to send admin email:", emailErr.message);
-      // Don't throw - continue processing even if email fails
+      console.error("✗ Failed to process main emails:", emailErr.message);
     }
 
     // ---------------- SELLER EMAILS ----------------
+    const vendorMailOptions = [];
+
     for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
       const currentVendor = vendorData.vendor;
       const vendorProducts = vendorData.products;
@@ -201,186 +330,149 @@ exports.verifyPayment = async (req, res) => {
         firstName,
         lastName,
         email,
+        phone,
         vendorProductListHtml,
         vendorTotalAmount,
         payment_id,
         address
       );
 
-      const sellerMailOptions = {
+      vendorMailOptions.push({
         from: process.env.SELLER_EMAIL,
         to: currentVendor.email,
         subject: `🎉 New Order Alert - ${firstName} ${lastName}`,
         html: sellerEmailHtml,
+      });
+    }
+
+    if (vendorMailOptions.length > 0) {
+      try {
+        console.log(`📧 Sending ${vendorMailOptions.length} seller emails...`);
+        const sender = transporter.sellerTransporter || transporter;
+        await Promise.all(
+          vendorMailOptions.map((mail) => sender.sendMail(mail).catch(e => console.error(`✗ Failed seller email to ${mail.to}:`, e.message)))
+        );
+        console.log("✓ Seller emails processed");
+      } catch (emailErr) {
+        console.error("✗ Failed to process seller emails:", emailErr.message);
+      }
+    }
+
+    // ---------------- WHATSAPP NOTIFICATIONS ----------------
+    const whatsappPromises = [];
+
+    // 1. Buyer Notification
+    if (phone) {
+      const productName = products && products.length > 0
+        ? products.map(p => p.name).join(", ")
+        : "Order";
+
+      const productQuantity = products && products.length > 0
+        ? products.length.toString()
+        : "1";
+
+      const whatsappPayload = {
+        customer_phone: phone,
+        customer_name: firstName,
+        product_success_name: payment_id,
+        product_name: productName,
+        product_quantity: productQuantity,
+        product_amount: `${totalAmount}`,
+        payment_status: "completed"
       };
 
-
-      try {
-        console.log(`📧 SENDING SELLER EMAIL TO:`, currentVendor.email);
-        if (transporter.sellerTransporter) {
-          await transporter.sellerTransporter.sendMail(sellerMailOptions);
-        } else {
-          await transporter.sendMail(sellerMailOptions); // Fallback
-        }
-        console.log(`✓ Seller email sent successfully to ${currentVendor.email}`);
-      } catch (emailErr) {
-        console.error(`✗ Failed to send seller email to ${currentVendor.email}:`, emailErr.message);
-      }
-    }
-
-    if (phone) {
-      try {
-        const productName = products && products.length > 0
-          ? products.map(p => p.name).join(", ")
-          : "Order";
-
-        const productQuantity = products && products.length > 0
-          ? products.length.toString()
-          : "1";
-
-        const whatsappPayload = {
-          customer_phone: phone,
-          customer_name: firstName,
-          product_success_name: payment_id,
-          product_name: productName,
-          product_quantity: productQuantity,
-          product_amount: `${totalAmount}`,
-          payment_status: "completed"
-        };
-
-        // console.log("📱 WhatsApp Payload:", JSON.stringify(whatsappPayload, null, 2));
-
-        const whatsappResult = await sendWhatsAppOrderConfirmation(whatsappPayload);
-        // console.log("✓ WhatsApp order confirmation sent successfully:", whatsappResult);
-      } catch (whatsappErr) {
-        console.error("✗ Failed to send WhatsApp order confirmation:", {
-          message: whatsappErr.message,
-          error: whatsappErr,
-          phone: phone
-        });
-        // Don't throw - continue processing even if WhatsApp fails
-      }
+      console.log("📱 Preparing WhatsApp Buyer Payload");
+      whatsappPromises.push(
+        sendWhatsAppOrderConfirmation(whatsappPayload).catch(whatsappErr => {
+          console.error("✗ Failed to send WhatsApp buyer confirmation:", {
+            message: whatsappErr.message,
+            phone: phone
+          });
+        })
+      );
     } else {
-      console.warn("⚠️ Phone number not provided in payment verification");
+      console.warn("⚠️ Phone number not provided - skipping WhatsApp buyer confirmation");
     }
 
-    // Send WhatsApp admin notification for ALL orders
+    // 2. Admin & Vendor Notifications
     if (payment_id && firstName && phone && products && products.length > 0) {
-      try {
-        // console.log("📱 Attempting to send WhatsApp admin notification");
-        const productName = products.map(p => p.name).join(", ");
-        const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+      console.log("📱 Preparing WhatsApp Admin/Vendor notifications");
+      const productName = products.map(p => p.name).join(", ");
+      const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
 
-        const adminNotificationPayload = {
-          admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
+      const adminNotificationPayload = {
+        admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
+        orderId: payment_id.toString(),
+        product: productName,
+        quantity: totalQuantity,
+        total_amount: `${totalAmount} `,
+        name: firstName,
+        phone: phone,
+        address: address || "Not provided"
+      };
+
+      whatsappPromises.push(
+        sendWhatsAppAdminOrderNotification(adminNotificationPayload).catch(adminWhatsappErr => {
+          console.error("✗ Failed to send WhatsApp admin notification:", {
+            message: adminWhatsappErr.message
+          });
+        })
+      );
+
+      for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
+        const currentVendor = vendorData.vendor;
+        const vendorProducts = vendorData.products;
+
+        const vendorProductName = vendorProducts.map(p => p.name).join(", ");
+        const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+
+        const vendorNotificationPayload = {
+          vendor_phone: currentVendor.phone,
+          vendor_name: currentVendor.vendorName,
           orderId: payment_id.toString(),
-          product: productName,
-          quantity: totalQuantity,
+          product: vendorProductName,
+          quantity: vendorTotalQuantity,
           total_amount: `${totalAmount} `,
-          name: firstName,
-          phone: phone,
-          address: address || "Not provided"
+          customer_name: firstName,
+          customer_phone: phone,
+          address: address || "Not provided",
+          number: process.env.ADMIN_WHATSAPP_PHONE
         };
 
-        const adminResult = await sendWhatsAppAdminOrderNotification(adminNotificationPayload);
-
-        // Send vendor order notification via WhatsApp (for each unique vendor in the order)
-        for (const [vendorIdStr, vendorData] of vendorMap.entries()) {
-          const currentVendor = vendorData.vendor;
-          const vendorProducts = vendorData.products;
-
-          try {
-            const vendorProductName = vendorProducts.map(p => p.name).join(", ");
-            const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
-
-            const vendorNotificationPayload = {
-              vendor_phone: currentVendor.phone,
-              vendor_name: currentVendor.vendorName,
-              orderId: payment_id.toString(),
-              product: vendorProductName,
-              quantity: vendorTotalQuantity,
-              total_amount: `${totalAmount} `,
-              customer_name: firstName,
-              customer_phone: phone,
-              address: address || "Not provided",
-              number: process.env.ADMIN_WHATSAPP_PHONE
-            };
-
-            // console.log(`📱 Sending WhatsApp vendor notification to: ${ currentVendor.vendorName } (${ currentVendor.phone })`);
-            const vendorResult = await sendWhatsAppVendorOrderNotification(vendorNotificationPayload);
-          } catch (whatsappErr) {
+        console.log(`📱 Preparing WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
+        
+        whatsappPromises.push(
+          sendWhatsAppVendorOrderNotification(vendorNotificationPayload).catch(whatsappErr => {
             console.error("✗ Failed to send WhatsApp vendor notification:", {
               message: whatsappErr.message,
-              error: whatsappErr,
               vendorPhone: currentVendor.phone
             });
-          }
-        }
-
-        if (vendorMap.size === 0) {
-          console.warn("⚠️ No vendors found for this order - skipping vendor notification");
-        }
-      } catch (adminWhatsappErr) {
-        console.error("✗ Failed to send WhatsApp admin notification:", {
-          message: adminWhatsappErr.message,
-          error: adminWhatsappErr
-        });
-        // Don't throw - continue processing even if admin WhatsApp fails
+          })
+        );
       }
     } else {
-      console.warn("⚠️ Skipping admin/vendor WhatsApp notification - missing required data", {
-        payment_id,
-        firstName,
-        phone
-      });
+      console.warn("⚠️ Skipping admin/vendor WhatsApp notification - missing required data");
     }
 
-    // Save order to database
-    try {
-      // Extract address components (assuming address is a string)
-      const addressParts = address.split(",").map((part) => part.trim());
-
-      // Use vendor's city/pincode if available, otherwise use parsed address
-      const finalCity = vendorCity || addressParts[1] || "Not provided";
-      const finalPostalCode = vendorPostalCode || addressParts[2] || "Not provided";
-
-      // Create new order
-      const newOrder = new Order({
-        user: user ? user._id : null,
-        orderItems,
-        shippingAddress: {
-          address: addressParts[0] || address,
-          city: finalCity,
-          postalCode: finalPostalCode,
-          country: "India",
-        },
-        paymentMethod: "Razorpay",
-        totalPrice: totalAmount,
-        deliveryCharge: 30,
-        isPaid: true,
-        paidAt: new Date(),
-        paymentStatus: "Completed",
-        paymentId: payment_id,
-        status: "Processing",
-      });
-
-      await newOrder.save();
-      // console.log("✓ Order saved successfully with ID:", newOrder._id);
-    } catch (orderErr) {
-      console.error("✗ Failed to save order:", orderErr.message);
-      // Don't throw - order is created even if DB save fails
+    // Execute all WhatsApp requests concurrently
+    if (whatsappPromises.length > 0) {
+      try {
+        console.log(`📱 Sending ${whatsappPromises.length} WhatsApp notifications concurrently...`);
+        await Promise.all(whatsappPromises);
+        console.log("✓ All WhatsApp notifications processed successfully");
+      } catch (overallWhatsappErr) {
+        console.error("✗ Failed during WhatsApp notification processing:", overallWhatsappErr.message);
+      }
     }
 
-    return res.status(200).json({
-      success: true,
-      message: "Payment verified successfully",
-    });
   } catch (err) {
     console.error("✗ Error in verifyPayment:", err);
-    return res.status(500).json({
-      success: false,
-      message: "Payment verification failed",
-      error: err.message,
-    });
+    if (!res.headersSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Payment verification failed",
+        error: err.message,
+      });
+    }
   }
 };

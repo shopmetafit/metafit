@@ -37,8 +37,8 @@ const sellerTransporter = nodemailer.createTransport({
   socketTimeout: 10000,
 });
 
-console.log(process.env.SELLER_EMAIL);
-console.log(process.env.SELLER_PASS);
+// console.log(process.env.SELLER_EMAIL);
+// console.log(process.env.SELLER_PASS);
 sellerTransporter.verify((error, success) => {
   if (error) {
     console.error("Seller SMTP Error:", error);

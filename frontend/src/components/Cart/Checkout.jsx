@@ -38,6 +38,7 @@ console.log(user);
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
   const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 0) * Number(item.quantity || 1)), 0) ?? 0;
@@ -181,9 +182,12 @@ console.log(user);
         setTimeout(() => {
           navigate("/order-confirmation");
         }, 300);
+      } else {
+        setIsVerifying(false);
       }
     } catch (error) {
       console.log(error);
+      setIsVerifying(false);
       toast.error(error?.response?.data?.message || "Failed to confirm payment");
     }
   };
@@ -222,6 +226,7 @@ console.log(user);
         ...data,
 
         handler: async function (response) {
+          setIsVerifying(true);
           // console.log("cho127", response);
 
           const option2 = {
@@ -254,7 +259,7 @@ console.log(user);
             console.log("cho139:verifyRes", verifyRes);
 
             if (verifyRes.data.success) {
-              handlePaymentSuccess(
+              await handlePaymentSuccess(
                 {
                   order_id: response.razorpay_order_id,
                   payment_id: response.razorpay_payment_id,
@@ -264,10 +269,12 @@ console.log(user);
               );
             } else {
               toast.error("Payment verification failed: " + (verifyRes.data.message || "Unknown error"));
+              setIsVerifying(false);
             }
           } catch (verifyError) {
             console.error("Verification error:", verifyError);
             toast.error("Payment verification failed. Please contact support.");
+            setIsVerifying(false);
           }
           },
         modal: {
@@ -384,6 +391,16 @@ console.log(user);
   }
 
   return (
+    <>
+      {isVerifying && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-2xl flex flex-col items-center shadow-2xl max-w-sm mx-4 text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-teal-600 mb-6"></div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Verifying Payment</h2>
+            <p className="text-gray-600 text-sm">Please don't close this window or press back while we confirm your order.</p>
+          </div>
+        </div>
+      )}
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-19 tracking-tighter ">
       {/* left section */}
       <div className="bg-white rounded-lg p-6 ">
@@ -404,7 +421,7 @@ console.log(user);
             />
           </div>
           <h3 className="text-lg mb-4">Delivery</h3>
-          <div className="mb-4 grid grid-cols-2 gap-4">
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-700">First Name *</label>
               <input
@@ -416,7 +433,7 @@ console.log(user);
                     firstName: e.target.value,
                   });
                 }}
-                className="w-60 p-2 border rounded"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
@@ -431,7 +448,7 @@ console.log(user);
                     lastName: e.target.value,
                   });
                 }}
-                className="w-60 p-2 border rounded"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
@@ -451,7 +468,7 @@ console.log(user);
               required
             />
           </div>
-          <div className="mb-4 grid grid-cols-2 gap-4">
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-700">City *</label>
               <input
@@ -463,7 +480,7 @@ console.log(user);
                     city: e.target.value,
                   });
                 }}
-                className="w-60 p-2 border rounded"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
@@ -478,7 +495,7 @@ console.log(user);
                     postalCode: e.target.value,
                   });
                 }}
-                className="w-60 p-2 border rounded"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
@@ -494,7 +511,7 @@ console.log(user);
                   country: e.target.value,
                 });
               }}
-              className="w-80 p-2 border rounded"
+              className="w-full p-2 border rounded"
               required
             />
           </div>
@@ -509,7 +526,7 @@ console.log(user);
                   phone: e.target.value,
                 });
               }}
-              className="w-80 p-2 border rounded"
+              className="w-full p-2 border rounded"
               required
             />
           </div>
@@ -617,6 +634,7 @@ console.log(user);
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -28,16 +28,8 @@ const EditProductPage = () => {
     material: "",
     location: "",
     gender: "",
-    gender: "",
     priority: 0,
-    images: [
-      // {
-      //   url: "https://picsum.photos/150?random=1",
-      // },
-      // {
-      //   url: "https://picsum.photos/150?random=1",
-      // },
-    ],
+    images: [],
     videoUrl: "",
     extraImages: [],
   });
@@ -81,7 +73,6 @@ const EditProductPage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProductData((prevData) => ({ ...prevData, [name]: value }));
-    // console.log("sd=",e.productData.value)
   };
 
   const handleImageUpload = async (e, index) => {
@@ -136,7 +127,6 @@ const EditProductPage = () => {
     }
   };
 
-
   const handleDeleteImage = (indexToDelete) => {
     setProductData((prevData) => ({
       ...prevData,
@@ -150,16 +140,6 @@ const EditProductPage = () => {
       const newImages = prevData.images.filter((_, index) => index !== indexToDelete);
       return { ...prevData, colors: newColors, images: newImages };
     });
-  };
-
-  const handleSetPrimaryImage = (indexToSet) => {
-    setProductData((prevData) => ({
-      ...prevData,
-      images: prevData.images.map((image, index) => ({
-        ...image,
-        isPrimary: index === indexToSet,
-      })),
-    }));
   };
 
   const handleVideoChange = (e) => {
@@ -208,13 +188,11 @@ const EditProductPage = () => {
 
     productData.colors.forEach((color, index) => {
       const image = productData.images[index];
-      // Only process if there is an image for this color slot
       if (image) {
         if (color && color.trim() !== "") {
           newColors.push(color);
           colorImages.push(image);
         } else {
-          // If color is empty, treat the image as an extra image
           otherImages.push(image);
         }
       }
