@@ -26,6 +26,17 @@ vendorApi.interceptors.request.use(
   }
 );
 
+// Response interceptor to dispatch session-expired on 401
+vendorApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      window.dispatchEvent(new CustomEvent('session-expired'));
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Vendor registration API endpoints
 export const vendorApiService = {
   // Register a new vendor

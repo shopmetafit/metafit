@@ -45,10 +45,12 @@ import ProductRequestForm from "./components/Vendor/ProductRequestForm";
 import ProductRequestsList from "./components/Vendor/ProductRequestsList";
 import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
 import ReferralAssignments from "./components/Admin/ReferralAssignments";
+import SessionExpiredModal from "./components/common/SessionExpiredModal";
 
 const App = () => {
   return (
     <Provider store={store}>
+      <SessionExpiredModal />
       <BrowserRouter>
         <Toaster position="top-right" />
         <Routes>

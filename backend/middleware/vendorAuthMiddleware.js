@@ -86,7 +86,8 @@ const vendorApproved = (req, res, next) => {
     "treatment & retreat",
     "naturopathy and wellness",
     "naturopathy doctor",
-    "naturopathy"
+    "naturopathy",
+    "human psychology"
   ];
 
   if (allowedExternalRoles.includes(role)) {

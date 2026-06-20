@@ -20,7 +20,6 @@ const CheckOut = () => {
   const { cart, loading, error } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
-console.log(user);
 
   const navigate = useNavigate();
   const [checkoutId, setCheckoutId] = useState(null);
@@ -89,17 +88,13 @@ console.log(user);
       const cartAlreadyLoaded = cart?.products && cart.products.length > 0;
 
       if (cartAlreadyLoaded) {
-        // Cart is already in Redux state (user was logged in before reaching checkout)
-        // No need to merge — just mark as loaded
         setIsCartLoaded(true);
       } else if (guestId) {
-        // User just logged in from a guest session — merge guest cart into user cart
         dispatch(mergeCart({ guestId, user }))
           .then(() => {
             setIsCartLoaded(true);
           })
           .catch(() => {
-            // Merge failed (guest cart already merged or doesn't exist) — fetch user cart directly
             dispatch(fetchCart({ userId: user._id })).finally(() => {
               setIsCartLoaded(true);
             });
@@ -145,7 +140,7 @@ console.log(user);
       }
       const iframes = document.querySelectorAll('iframe[src*="razorpay"]');
       iframes.forEach(iframe => iframe.remove());
-      
+
       // Also remove any razorpay-container elements
       const container = document.querySelector('.razorpay-container');
       if (container) {
@@ -213,7 +208,6 @@ console.log(user);
       );
 
       const data = res.data;
-      // console.log("cheout130", data);
 
       if (typeof window.Razorpay === "undefined") {
         alert("Razorpay SDK not available.");
@@ -238,26 +232,21 @@ console.log(user);
               ...product,
               createdBy: product.createdBy || "ADMIN"
             })),
-	            totalAmount: price,
-	            firstName: shippingAddress.firstName,
-	            lastName: shippingAddress.lastName,
-	            address: shippingAddress.address,
+            totalAmount: price,
+            firstName: shippingAddress.firstName,
+            lastName: shippingAddress.lastName,
+            address: shippingAddress.address,
             city: shippingAddress.city,
             postalCode: shippingAddress.postalCode,
             country: shippingAddress.country,
             phone: shippingAddress.phone,
             paymentMethod: "Razorpay",
           };
-          console.log("cho139:option2", option2);
-          console.log("cho139:option2", option2.products);
           try {
             const verifyRes = await axios.post(
               `${import.meta.env.VITE_BACKEND_URL}/api/verifyPayment`,
               option2
             );
-
-            console.log("cho139:verifyRes", verifyRes);
-
             if (verifyRes.data.success) {
               await handlePaymentSuccess(
                 {
@@ -276,9 +265,9 @@ console.log(user);
             toast.error("Payment verification failed. Please contact support.");
             setIsVerifying(false);
           }
-          },
+        },
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             console.log("Payment cancelled by user");
             toast.error("Payment cancelled");
           }
@@ -327,37 +316,37 @@ console.log(user);
     }
 
     if (cart && cart.products.length > 0) {
-       localStorage.setItem(
-    `shippingAddress_${user.email}`,
-    JSON.stringify(shippingAddress)
-    );
+      localStorage.setItem(
+        `shippingAddress_${user.email}`,
+        JSON.stringify(shippingAddress)
+      );
 
-       // Send to backend - backend will calculate delivery charge
-	       const res = await dispatch(
-	         createCheckout({
-             customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
-             customerPhone: shippingAddress.phone,
-             customerEmail: user?.email || "",
-             shippingAddress,
-             paymentMethod: "Razorpay",
-             totalPrice: cart.totalPrice,
-             couponCode: appliedCoupon,
-             orderItems: cart.products.map((product) => ({
-               productId: product.productId,
-               qty: product.quantity,
-             })),
-             vendorId: referralContext?.vendorId,
-             productId: referralContext?.productId,
-             assignedProductId: referralContext?.assignedProductId,
-             shareCode: referralContext?.shareCode,
-	         })
-	       );
-       if (res.payload && (res.payload._id || res.payload.id || res.payload.orderId)) {
-         const nextCheckoutId = res.payload.id || res.payload.orderId || res.payload._id;
-         setCheckoutId(nextCheckoutId);
-         handleRazorpayPayment(res.payload.totalPrice, nextCheckoutId);
-       }
-     }
+      // Send to backend - backend will calculate delivery charge
+      const res = await dispatch(
+        createCheckout({
+          customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+          customerPhone: shippingAddress.phone,
+          customerEmail: user?.email || "",
+          shippingAddress,
+          paymentMethod: "Razorpay",
+          totalPrice: cart.totalPrice,
+          couponCode: appliedCoupon,
+          orderItems: cart.products.map((product) => ({
+            productId: product.productId,
+            qty: product.quantity,
+          })),
+          vendorId: referralContext?.vendorId,
+          productId: referralContext?.productId,
+          assignedProductId: referralContext?.assignedProductId,
+          shareCode: referralContext?.shareCode,
+        })
+      );
+      if (res.payload && (res.payload._id || res.payload.id || res.payload.orderId)) {
+        const nextCheckoutId = res.payload.id || res.payload.orderId || res.payload._id;
+        setCheckoutId(nextCheckoutId);
+        handleRazorpayPayment(res.payload.totalPrice, nextCheckoutId);
+      }
+    }
     // setCheckoutId(123); //Set checkout ID if checkout was successful
   };
 
@@ -401,239 +390,240 @@ console.log(user);
           </div>
         </div>
       )}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-19 tracking-tighter ">
-      {/* left section */}
-      <div className="bg-white rounded-lg p-6 ">
-        <h2 className="text-2xl uppercase mb-6">Checkout</h2>
-        <form onSubmit={handleCreateCheckout}>
-          <h3 className="text-lg mb-4">Contact Details</h3>
-          {referralContext ? (
-            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-              Referral applied: {referralContext.shareCode}
-            </div>
-          ) : null}
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
-            <input
-              type="email"
-              value={user ? user.email : ""}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-          <h3 className="text-lg mb-4">Delivery</h3>
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700">First Name *</label>
-              <input
-                type="text"
-                value={shippingAddress.firstName}
-                onChange={(e) => {
-                  setShippingAddress({
-                    ...shippingAddress,
-                    firstName: e.target.value,
-                  });
-                }}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700">Last Name *</label>
-              <input
-                type="text"
-                value={shippingAddress.lastName}
-                onChange={(e) => {
-                  setShippingAddress({
-                    ...shippingAddress,
-                    lastName: e.target.value,
-                  });
-                }}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Address *</label>
-            <input
-              type="text"
-              value={shippingAddress.address}
-              onChange={(e) => {
-                setShippingAddress({
-                  ...shippingAddress,
-                  address: e.target.value,
-                });
-              }}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700">City *</label>
-              <input
-                type="text"
-                value={shippingAddress.city}
-                onChange={(e) => {
-                  setShippingAddress({
-                    ...shippingAddress,
-                    city: e.target.value,
-                  });
-                }}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-gray-700">Postal Code *</label>
-              <input
-                type="text"
-                value={shippingAddress.postalCode}
-                onChange={(e) => {
-                  setShippingAddress({
-                    ...shippingAddress,
-                    postalCode: e.target.value,
-                  });
-                }}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Country *</label>
-            <input
-              type="text"
-              value={shippingAddress.country}
-              onChange={(e) => {
-                setShippingAddress({
-                  ...shippingAddress,
-                  country: e.target.value,
-                });
-              }}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Phone *</label>
-            <input
-              type="tel"
-              value={shippingAddress.phone}
-              onChange={(e) => {
-                setShippingAddress({
-                  ...shippingAddress,
-                  phone: e.target.value,
-                });
-              }}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-black text-white py-3 rounded"
-          >
-            Continue to Payment
-          </button>
-
-          <button
-                type="button"
-                onClick={() => {
-                  const saved = localStorage.getItem(`shippingAddress_${user.email}`);
-                if (saved) setShippingAddress(JSON.parse(saved));
-                }}
-             className="text-sm text-blue-600 underline mb-4"
-          >
-              Use saved address
-          </button>
-        </form>
-      </div>
-
-      {/* right section */}
-      <div className="bg-gray-50 p-6">
-        <h3 className="text-lg mb-4">Order Summary</h3>
-        <div className="border-t py-4 mb-4">
-          {cart.products.map((product, index) => (
-            <div
-              key={index}
-              className="flex items-start justify-between py-2 border-b"
-            >
-              <div className="flex  items-start">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-20 h-24  object-cover mr-4"
-                />
-                <div>
-                  <h3 className="text-md">{product.name}</h3>
-                  <p className="text-gray-500">Size: {product.size}</p>
-                  <p className="text-gray-500">Color: {product.color}</p>
-                </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto py-19 tracking-tighter ">
+        {/* left section */}
+        <div className="bg-white rounded-lg p-6 ">
+          <h2 className="text-2xl uppercase mb-6">Checkout</h2>
+          <form onSubmit={handleCreateCheckout}>
+            <h3 className="text-lg mb-4">Contact Details</h3>
+            {referralContext ? (
+              <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+                Referral applied: {referralContext.shareCode}
               </div>
-              <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
+            ) : null}
+            <div className="mb-4">
+              <label className="block text-gray-700">Email</label>
+              <input
+                type="email"
+                value={user ? user.email : ""}
+                readOnly
+                className="w-full p-2 border rounded bg-gray-50 text-gray-500 cursor-not-allowed"
+              />
             </div>
-          ))}
-        </div>
-        <div className="flex justify-between items-center text-lg mb-4">
-          <p>Sub Total</p>
-          <p>Rs {cart.totalPrice.toLocaleString()}</p>
-        </div>
-        <div className="flex justify-between items-center text-lg">
-          <p>Shipping</p>
-          <p>Rs {deliveryCharge.toLocaleString()}</p>
-        </div>
+            <h3 className="text-lg mb-4">Delivery</h3>
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700">First Name *</label>
+                <input
+                  type="text"
+                  value={shippingAddress.firstName}
+                  onChange={(e) => {
+                    setShippingAddress({
+                      ...shippingAddress,
+                      firstName: e.target.value,
+                    });
+                  }}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700">Last Name *</label>
+                <input
+                  type="text"
+                  value={shippingAddress.lastName}
+                  onChange={(e) => {
+                    setShippingAddress({
+                      ...shippingAddress,
+                      lastName: e.target.value,
+                    });
+                  }}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Address *</label>
+              <input
+                type="text"
+                value={shippingAddress.address}
+                onChange={(e) => {
+                  setShippingAddress({
+                    ...shippingAddress,
+                    address: e.target.value,
+                  });
+                }}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700">City *</label>
+                <input
+                  type="text"
+                  value={shippingAddress.city}
+                  onChange={(e) => {
+                    setShippingAddress({
+                      ...shippingAddress,
+                      city: e.target.value,
+                    });
+                  }}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700">Postal Code *</label>
+                <input
+                  type="text"
+                  value={shippingAddress.postalCode}
+                  onChange={(e) => {
+                    setShippingAddress({
+                      ...shippingAddress,
+                      postalCode: e.target.value,
+                    });
+                  }}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Country *</label>
+              <input
+                type="text"
+                value={shippingAddress.country}
+                onChange={(e) => {
+                  setShippingAddress({
+                    ...shippingAddress,
+                    country: e.target.value,
+                  });
+                }}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700">Phone *</label>
+              <input
+                type="tel"
+                value={shippingAddress.phone}
+                onChange={(e) => {
+                  setShippingAddress({
+                    ...shippingAddress,
+                    phone: e.target.value,
+                  });
+                }}
+                className="w-full p-2 border rounded"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full bg-black text-white py-3 rounded"
+            >
+              Continue to Payment
+            </button>
 
-        <div className="mt-4">
-          <p className="text-sm text-gray-600 mb-2">Have a coupon?</p>
-          <div className="flex gap-2">
-            <input
-              value={couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              placeholder="Enter coupon code"
-              className="flex-1 p-2 border rounded"
-            />
             <button
               type="button"
-              onClick={handleApplyCoupon}
-              disabled={isApplyingCoupon}
-              className="px-4 py-2 bg-black text-white rounded disabled:opacity-60"
+              onClick={() => {
+                const saved = localStorage.getItem(`shippingAddress_${user.email}`);
+                if (saved) setShippingAddress(JSON.parse(saved));
+              }}
+              className="text-sm text-blue-600 underline mb-4"
             >
-              {isApplyingCoupon ? "Applying..." : "Apply"}
+              Use saved address
             </button>
+          </form>
+        </div>
+
+        {/* right section */}
+        <div className="bg-gray-50 p-6">
+          <h3 className="text-lg mb-4">Order Summary</h3>
+          <div className="border-t py-4 mb-4">
+            {cart.products.map((product, index) => (
+              <div
+                key={index}
+                className="flex items-start justify-between py-2 border-b"
+              >
+                <div className="flex  items-start">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-20 h-24  object-cover mr-4"
+                  />
+                  <div>
+                    <h3 className="text-md">{product.name}</h3>
+                    <p className="text-gray-500">Size: {product.size}</p>
+                    <p className="text-gray-500">Color: {product.color}</p>
+                  </div>
+                </div>
+                <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
+              </div>
+            ))}
           </div>
-          {appliedCoupon ? (
-            <div className="mt-2 flex items-center justify-between text-sm text-green-700">
-              <span>Applied: {appliedCoupon}</span>
+          <div className="flex justify-between items-center text-lg mb-4">
+            <p>Sub Total</p>
+            <p>Rs {cart.totalPrice.toLocaleString()}</p>
+          </div>
+          <div className="flex justify-between items-center text-lg">
+            <p>Shipping</p>
+            <p>Rs {deliveryCharge.toLocaleString()}</p>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">Have a coupon?</p>
+            <div className="flex gap-2">
+              <input
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
+                placeholder="Enter coupon code"
+                className="flex-1 p-2 border rounded"
+              />
               <button
                 type="button"
-                className="underline"
-                onClick={() => {
-                  setAppliedCoupon("");
-                  setCouponDiscount(0);
-                  setCouponCode("");
-                }}
+                onClick={handleApplyCoupon}
+                disabled={isApplyingCoupon}
+                className="px-4 py-2 bg-black text-white rounded disabled:opacity-60"
               >
-                Remove
+                {isApplyingCoupon ? "Applying..." : "Apply"}
               </button>
             </div>
-          ) : null}
-        </div>
-
-        {couponDiscount > 0 ? (
-          <div className="flex justify-between items-center text-lg mt-4 text-green-700">
-            <p>Discount</p>
-            <p>- Rs {couponDiscount.toLocaleString()}</p>
+            {appliedCoupon ? (
+              <div className="mt-2 flex items-center justify-between text-sm text-green-700">
+                <span>Applied: {appliedCoupon}</span>
+                <button
+                  type="button"
+                  className="underline"
+                  onClick={() => {
+                    setAppliedCoupon("");
+                    setCouponDiscount(0);
+                    setCouponCode("");
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : null}
           </div>
-        ) : null}
 
-        <div className="flex justify-between items-center text-lg mb-4 border-t pt-4">
-          <p>Total</p>
-          <p>Rs {finalTotal.toLocaleString()}</p>
-          <p className="text-xs text-gray-500">(final total calculated by server)</p>
+          {couponDiscount > 0 ? (
+            <div className="flex justify-between items-center text-lg mt-4 text-green-700">
+              <p>Discount</p>
+              <p>- Rs {couponDiscount.toLocaleString()}</p>
+            </div>
+          ) : null}
+
+          <div className="flex justify-between items-center text-lg mb-4 border-t pt-4">
+            <p>Total</p>
+            <p>Rs {finalTotal.toLocaleString()}</p>
+            <p className="text-xs text-gray-500">(final total calculated by server)</p>
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };

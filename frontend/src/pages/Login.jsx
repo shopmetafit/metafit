@@ -165,7 +165,4 @@ const Login = () => {
     </div>
   );
 };
-
-console.log(import.meta.env.VITE_GOOGLE_CLIENT_ID);
-
 export default Login;
