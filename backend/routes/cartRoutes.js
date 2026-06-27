@@ -22,7 +22,7 @@ const getCart = async (userId, guestId) => {
     cart.products.forEach(p => {
       const product = productMap.get(String(p.productId));
       if (product) {
-        const expectedShippingCharge = product.shippingCharge || 0;
+        const expectedShippingCharge = product.shippingCharge || 100;
         if (p.shippingCharge !== expectedShippingCharge) {
           p.shippingCharge = expectedShippingCharge;
           isModified = true;
@@ -75,7 +75,7 @@ router.post("/", async (req, res) => {
           quantity,
           vendorId: product.vendorId || null,
           createdBy: product.createdBy || "ADMIN",
-          shippingCharge: product.shippingCharge || 0,
+          shippingCharge: product.shippingCharge || 100,
         });
       }
 
@@ -103,7 +103,7 @@ router.post("/", async (req, res) => {
             quantity,
             vendorId: product.vendorId || null,
             createdBy: product.createdBy || "ADMIN",
-            shippingCharge: product.shippingCharge || 0,
+            shippingCharge: product.shippingCharge || 100,
           },
         ],
         totalPrice: product.discountPrice * quantity,

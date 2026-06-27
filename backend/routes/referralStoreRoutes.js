@@ -156,7 +156,7 @@ router.post("/orders", protect, async (req, res) => {
     let deliveryCharge = 0;
     const itemsTotal = normalizedItems.reduce((sum, item) => {
       const product = productMap.get(String(item.productId));
-      const shipping = Number(product?.shippingCharge || 0);
+      const shipping = Number(product?.shippingCharge || 100);
       deliveryCharge += (shipping * item.quantity);
       return sum + Number(item.price || 0) * Number(item.quantity || 0);
     }, 0);

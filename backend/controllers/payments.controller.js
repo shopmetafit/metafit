@@ -159,7 +159,7 @@ exports.verifyPayment = async (req, res) => {
           }
 
           calculatedAmount += validItemPrice * (item.quantity || 1);
-          calculatedShipping += (dbProduct.shippingCharge || 0) * (item.quantity || 1);
+          calculatedShipping += (dbProduct.shippingCharge || 100) * (item.quantity || 1);
         }
       }
 

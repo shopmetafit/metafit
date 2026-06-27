@@ -83,7 +83,7 @@ router.post("/", protect, async (req, res) => {
       const product = productMap.get(String(item.productId));
       const qty = Number(item.quantity || 1);
       const price = Number(item.price || 0);
-      const shipping = Number(product?.shippingCharge || 0);
+      const shipping = Number(product?.shippingCharge || 100);
       
       itemsTotal += (price * qty);
       deliveryCharge += (shipping * qty);
