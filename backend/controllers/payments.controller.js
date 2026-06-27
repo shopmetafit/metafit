@@ -8,6 +8,7 @@ const Product = require("../models/Product");
 const Order = require("../models/Order");
 const User = require("../models/User");
 const Vendor = require("../models/Vendor");
+const AdminProductSale = require("../models/AdminProductSale");
 
 exports.createOrder = async (req, res) => {
   const { courseId, amount } = req.body;
@@ -49,9 +50,6 @@ exports.verifyPayment = async (req, res) => {
     phone,
   } = req.body;
 
-  console.log("---- STARTING PAYMENT VERIFICATION ----");
-  console.log("Received data:", { order_id, payment_id, email, totalAmount, phone, signature_received: signature ? 'yes' : 'no' });
-
   // Generate HMAC signature to verify payment
   const hmac = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET_KEY);
   hmac.update(order_id + "|" + payment_id);
@@ -63,8 +61,6 @@ exports.verifyPayment = async (req, res) => {
       message: "Payment not verified",
     });
   }
-
-  console.log("✓ Signature verified successfully");
 
   const existingOrder = await Order.findOne({
     paymentId: payment_id,
@@ -99,13 +95,10 @@ exports.verifyPayment = async (req, res) => {
   }
 
   try {
-    // Fetch user early
-    console.log("Fetching user for email:", email);
+
     const user = await User.findOne({ email });
     if (!user) {
       console.warn("⚠️ User not found for email:", email);
-    } else {
-      console.log("✓ User found:", user._id);
     }
 
     // Resolve products and vendor details early
@@ -113,6 +106,7 @@ exports.verifyPayment = async (req, res) => {
     const vendorMap = new Map(); // vendorId string -> { vendor, products: [] }
     const orderItems = [];
     let calculatedShipping = 0;
+    const dbProductMap = new Map();
 
     if (Array.isArray(products) && products.length > 0) {
       const productIds = products.map((p) => p.productId);
@@ -122,7 +116,6 @@ exports.verifyPayment = async (req, res) => {
       }).lean();
 
       // Create a map for quick product lookup
-      const dbProductMap = new Map();
       dbProducts.forEach(dbP => dbProductMap.set(dbP._id.toString(), dbP));
 
       const vendorIds = [
@@ -184,18 +177,34 @@ exports.verifyPayment = async (req, res) => {
       for (const p of products) {
         const dbProduct = dbProductMap.get(p.productId.toString());
 
-        if (dbProduct && dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
-          const vendorIdStr = dbProduct.vendorId.toString();
-          const vendorObj = vendorsById.get(vendorIdStr);
+        if (dbProduct) {
+          if (dbProduct.createdBy === "VENDOR" && dbProduct.vendorId) {
+            const vendorIdStr = dbProduct.vendorId.toString();
+            const vendorObj = vendorsById.get(vendorIdStr);
 
-          if (vendorObj) {
-            if (!vendorMap.has(vendorIdStr)) {
-              vendorMap.set(vendorIdStr, { vendor: vendorObj, products: [p] });
-              if (!primaryVendor) {
-                primaryVendor = vendorObj;
+            if (vendorObj) {
+              if (!vendorMap.has(vendorIdStr)) {
+                vendorMap.set(vendorIdStr, { vendor: vendorObj, products: [p] });
+                if (!primaryVendor) {
+                  primaryVendor = vendorObj;
+                }
+              } else {
+                vendorMap.get(vendorIdStr).products.push(p);
               }
+            }
+          } else {
+            // No vendor or Admin product - group under ADMIN
+            if (!vendorMap.has("ADMIN")) {
+              vendorMap.set("ADMIN", {
+                vendor: {
+                  email: process.env.SELLER_EMAIL,
+                  phone: process.env.ADMIN_WHATSAPP_PHONE,
+                  vendorName: "Admin",
+                },
+                products: [p],
+              });
             } else {
-              vendorMap.get(vendorIdStr).products.push(p);
+              vendorMap.get("ADMIN").products.push(p);
             }
           }
         }
@@ -251,6 +260,38 @@ exports.verifyPayment = async (req, res) => {
       await newOrder.save();
       savedOrderId = newOrder._id;
       console.log("✓ Order saved successfully with ID:", savedOrderId);
+
+      // Save Admin Product Sales details if any product owner is ADMIN
+      for (const p of products) {
+        const dbProduct = dbProductMap.get(p.productId.toString());
+        if (dbProduct && dbProduct.createdBy === "ADMIN") {
+          const qty = p.quantity || 1;
+          const price = p.price || dbProduct.price || 0;
+          const totalAmountItem = price * qty;
+
+          await AdminProductSale.findOneAndUpdate(
+            { orderObjectId: savedOrderId, productId: p.productId },
+            {
+              $setOnInsert: {
+                orderId: String(savedOrderId),
+                productId: p.productId,
+                name: p.name || dbProduct.name,
+                price: price,
+                qty: qty,
+                totalAmount: totalAmountItem,
+                customerName: `${firstName || ""} ${lastName || ""}`.trim(),
+                customerPhone: phone || "",
+                customerEmail: email || "",
+                paymentStatus: "paid",
+                paymentReference: payment_id,
+                purchasedAt: new Date(),
+              }
+            },
+            { upsert: true, new: true }
+          );
+          console.log(`✓ Admin product sale saved for product: ${dbProduct.name}`);
+        }
+      }
     } catch (orderErr) {
       console.error("✗ Failed to save order:", orderErr.message);
       return res.status(500).json({
@@ -305,12 +346,10 @@ exports.verifyPayment = async (req, res) => {
 
     // Send emails with better error handling
     try {
-      console.log("📧 Sending buyer and admin emails...");
       await Promise.all([
         transporter.sendMail(buyerMailOptions).catch(e => console.error("✗ Failed buyer email:", e.message)),
         transporter.sendMail(adminMailOptions).catch(e => console.error("✗ Failed admin email:", e.message))
       ]);
-      console.log("✓ Buyer and admin emails processed");
     } catch (emailErr) {
       console.error("✗ Failed to process main emails:", emailErr.message);
     }
@@ -407,7 +446,6 @@ exports.verifyPayment = async (req, res) => {
 
     // 2. Admin & Vendor Notifications
     if (payment_id && firstName && phone && products && products.length > 0) {
-      console.log("📱 Preparing WhatsApp Admin/Vendor notifications");
       const productName = products.map(p => p.name).join(", ");
       const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
 
@@ -450,8 +488,6 @@ exports.verifyPayment = async (req, res) => {
           number: process.env.ADMIN_WHATSAPP_PHONE
         };
 
-        console.log(`📱 Preparing WhatsApp vendor notification to: ${currentVendor.vendorName} (${currentVendor.phone})`);
-
         whatsappPromises.push(
           sendWhatsAppVendorOrderNotification(vendorNotificationPayload).catch(whatsappErr => {
             console.error("✗ Failed to send WhatsApp vendor notification:", {
@@ -468,9 +504,7 @@ exports.verifyPayment = async (req, res) => {
     // Execute all WhatsApp requests concurrently
     if (whatsappPromises.length > 0) {
       try {
-        console.log(`📱 Sending ${whatsappPromises.length} WhatsApp notifications concurrently...`);
         await Promise.all(whatsappPromises);
-        console.log("✓ All WhatsApp notifications processed successfully");
       } catch (overallWhatsappErr) {
         console.error("✗ Failed during WhatsApp notification processing:", overallWhatsappErr.message);
       }

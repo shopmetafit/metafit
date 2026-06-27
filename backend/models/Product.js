@@ -8,7 +8,7 @@ const productSchema = new mongoose.Schema(
     discountPrice: { type: Number },
     shippingCharge: { type: Number, default: 0 },
     countInStock: { type: Number, required: true, default: 0 },
-    sku: { type: String, required: true,},
+    sku: { type: String, required: true, },
     category: { type: String, required: true },
     brand: { type: String, required: true },
     sizes: { type: [String], default: [] },
@@ -36,10 +36,10 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-     priority: {
-     type: Number,
-     default: 0,
-     },
+    priority: {
+      type: Number,
+      default: 0,
+    },
 
     isPublished: {
       type: Boolean,
@@ -123,5 +123,3 @@ const productSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("Product", productSchema);
-
-// ll
