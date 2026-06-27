@@ -348,7 +348,7 @@ const ProductDetails = ({ productId }) => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
                   <p className="text-sm text-gray-600 mt-1">
-                    {selectedProduct.shippingCharge > 0 ? `+ ₹${selectedProduct.shippingCharge} delivery charge` : "Free Delivery"}
+                    + ₹{(selectedProduct.shippingCharge || 100).toLocaleString()} delivery charge
                   </p>
                 </div>
               ) : (
@@ -532,7 +532,7 @@ const ProductDetails = ({ productId }) => {
                     </p>
                   )}
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {selectedProduct.shippingCharge > 0 ? `+ ₹${selectedProduct.shippingCharge} delivery` : "Free Delivery"}
+                    + ₹{(selectedProduct.shippingCharge || 100).toLocaleString()} delivery
                   </p>
                 </div>
 

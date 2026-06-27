@@ -93,7 +93,7 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
                             ₹{product.discountPrice}
                           </p>
                           <p className="text-xs text-gray-600 mt-1">
-                            {product.shippingCharge > 0 ? `+ ₹${product.shippingCharge} Shipping` : "Free Shipping"}
+                            + ₹{product.shippingCharge || 100} Shipping
                           </p>
                         </div>
                         {product.price && product.discountPrice && (
@@ -115,7 +115,7 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
                           From ₹{Math.min(...product.variants.map(v => v.discountPrice || v.price))}
                         </p>
                         <p className="text-xs text-gray-600 mt-1">
-                          {product.shippingCharge > 0 ? `+ ₹${product.shippingCharge} Shipping` : "Free Shipping"}
+                          + ₹{product.shippingCharge || 100} Shipping
                         </p>
                       </div>
                     </div>

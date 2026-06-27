@@ -40,7 +40,7 @@ const CheckOut = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 0) * Number(item.quantity || 1)), 0) ?? 0;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 100) * Number(item.quantity || 1)), 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
@@ -557,11 +557,14 @@ const CheckOut = () => {
                   />
                   <div>
                     <h3 className="text-md">{product.name}</h3>
-                    <p className="text-gray-500">Size: {product.size}</p>
-                    <p className="text-gray-500">Color: {product.color}</p>
+                    {product.size && <p className="text-gray-500 text-sm">Size: {product.size}</p>}
+                    {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
+                    <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge || 100).toLocaleString()}</p>
                   </div>
                 </div>
-                <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
+                <div className="text-right">
+                  <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
+                </div>
               </div>
             ))}
           </div>
