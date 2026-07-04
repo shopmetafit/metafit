@@ -117,7 +117,7 @@ const CollectionPage = () => {
 
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-[105px] self-start">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-120px)]">
             <div className="bg-[#232f3e] text-white px-4 py-3">
               <h2 className="text-sm font-bold flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />

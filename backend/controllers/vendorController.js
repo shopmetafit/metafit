@@ -9,7 +9,6 @@ const { sendWhatsAppVendorOrderNotification } = require("../config/whatsappServi
 exports.registerVendor = async (req, res) => {
   try {
     const data = req.body || {};
-console.log("BODY DATA:", req.body);
     // Basic validation
     if (!data.businessEmail || !data.vendorPass || !data.businessName || !data.vendorPhone) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
@@ -74,12 +73,12 @@ console.log("BODY DATA:", req.body);
     });
 
   } catch (error) {
-    console.log("Error" , error);
-    
+    console.log("Error", error);
+
     // res.json({ success: false });
     res.status(500).json({ success: false, message: "Server error" });
   }
-  
+
 };
 
 // VENDOR LOGIN
@@ -106,8 +105,8 @@ exports.loginVendor = async (req, res) => {
 
     // Check approval status
     if (vendor.status !== "approved") {
-      return res.status(403).json({ 
-        success: false, 
+      return res.status(403).json({
+        success: false,
         message: "Account not approved yet. Please wait for admin approval.",
         status: vendor.status
       });
@@ -115,8 +114,8 @@ exports.loginVendor = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
-        vendorId: vendor._id, 
+      {
+        vendorId: vendor._id,
         email: vendor.email,
         vendorName: vendor.vendorName,
         businessName: vendor.businessName
@@ -168,8 +167,8 @@ exports.loginVendorWithOTP = async (req, res) => {
 
     // Check approval status
     if (vendor.status !== "approved") {
-      return res.status(403).json({ 
-        success: false, 
+      return res.status(403).json({
+        success: false,
         message: "Account not approved yet. Please wait for admin approval.",
         status: vendor.status
       });
@@ -199,8 +198,8 @@ exports.loginVendorWithOTP = async (req, res) => {
 
     if (otpData.otp !== otp) {
       otpData.attempts += 1;
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: "Invalid OTP",
         attemptsRemaining: MAX_OTP_ATTEMPTS - otpData.attempts
       });
@@ -211,8 +210,8 @@ exports.loginVendorWithOTP = async (req, res) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
-        vendorId: vendor._id, 
+      {
+        vendorId: vendor._id,
         email: vendor.email,
         vendorName: vendor.vendorName,
         businessName: vendor.businessName,

@@ -191,8 +191,8 @@ const FilterSidebar = () => {
   };
 
   return (
-    <div className="w-full flex flex-col p-5 font-sans">
-      <div className="flex-grow overflow-y-auto overscroll-contain scrollbar-custom pr-4 -mr-4">
+    <div className="w-full flex flex-col p-5 font-sans h-full overflow-y-auto scrollbar-custom">
+      <div className="flex-grow pr-4 -mr-4">
 
         {/* Price Filter */}
         <div className="mb-8">
