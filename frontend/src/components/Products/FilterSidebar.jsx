@@ -9,9 +9,12 @@ import {
   FaTags,
   FaChevronDown,
   FaChevronUp,
+  FaChevronRight,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchAllProducts } from "../../redux/slices/productSlice";
+import axios from "axios";
 
 const categoryIcons = {
   "ayurvedic devices": <FaLeaf />,
@@ -74,9 +77,9 @@ const FilterSidebar = () => {
   }, []);
 
   const [openSections, setOpenSections] = useState({
-    category: true,
-    price: true,
-    brand: true,
+    category: false,
+    price: false,
+    brand: false,
   });
 
   const [selectedCategory, setSelectedCategory] = useState(
@@ -91,6 +94,23 @@ const FilterSidebar = () => {
   const [selectedBrands, setSelectedBrands] = useState(
     searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
   );
+  const [selectedSubCategory, setSelectedSubCategory] = useState(
+    searchParams.get("subCategory")?.toLowerCase() || ""
+  );
+  const [categoriesData, setCategoriesData] = useState([]);
+  const [activeCategoryMenu, setActiveCategoryMenu] = useState(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/products/categories-full`);
+        setCategoriesData(data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     setSelectedCategory(searchParams.get("category")?.toLowerCase() || "");
@@ -99,11 +119,13 @@ const FilterSidebar = () => {
     setSelectedBrands(
       searchParams.get("brand")?.split(',').map(b => b.toLowerCase()).filter(Boolean) || []
     );
+    setSelectedSubCategory(searchParams.get("subCategory")?.toLowerCase() || "");
   }, [searchParams]);
 
   const handleCategoryChange = (normalizedCategory) => {
     const newCategory = selectedCategory === normalizedCategory ? "" : normalizedCategory;
     setSelectedCategory(newCategory);
+    setSelectedSubCategory(""); // clear subcategory when category changes
 
     // Apply filters directly
     const params = new URLSearchParams(searchParams);
@@ -113,6 +135,32 @@ const FilterSidebar = () => {
       params.set("category", newCategory);
     } else {
       params.delete("category");
+    }
+    
+    params.delete("subCategory");
+
+    if (selectedBrands.length > 0) {
+      params.set("brand", selectedBrands.join(","));
+    } else {
+      params.delete("brand");
+    }
+
+    setSearchParams(params);
+  };
+
+  const handleSubCategoryChange = (normalizedSubCat, normalizedCategory) => {
+    const newSubCategory = selectedSubCategory === normalizedSubCat ? "" : normalizedSubCat;
+    setSelectedSubCategory(newSubCategory);
+    
+    const params = new URLSearchParams(searchParams);
+    params.delete("search");
+
+    if (newSubCategory) {
+      params.set("subCategory", newSubCategory);
+      setSelectedCategory(normalizedCategory);
+      params.set("category", normalizedCategory);
+    } else {
+      params.delete("subCategory");
     }
 
     if (selectedBrands.length > 0) {
@@ -139,6 +187,12 @@ const FilterSidebar = () => {
     } else {
       params.delete("category");
     }
+    
+    if (selectedSubCategory) {
+      params.set("subCategory", selectedSubCategory);
+    } else {
+      params.delete("subCategory");
+    }
 
     if (newSelectedBrands.length > 0) {
       params.set("brand", newSelectedBrands.join(","));
@@ -158,6 +212,9 @@ const FilterSidebar = () => {
     }
     setMinPriceInput("");
     setMaxPriceInput("");
+    setSelectedCategory("");
+    setSelectedSubCategory("");
+    setActiveCategoryMenu(null);
     setSearchParams(params);
   };
 
@@ -194,8 +251,81 @@ const FilterSidebar = () => {
     <div className="w-full flex flex-col p-5 font-sans h-full overflow-y-auto scrollbar-custom">
       <div className="flex-grow pr-4 -mr-4">
 
+        {/* Category Filter */}
+        <div className="mb-6 overflow-x-hidden">
+          {!activeCategoryMenu ? (
+            <SectionHeader
+              title="Shop by Category"
+              isOpen={openSections.category}
+              toggle={() => toggleSection("category")}
+            />
+          ) : (
+            <div 
+              className="flex items-center space-x-3 text-gray-800 font-bold cursor-pointer py-1 mt-1 mb-2"
+              onClick={() => setActiveCategoryMenu(null)}
+            >
+              <FaArrowLeft className="text-gray-600" />
+              <h3 className="text-sm tracking-widest uppercase text-gray-700">Main Menu</h3>
+            </div>
+          )}
+
+          {openSections.category && (
+            <div className={`mt-2 flex transition-transform duration-300 ease-in-out w-[200%] ${activeCategoryMenu ? '-translate-x-1/2' : 'translate-x-0'}`}>
+              
+              {/* Main Menu Panel */}
+              <div className="w-1/2 flex-shrink-0 pr-2">
+                <div className="space-y-1">
+                  {categoriesData.map((category) => (
+                    <div 
+                      key={category._id || category.name}
+                      onClick={() => setActiveCategoryMenu(category)}
+                      className="flex items-center justify-between py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
+                    >
+                      <span className={`text-[15px] ${selectedCategory === category.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#0FA958]' : 'text-gray-800'}`}>
+                        {category.name}
+                      </span>
+                      <FaChevronRight className="text-gray-400 text-xs" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Sub Menu Panel */}
+              <div className="w-1/2 flex-shrink-0 pl-2 pr-2">
+                {activeCategoryMenu && (
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-gray-900 mb-3 px-2 text-[15px]">{activeCategoryMenu.name} & More</h4>
+                    
+                    <div 
+                      className="py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
+                      onClick={() => handleCategoryChange(activeCategoryMenu.name.toLowerCase())}
+                    >
+                      <span className={`text-[15px] ${selectedCategory === activeCategoryMenu.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#0FA958]' : 'text-gray-700'}`}>
+                        All {activeCategoryMenu.name}
+                      </span>
+                    </div>
+
+                    {activeCategoryMenu.subCategories?.map((subCat) => (
+                      <div 
+                        key={subCat}
+                        className="py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
+                        onClick={() => handleSubCategoryChange(subCat.toLowerCase(), activeCategoryMenu.name.toLowerCase())}
+                      >
+                        <span className={`text-[15px] ${selectedSubCategory === subCat.toLowerCase() ? 'font-bold text-[#0FA958]' : 'text-gray-700'}`}>
+                          {subCat}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+          )}
+        </div>
+
         {/* Price Filter */}
-        <div className="mb-8">
+        <div className="mb-6">
           <SectionHeader
             title="Price"
             isOpen={openSections.price}
@@ -242,7 +372,7 @@ const FilterSidebar = () => {
         </div>
 
         {/* Brand Filter */}
-        <div className="mb-8">
+        <div className="mb-6">
           <SectionHeader
             title="Brand"
             isOpen={openSections.brand}

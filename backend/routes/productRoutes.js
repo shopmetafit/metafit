@@ -10,8 +10,55 @@ const router = express.Router();
 router.get("/all", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const products = await ProductReadModel.find({}).lean();
+    const products = await ProductReadModel.find({ isPublished: true }).lean();
     res.json({ products });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// @route GET /api/products/categories
+// @desc Get all distinct product categories
+// @access Public
+router.get("/categories", async (req, res) => {
+  try {
+    const Category = require("../models/Category");
+    const categories = await Category.distinct("name");
+    res.json(categories);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// @route GET /api/products/categories-full
+// @desc Get all categories with their subcategories
+// @access Public
+router.get("/categories-full", async (req, res) => {
+  try {
+    const Category = require("../models/Category");
+    const categories = await Category.find({}).lean();
+    res.json(categories);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// @route GET /api/products/subcategories
+// @desc Get subcategories based on a category
+// @access Public
+router.get("/subcategories", async (req, res) => {
+  try {
+    const categoryName = String(req.query.category || "").trim();
+    if (!categoryName) {
+      return res.status(400).json({ message: "Category is required" });
+    }
+    const Category = require("../models/Category");
+    const categoryDoc = await Category.findOne({ name: categoryName });
+    if (!categoryDoc) return res.json([]);
+    res.json(categoryDoc.subCategories || []);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server Error" });
@@ -275,6 +322,7 @@ router.get("/", async (req, res) => {
       sortBy,
       search,
       category,
+      subCategory,
       material,
       location,
       brand,
@@ -282,10 +330,11 @@ router.get("/", async (req, res) => {
       videoUrl
     } = req.query;
 
-    let query = {};
+    let query = { isPublished: true };
     // Filter logic
     if (collection && collection.toLowerCase() !== "all") query.collection = collection;
     if (category && category.toLowerCase() !== "all") query.category = { $regex: category, $options: "i" };
+    if (subCategory && subCategory.toLowerCase() !== "all") query.subCategory = { $regex: subCategory, $options: "i" };
     if (brand) query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
     if (material) query.material = { $in: material.split(",") };
     if (location) query.location = { $regex: location, $options: "i" };
@@ -347,7 +396,7 @@ router.get("/", async (req, res) => {
 router.get("/best-seller", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const bestSeller = await ProductReadModel.findOne().sort({ rating: -1 }).lean();
+    const bestSeller = await ProductReadModel.findOne({ isPublished: true }).sort({ rating: -1 }).lean();
     if (bestSeller) {
       res.json(bestSeller);
     } else {
@@ -366,7 +415,7 @@ router.get("/best-seller", async (req, res) => {
 router.get("/new-arrivals", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const newArrivals = await ProductReadModel.find().sort({ createdAt: -1 }).limit(8).lean();
+    const newArrivals = await ProductReadModel.find({ isPublished: true }).sort({ createdAt: -1 }).limit(8).lean();
     res.json(newArrivals);
   } catch (error) {
     console.error(error);
@@ -381,7 +430,7 @@ router.get("/new-arrivals", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const product = await ProductReadModel.findById(req.params.id).lean();
+    const product = await ProductReadModel.findOne({ _id: req.params.id, isPublished: true }).lean();
     if (product) {
       res.json(product);
     } else {
@@ -409,6 +458,7 @@ router.get("/similar/:id", async (req, res) => {
       _id: { $ne: id },
       gender: product.gender,
       category: product.category,
+      isPublished: true,
     }).limit(4).lean();
     res.json(similarProduct);
   } catch (error) {

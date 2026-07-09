@@ -1,10 +1,29 @@
-import { Trash2, Minus, Plus } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { Trash2, Minus, Plus, Heart } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { addToWishlist } from "../../redux/slices/wishlistSlice";
+import { toast } from "sonner";
 import { removeFromCart, updateCartItemQuantity } from "../../redux/slices/cartSlice";
 import { Link } from "react-router-dom";
 
 const CartContents = ({ cart, userId, guestId }) => {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+  const handleSaveToWishlist = (product) => {
+    if (!user) {
+      toast.error("Please log in to save items to your wishlist");
+      return;
+    }
+    const mappedProduct = {
+       _id: product.productId,
+       name: product.name,
+       price: product.price,
+       images: [{ url: product.image }]
+    };
+    dispatch(addToWishlist({ product: mappedProduct, user }));
+    toast.success("Saved to Wishlist");
+    handleRemove(product.productId, product.size, product.color);
+  };
 
   const handleQtyChange = (productId, delta, quantity, size, color) => {
     const newQty = quantity + delta;
@@ -88,10 +107,19 @@ const CartContents = ({ cart, userId, guestId }) => {
               {/* Remove */}
               <button
                 onClick={() => handleRemove(product.productId, product.size, product.color)}
-                className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"
+                className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors pl-2 border-l border-gray-200"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Delete
+              </button>
+
+              {/* Wishlist */}
+              <button
+                onClick={() => handleSaveToWishlist(product)}
+                className="text-xs text-[#047ca8] hover:text-[#035f82] flex items-center gap-1 transition-colors pl-2 border-l border-gray-200"
+              >
+                <Heart className="h-3.5 w-3.5" />
+                Save
               </button>
             </div>
           </div>

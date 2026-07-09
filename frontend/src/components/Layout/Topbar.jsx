@@ -1,23 +1,34 @@
-import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ChevronDown, ShoppingCart, MessageCircle } from 'lucide-react';
+import { Search, MapPin, ChevronDown, ShoppingCart, MessageCircle, Heart } from 'lucide-react';
 import CartDrawer from '../Layout/CartDrawer';
+import { fetchWishlist } from '../../redux/slices/wishlistSlice';
 
 const Topbar = () => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const { cart } = useSelector((state) => state.cart);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeDrawerTab, setActiveDrawerTab] = useState('cart');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [locationModalOpen, setLocationModalOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(localStorage.getItem('userLocation') || 'India');
   const [locationInput, setLocationInput] = useState('');
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
+  const wishlist = useSelector((state) => state.wishlist || { products: [] });
+  const wishlistCount = wishlist?.products?.length || 0;
   const cartItemCount = cart?.products?.reduce((total, p) => total + p.quantity, 0) || 0;
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchWishlist());
+    }
+  }, [dispatch, user]);
 
   const categories = [
     'All', 'Supplements', 'Wellness Devices', 'Organic Products',
@@ -186,21 +197,44 @@ const Topbar = () => {
               <span className="text-sm font-bold whitespace-nowrap">& Orders</span>
             </Link>
 
+            {/* Wishlist */}
+            <button
+              onClick={() => {
+                setActiveDrawerTab('wishlist');
+                setDrawerOpen(true);
+              }}
+              className="flex flex-col items-center justify-center hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+              aria-label="Wishlist"
+            >
+              <div className="relative">
+                <Heart className="h-8 w-8" strokeWidth={1.5} />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none">
+                    {wishlistCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:block text-[11px] font-bold mt-1 leading-none">Wishlist</span>
+            </button>
+
             {/* Cart */}
             <button
-              onClick={() => setDrawerOpen(true)}
-              className="flex items-center gap-1 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+              onClick={() => {
+                setActiveDrawerTab('cart');
+                setDrawerOpen(true);
+              }}
+              className="flex flex-col items-center justify-center hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
               aria-label="Cart"
             >
               <div className="relative">
-                <ShoppingCart className="h-8 w-8" />
+                <ShoppingCart className="h-9 w-9" strokeWidth={1.5} />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1.5 left-4 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 leading-none">
+                  <span className="absolute -top-1 -right-2 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 leading-none">
                     {cartItemCount}
                   </span>
                 )}
               </div>
-              <span className="hidden sm:block text-sm font-bold">Cart</span>
+              <span className="hidden sm:block text-[11px] font-bold mt-1 leading-none">Cart</span>
             </button>
           </div>
         </div>
@@ -228,7 +262,7 @@ const Topbar = () => {
         )}
       </div>
 
-      <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} />
+      <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} activeTab={activeDrawerTab} setActiveTab={setActiveDrawerTab} />
 
       {/* Location Modal */}
       {locationModalOpen && (

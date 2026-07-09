@@ -86,10 +86,10 @@ const ProductDetails = ({ productId }) => {
           {
             params: referralFromQuery
               ? {
-                  vendorId: referralFromQuery.vendorId,
-                  assignedProductId: referralFromQuery.assignedProductId,
-                  ref: referralFromQuery.shareCode,
-                }
+                vendorId: referralFromQuery.vendorId,
+                assignedProductId: referralFromQuery.assignedProductId,
+                ref: referralFromQuery.shareCode,
+              }
               : undefined,
           }
         );
@@ -145,11 +145,11 @@ const ProductDetails = ({ productId }) => {
         variant: selectedVariant ? { label: selectedVariant.label, price: selectedVariant.price } : null,
         referral: activeReferral
           ? {
-              productId: productFetchId,
-              vendorId: activeReferral.vendorId,
-              assignedProductId: activeReferral.assignedProductId,
-              shareCode: activeReferral.shareCode,
-            }
+            productId: productFetchId,
+            vendorId: activeReferral.vendorId,
+            assignedProductId: activeReferral.assignedProductId,
+            shareCode: activeReferral.shareCode,
+          }
           : null,
       })
     )
@@ -221,9 +221,8 @@ const ProductDetails = ({ productId }) => {
                   {selectedProduct?.videoUrl && (
                     <button
                       onClick={() => setMainImage("video")}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden transition-all ${
-                        mainImage === "video" ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
-                      }`}
+                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden transition-all ${mainImage === "video" ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
+                        }`}
                     >
                       <video src={selectedProduct.videoUrl} muted className="w-full h-full object-cover" />
                     </button>
@@ -232,9 +231,8 @@ const ProductDetails = ({ productId }) => {
                     <button
                       key={i}
                       onClick={() => setMainImage(img.url)}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${
-                        mainImage === img.url ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
-                      }`}
+                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage === img.url ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
+                        }`}
                     >
                       <img src={img.url} alt={img.altText || `View ${i + 1}`} className="w-full h-full object-contain" />
                     </button>
@@ -289,9 +287,8 @@ const ProductDetails = ({ productId }) => {
                     <button
                       key={i}
                       onClick={() => setMainImage(img.url)}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${
-                        mainImage === img.url ? "border-[#047ca8]" : "border-gray-200"
-                      }`}
+                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === img.url ? "border-[#047ca8]" : "border-gray-200"
+                        }`}
                     >
                       <img src={img.url} alt="" className="w-full h-full object-contain" />
                     </button>
@@ -369,11 +366,10 @@ const ProductDetails = ({ productId }) => {
                       <button
                         key={idx}
                         onClick={() => setSelectedVariant(variant)}
-                        className={`p-3 border-2 rounded-lg text-left transition-all ${
-                          selectedVariant?.label === variant.label
+                        className={`p-3 border-2 rounded-lg text-left transition-all ${selectedVariant?.label === variant.label
                             ? "border-[#047ca8] bg-blue-50"
                             : "border-gray-200 hover:border-[#047ca8]"
-                        }`}
+                          }`}
                       >
                         <p className="text-xs font-bold text-gray-800 mb-0.5">{variant.label}</p>
                         <p className="text-base font-bold text-gray-900">
@@ -405,11 +401,10 @@ const ProductDetails = ({ productId }) => {
                       <button
                         key={i}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all ${
-                          selectedSize === size
+                        className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all ${selectedSize === size
                             ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
                             : "border-gray-300 hover:border-[#047ca8] text-gray-800"
-                        }`}
+                          }`}
                       >
                         {size}
                       </button>
@@ -428,9 +423,8 @@ const ProductDetails = ({ productId }) => {
                         key={i}
                         onClick={() => handleColorClick(color, i)}
                         title={selectedProduct.colorsName?.[i] || color}
-                        className={`w-9 h-9 rounded-full border-2 transition-all ${
-                          selectedColor === color ? "ring-2 ring-[#047ca8] ring-offset-2" : "border-gray-300 hover:scale-110"
-                        }`}
+                        className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor === color ? "ring-2 ring-[#047ca8] ring-offset-2" : "border-gray-300 hover:scale-110"
+                          }`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -466,11 +460,10 @@ const ProductDetails = ({ productId }) => {
               <button
                 onClick={handleAddToCart}
                 disabled={isButtonDisabled}
-                className={`w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold text-sm transition-all shadow-md ${
-                  isButtonDisabled
+                className={`w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold text-sm transition-all shadow-md ${isButtonDisabled
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white hover:shadow-lg active:scale-95"
-                }`}
+                  }`}
               >
                 <ShoppingCart className="h-4 w-4" />
                 {isButtonDisabled ? "Adding..." : "Add to Cart"}
@@ -543,11 +536,10 @@ const ProductDetails = ({ productId }) => {
                 <button
                   onClick={handleAddToCart}
                   disabled={isButtonDisabled}
-                  className={`w-full py-2.5 rounded-full font-bold text-sm mb-2 transition-all ${
-                    isButtonDisabled
+                  className={`w-full py-2.5 rounded-full font-bold text-sm mb-2 transition-all ${isButtonDisabled
                       ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                       : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white shadow-md"
-                  }`}
+                    }`}
                 >
                   {isButtonDisabled ? "Adding..." : "Add to Cart"}
                 </button>
@@ -561,10 +553,6 @@ const ProductDetails = ({ productId }) => {
                   <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-[#047ca8] flex-shrink-0" />
                     <span>Ships within 24hrs</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RefreshCw className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                    <span>10-day return policy</span>
                   </div>
                 </div>
               </div>

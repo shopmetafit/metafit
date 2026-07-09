@@ -18,7 +18,6 @@ const categoryTiles = [
 const trustBadges = [
   { icon: <Truck className="h-6 w-6 text-[#047ca8]" />, title: "Free Shipping", desc: "On orders over ₹999" },
   { icon: <ShieldCheck className="h-6 w-6 text-[#047ca8]" />, title: "Secure Payment", desc: "SSL encrypted checkout" },
-  { icon: <RefreshCw className="h-6 w-6 text-[#047ca8]" />, title: "Easy Returns", desc: "10-day money back" },
   { icon: <Headphones className="h-6 w-6 text-[#047ca8]" />, title: "24/7 Support", desc: "Expert wellness advice" },
 ];
 
@@ -133,7 +132,6 @@ const Home = () => {
             {[
               { icon: "🏆", title: "Premium Quality", desc: "100% authentic wellness products from trusted manufacturers" },
               { icon: "🚚", title: "Fast Shipping", desc: "Free shipping on orders over ₹999. Delivered in 5–7 days" },
-              { icon: "💯", title: "Money Back Guarantee", desc: "Not satisfied? Full refund within 10 days, no questions asked" },
               { icon: "🔒", title: "Secure Payment", desc: "SSL encrypted checkout — your data is always protected" },
             ].map((item) => (
               <div
@@ -215,11 +213,10 @@ const Home = () => {
               <button
                 key={page}
                 onClick={() => setCurrentPage(page)}
-                className={`w-9 h-9 rounded text-sm font-semibold transition-colors ${
-                  currentPage === page
-                    ? "bg-gradient-to-r from-[#047ca8] to-[#06b6d4] text-white shadow"
-                    : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                }`}
+                className={`w-9 h-9 rounded text-sm font-semibold transition-colors ${currentPage === page
+                  ? "bg-gradient-to-r from-[#047ca8] to-[#06b6d4] text-white shadow"
+                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  }`}
               >
                 {page}
               </button>

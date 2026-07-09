@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import { AlertTriangle, LogIn } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const SessionExpiredModal = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const handleSessionExpired = () => {
-      setIsOpen(true);
+      if (user) {
+        setIsOpen(true);
+      }
     };
 
     window.addEventListener('session-expired', handleSessionExpired);
     return () => {
       window.removeEventListener('session-expired', handleSessionExpired);
     };
-  }, []);
+  }, [user]);
 
   const handleLogin = () => {
     sessionStorage.clear();

@@ -18,6 +18,7 @@ export const fetchProductsByFilters = createAsyncThunk(
     sortBy,
     search,
     category,
+    subCategory,
     material,
     location,
     brand,
@@ -33,6 +34,7 @@ export const fetchProductsByFilters = createAsyncThunk(
     if (sortBy) query.append("sortBy", sortBy);
     if (search) query.append("search", search);
     if (category) query.append("category", category);
+    if (subCategory) query.append("subCategory", subCategory);
     if (material) query.append("material", material);
     if (location) query.append("location", location);
     if (brand) query.append("brand", brand);
@@ -118,6 +120,7 @@ const productsSlice = createSlice({
     error: null,
     filters: {
       category: "",
+      subCategory: "",
       size: "",
       color: "",
       gender: "",
@@ -138,6 +141,7 @@ const productsSlice = createSlice({
     clearFilters: (state) => {
       state.filters = {
         category: "",
+        subCategory: "",
         size: "",
         color: "",
         gender: "",
