@@ -35,6 +35,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "https://metafit-a5ll.vercel.app",
   "https://metafit-omega.vercel.app",
+  "https://admin.mwellnessbazaar.com",
   "https://mwellnessbazaar.com",
   "https://www.mwellnessbazaar.com",
   "http://metafitwellness.com",
