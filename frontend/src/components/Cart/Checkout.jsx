@@ -58,7 +58,15 @@ const CheckOut = () => {
       setIsApplyingCoupon(true);
       const { data } = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/coupons/apply`,
-        { code, subtotal: cart.totalPrice }
+        { 
+          code, 
+          subtotal: cart.totalPrice, 
+          products: cart.products.map(p => ({
+            productId: p.productId,
+            price: p.price,
+            quantity: p.quantity
+          }))
+        }
       );
 
       const discountAmount = Number(data?.discountAmount || 0);

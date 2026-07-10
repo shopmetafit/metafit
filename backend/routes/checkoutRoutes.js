@@ -18,18 +18,30 @@ const isCouponCurrentlyValid = (coupon, now) => {
   return true;
 };
 
-const computeCouponDiscount = (coupon, subtotal) => {
+const computeCouponDiscount = (coupon, cartSubtotal, items) => {
   if (!coupon) return 0;
-  if (!Number.isFinite(subtotal) || subtotal <= 0) return 0;
+  if (!Number.isFinite(cartSubtotal) || cartSubtotal <= 0) return 0;
 
   const minOrderAmount = Number(coupon.minOrderAmount || 0);
-  if (subtotal < minOrderAmount) return 0;
+  if (cartSubtotal < minOrderAmount) return 0;
+
+  let applicableSubtotal = cartSubtotal;
+  if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0 && items && items.length > 0) {
+    const applicableProductIds = coupon.applicableProducts.map(String);
+    applicableSubtotal = items.reduce((sum, item) => {
+      if (applicableProductIds.includes(String(item.productId))) {
+        return sum + (Number(item.price || 0) * Number(item.quantity || 1));
+      }
+      return sum;
+    }, 0);
+    if (applicableSubtotal <= 0) return 0;
+  }
 
   let discountAmount = 0;
   if (coupon.type === "percentage") {
     const percent = Number(coupon.value);
     if (!Number.isFinite(percent) || percent <= 0) return 0;
-    discountAmount = (subtotal * percent) / 100;
+    discountAmount = (applicableSubtotal * percent) / 100;
     const cap = coupon.maxDiscountAmount === null || coupon.maxDiscountAmount === undefined
       ? null
       : Number(coupon.maxDiscountAmount);
@@ -44,7 +56,7 @@ const computeCouponDiscount = (coupon, subtotal) => {
     return 0;
   }
 
-  return Math.max(0, Math.min(discountAmount, subtotal));
+  return Math.max(0, Math.min(discountAmount, applicableSubtotal));
 };
 
 // @route POST / api/ checkout
@@ -110,7 +122,16 @@ router.post("/", protect, async (req, res) => {
         return res.status(400).json({ message: "Coupon usage limit reached" });
       }
 
-      discountAmount = computeCouponDiscount(coupon, itemsTotal);
+      if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0) {
+        const hasApplicableProduct = productIds.some(pid => 
+          coupon.applicableProducts.map(String).includes(String(pid))
+        );
+        if (!hasApplicableProduct) {
+          return res.status(400).json({ message: "Coupon is not applicable to any product in your cart" });
+        }
+      }
+
+      discountAmount = computeCouponDiscount(coupon, itemsTotal, checkoutItems);
 
       if (discountAmount <= 0) {
         const minOrderAmount = Number(coupon.minOrderAmount || 0);

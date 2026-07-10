@@ -21,12 +21,24 @@ const isCouponCurrentlyValid = (coupon, now) => {
   return true;
 };
 
-const computeCouponDiscount = (coupon, subtotal) => {
+const computeCouponDiscount = (coupon, cartSubtotal, items) => {
   if (!coupon) return 0;
-  if (!Number.isFinite(subtotal) || subtotal <= 0) return 0;
+  if (!Number.isFinite(cartSubtotal) || cartSubtotal <= 0) return 0;
 
   const minOrderAmount = Number(coupon.minOrderAmount || 0);
-  if (subtotal < minOrderAmount) return 0;
+  if (cartSubtotal < minOrderAmount) return 0;
+
+  let applicableSubtotal = cartSubtotal;
+  if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0 && items && items.length > 0) {
+    const applicableProductIds = coupon.applicableProducts.map(String);
+    applicableSubtotal = items.reduce((sum, item) => {
+      if (applicableProductIds.includes(String(item.productId))) {
+        return sum + (Number(item.price || 0) * Number(item.quantity || 1));
+      }
+      return sum;
+    }, 0);
+    if (applicableSubtotal <= 0) return 0;
+  }
 
   if (coupon.type === "percentage") {
     const percent = Number(coupon.value);
@@ -35,15 +47,15 @@ const computeCouponDiscount = (coupon, subtotal) => {
         ? null
         : Number(coupon.maxDiscountAmount);
 
-    let discountAmount = (subtotal * percent) / 100;
+    let discountAmount = (applicableSubtotal * percent) / 100;
     if (cap !== null && Number.isFinite(cap)) {
       discountAmount = Math.min(discountAmount, cap);
     }
-    return Math.max(0, Math.min(discountAmount, subtotal));
+    return Math.max(0, Math.min(discountAmount, applicableSubtotal));
   }
 
   if (coupon.type === "fixed") {
-    return Math.max(0, Math.min(Number(coupon.value || 0), subtotal));
+    return Math.max(0, Math.min(Number(coupon.value || 0), applicableSubtotal));
   }
 
   return 0;
@@ -175,7 +187,16 @@ router.post("/orders", protect, async (req, res) => {
         return res.status(400).json({ message: "Coupon is not valid at this time" });
       }
 
-      discountAmount = computeCouponDiscount(coupon, itemsTotal);
+      if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0) {
+        const hasApplicableProduct = productIds.some(pid => 
+          coupon.applicableProducts.map(String).includes(String(pid))
+        );
+        if (!hasApplicableProduct) {
+          return res.status(400).json({ message: "Coupon is not applicable to any product in your cart" });
+        }
+      }
+
+      discountAmount = computeCouponDiscount(coupon, itemsTotal, normalizedItems);
     }
 
     const checkout = await Checkout.create({

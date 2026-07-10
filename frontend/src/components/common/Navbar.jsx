@@ -51,7 +51,7 @@ const Navbar = () => {
           category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, (s) => s.toUpperCase());
         }
       }
-      
+
       if (!acc.find((c) => c.normalizedName === normalizedCategory)) {
         acc.push({
           label: category,
@@ -65,10 +65,10 @@ const Navbar = () => {
 
   const displayedCategories = dynamicCategories.length > 0
     ? [
-        ...dynamicCategories,
-        { label: "Blog", link: "/blog" },
-        { label: "Today's Deals", link: "/collections/all", highlight: true }
-      ]
+      ...dynamicCategories,
+      { label: "Blog", link: "/blog" },
+      { label: "Today's Deals", link: "/collections/all", highlight: true }
+    ]
     : categories;
 
   const dynamicProdCats = dynamicCategories;
@@ -87,15 +87,6 @@ const Navbar = () => {
         <div
           className="max-w-screen-2xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto no-scrollbar"
         >
-          {/* All Menu Button */}
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#0d4f45] hover:bg-[#116357] border border-white/10 hover:border-white/20 font-bold text-sm whitespace-nowrap flex-shrink-0 rounded transition-all text-teal-300 hover:text-white"
-          >
-            <Menu className="h-4 w-4" />
-            <span>Search by Category</span>
-          </button>
-
           {/* Divider */}
           <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
 

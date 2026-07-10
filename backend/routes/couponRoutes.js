@@ -26,6 +26,8 @@ router.post("/apply", async (req, res) => {
   try {
     const code = normalizeCode(req.body?.code);
     const subtotal = toNumber(req.body?.subtotal);
+    const products = req.body?.products || [];
+    const productIds = products.map(p => p.productId);
 
     if (!code) return res.status(400).json({ message: "Coupon code is required" });
     if (Number.isNaN(subtotal) || subtotal <= 0) {
@@ -41,6 +43,15 @@ router.post("/apply", async (req, res) => {
       return res.status(400).json({ message: "Coupon is not valid at this time" });
     }
 
+    if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0) {
+      const hasApplicableProduct = productIds.some(pid => 
+        coupon.applicableProducts.map(String).includes(String(pid))
+      );
+      if (!hasApplicableProduct) {
+        return res.status(400).json({ message: "Coupon is not applicable to any product in your cart" });
+      }
+    }
+
     const minOrderAmount = Number(coupon.minOrderAmount || 0);
     if (subtotal < minOrderAmount) {
       return res.status(400).json({ message: `Minimum order amount is ₹${minOrderAmount}` });
@@ -53,10 +64,22 @@ router.post("/apply", async (req, res) => {
       return res.status(400).json({ message: "Coupon usage limit reached" });
     }
 
+    let applicableSubtotal = subtotal;
+    if (Array.isArray(coupon.applicableProducts) && coupon.applicableProducts.length > 0 && products.length > 0) {
+      const applicableProductIds = coupon.applicableProducts.map(String);
+      applicableSubtotal = products.reduce((sum, item) => {
+        if (applicableProductIds.includes(String(item.productId))) {
+          return sum + (Number(item.price || 0) * Number(item.quantity || 1));
+        }
+        return sum;
+      }, 0);
+      if (applicableSubtotal <= 0) return res.status(400).json({ message: "Coupon is not applicable to any product in your cart" });
+    }
+
     let discountAmount = 0;
     if (coupon.type === "percentage") {
       const percent = Number(coupon.value);
-      discountAmount = (subtotal * percent) / 100;
+      discountAmount = (applicableSubtotal * percent) / 100;
       const cap =
         coupon.maxDiscountAmount === null || coupon.maxDiscountAmount === undefined
           ? null
@@ -70,7 +93,7 @@ router.post("/apply", async (req, res) => {
       return res.status(400).json({ message: "Coupon type is invalid" });
     }
 
-    discountAmount = Math.max(0, Math.min(discountAmount, subtotal));
+    discountAmount = Math.max(0, Math.min(discountAmount, applicableSubtotal));
 
     return res.json({
       code: coupon.code,

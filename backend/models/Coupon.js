@@ -52,6 +52,12 @@ const couponSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    applicableProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
   },
   { timestamps: true, collection: "coupons" }
 );
