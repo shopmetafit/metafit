@@ -32,6 +32,7 @@ const productSchema = new mongoose.Schema(
           required: true,
         },
         altText: { type: String },
+        color: { type: String },
         isPrimary: { type: Boolean, default: false },
       },
     ],
@@ -113,10 +114,10 @@ const productSchema = new mongoose.Schema(
     variants: [
       {
         _id: false,
-        label: { type: String, required: true }, // e.g., "1 kg (Pack of 1)"
+        label: { type: String }, // e.g., "1 kg (Pack of 1)"
         weight: { type: Number }, // weight in kg
         quantity: { type: Number }, // pack size
-        price: { type: Number, required: true },
+        price: { type: Number },
         discountPrice: { type: Number },
         stock: { type: Number, default: 0 },
         sku: { type: String },

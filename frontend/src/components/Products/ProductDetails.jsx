@@ -14,6 +14,20 @@ import {
   saveReferralContext,
 } from "../../services/referralStorage";
 
+const formatCurrency = (value) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return null;
+  return `₹${numericValue.toLocaleString()}`;
+};
+
+const getVariantPriceRange = (variants = []) => {
+  const prices = variants
+    .map((variant) => Number(variant.discountPrice || variant.price))
+    .filter((price) => Number.isFinite(price));
+
+  return prices.length ? Math.min(...prices) : null;
+};
+
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
   const location = useLocation();
@@ -123,7 +137,10 @@ const ProductDetails = ({ productId }) => {
 
   const handleColorClick = (color, index) => {
     setSelectedColor(color);
-    if (selectedProduct.images[index]) {
+    const colorImage = selectedProduct.images?.find(img => img.color === color);
+    if (colorImage && colorImage.url) {
+      setMainImage(colorImage.url);
+    } else if (selectedProduct.images && selectedProduct.images[index]) {
       setMainImage(selectedProduct.images[index].url);
     }
   };
@@ -219,13 +236,20 @@ const ProductDetails = ({ productId }) => {
                 {/* Vertical thumbnail strip */}
                 <div className="flex flex-col gap-2 flex-shrink-0">
                   {selectedProduct?.videoUrl && (
-                    <button
-                      onClick={() => setMainImage("video")}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden transition-all ${mainImage === "video" ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
-                        }`}
-                    >
-                      <video src={selectedProduct.videoUrl} muted className="w-full h-full object-cover" />
-                    </button>
+                    <div className="relative group flex-shrink-0">
+                      <button
+                        title="Product Video"
+                        onClick={() => setMainImage("video")}
+                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage === "video" ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
+                          }`}
+                      >
+                        <video src={selectedProduct.videoUrl} muted className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center">
+                          <FaPlayCircle className="text-white text-xl shadow-sm opacity-90" />
+                          <span className="text-[9px] font-bold text-white uppercase tracking-wider mt-0.5 drop-shadow-md">Video</span>
+                        </div>
+                      </button>
+                    </div>
                   )}
                   {selectedProduct.images.map((img, i) => (
                     <button
@@ -283,18 +307,48 @@ const ProductDetails = ({ productId }) => {
                   )}
                 </div>
                 <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                  {selectedProduct.images.map((img, i) => (
+                  {selectedProduct?.videoUrl && (
+                    <div className="relative group flex-shrink-0">
+                      <button
+                        title="Product Video"
+                        onClick={() => setMainImage("video")}
+                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage === "video" ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
+                          }`}
+                      >
+                        <video src={selectedProduct.videoUrl} muted className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center">
+                          <FaPlayCircle className="text-white text-xl shadow-sm opacity-90" />
+                          <span className="text-[9px] font-bold text-white uppercase tracking-wider mt-0.5 drop-shadow-md">Video</span>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                  {selectedProduct.images.map((img, i) => {
+                    const imgUrl = typeof img === 'string' ? img : img.url;
+                    if (!imgUrl) return null;
+                    return (
                     <button
                       key={i}
-                      onClick={() => setMainImage(img.url)}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === img.url ? "border-[#047ca8]" : "border-gray-200"
+                      onClick={() => setMainImage(imgUrl)}
+                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
                         }`}
                     >
-                      <img src={img.url} alt="" className="w-full h-full object-contain" />
+                      <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
                     </button>
-                  ))}
+                  )})}
                 </div>
               </div>
+
+              {/* Desktop Description (Below Image) */}
+              {selectedProduct.description && (
+                <div className="hidden lg:block mt-8 pt-6 border-t border-gray-100">
+                  <h2 className="text-base font-bold text-gray-900 mb-3">About this product</h2>
+                  <div 
+                    className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: selectedProduct.description }} 
+                  />
+                </div>
+              )}
             </div>
 
             {/* ── Center: Details ── */}
@@ -332,11 +386,11 @@ const ProductDetails = ({ productId }) => {
                 <div className="mb-4">
                   <div className="flex items-baseline gap-3 flex-wrap">
                     <span className="text-3xl font-bold text-gray-900">
-                      ₹{selectedProduct.discountPrice?.toLocaleString()}
+                      {formatCurrency(selectedProduct.discountPrice || selectedProduct.price)}
                     </span>
                     {selectedProduct.price && selectedProduct.price !== selectedProduct.discountPrice && (
                       <span className="text-base text-gray-400 line-through">
-                        M.R.P: ₹{selectedProduct.price?.toLocaleString()}
+                        M.R.P: {formatCurrency(selectedProduct.price)}
                       </span>
                     )}
                     {discountPct > 0 && (
@@ -345,13 +399,13 @@ const ProductDetails = ({ productId }) => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
                   <p className="text-sm text-gray-600 mt-1">
-                    + ₹{(selectedProduct.shippingCharge || 100).toLocaleString()} delivery charge
+                    + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery charge
                   </p>
                 </div>
               ) : (
                 <div className="mb-4">
                   <p className="text-sm text-gray-500 mb-2 font-medium">
-                    From ₹{Math.min(...selectedProduct.variants.map((v) => v.discountPrice || v.price))?.toLocaleString()}
+                    From {formatCurrency(getVariantPriceRange(selectedProduct.variants))}
                   </p>
                   <p className="text-xs text-gray-500">Select a variant below to see pricing</p>
                 </div>
@@ -367,16 +421,16 @@ const ProductDetails = ({ productId }) => {
                         key={idx}
                         onClick={() => setSelectedVariant(variant)}
                         className={`p-3 border-2 rounded-lg text-left transition-all ${selectedVariant?.label === variant.label
-                            ? "border-[#047ca8] bg-blue-50"
-                            : "border-gray-200 hover:border-[#047ca8]"
+                          ? "border-[#047ca8] bg-blue-50"
+                          : "border-gray-200 hover:border-[#047ca8]"
                           }`}
                       >
                         <p className="text-xs font-bold text-gray-800 mb-0.5">{variant.label}</p>
                         <p className="text-base font-bold text-gray-900">
-                          ₹{(variant.discountPrice || variant.price)?.toLocaleString()}
+                          {formatCurrency(variant.discountPrice || variant.price)}
                         </p>
                         {variant.discountPrice && variant.price && variant.discountPrice < variant.price && (
-                          <p className="text-xs text-gray-400 line-through">₹{variant.price}</p>
+                          <p className="text-xs text-gray-400 line-through">{formatCurrency(variant.price)}</p>
                         )}
                         {variant.pricePerUnit && (
                           <p className="text-xs text-gray-500">({variant.pricePerUnit})</p>
@@ -386,7 +440,7 @@ const ProductDetails = ({ productId }) => {
                   </div>
                   {selectedVariant && (
                     <div className="mt-2 px-3 py-2 bg-[#e8f4f8] border border-[#b3d9e8] rounded text-sm text-[#047ca8] font-medium">
-                      Selected: {selectedVariant.label} — ₹{(selectedVariant.discountPrice || selectedVariant.price)?.toLocaleString()}
+                      Selected: {selectedVariant.label} — {formatCurrency(selectedVariant.discountPrice || selectedVariant.price)}
                     </div>
                   )}
                 </div>
@@ -402,8 +456,8 @@ const ProductDetails = ({ productId }) => {
                         key={i}
                         onClick={() => setSelectedSize(size)}
                         className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all ${selectedSize === size
-                            ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
-                            : "border-gray-300 hover:border-[#047ca8] text-gray-800"
+                          ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
+                          : "border-gray-300 hover:border-[#047ca8] text-gray-800"
                           }`}
                       >
                         {size}
@@ -461,8 +515,8 @@ const ProductDetails = ({ productId }) => {
                 onClick={handleAddToCart}
                 disabled={isButtonDisabled}
                 className={`w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold text-sm transition-all shadow-md ${isButtonDisabled
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white hover:shadow-lg active:scale-95"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white hover:shadow-lg active:scale-95"
                   }`}
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -486,6 +540,20 @@ const ProductDetails = ({ productId }) => {
                         <td className="py-2 text-gray-900 capitalize">{selectedProduct.category}</td>
                       </tr>
                     )}
+                    {selectedProduct.wellnessGoal?.length > 0 && (
+                      <tr className="border-b border-gray-100">
+                        <td className="py-2 pr-4 text-gray-500 font-medium w-32 align-top">Wellness Goals</td>
+                        <td className="py-2 text-gray-900">
+                          <div className="flex flex-wrap gap-1.5">
+                            {selectedProduct.wellnessGoal.map((goal, idx) => (
+                              <span key={idx} className="inline-block bg-[#e8f4f8] text-[#047ca8] px-2 py-1 rounded text-xs font-medium">
+                                {goal}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -495,14 +563,17 @@ const ProductDetails = ({ productId }) => {
                 <div className="mt-5">
                   <h3 className="text-sm font-bold text-gray-800 mb-2">More Details</h3>
                   <div className="flex gap-3 overflow-x-auto pb-2">
-                    {selectedProduct.extraImages.map((img, i) => (
+                    {selectedProduct.extraImages.map((img, i) => {
+                      const imgUrl = typeof img === 'string' ? img : img.url;
+                      if (!imgUrl) return null;
+                      return (
                       <img
                         key={i}
-                        src={img.url}
+                        src={imgUrl}
                         alt={img.altText || `Detail ${i + 1}`}
                         className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
                       />
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -515,17 +586,17 @@ const ProductDetails = ({ productId }) => {
                 <div className="mb-3">
                   {selectedProduct.hasVariants ? (
                     <p className="text-2xl font-bold text-gray-900">
-                      ₹{selectedVariant
-                        ? (selectedVariant.discountPrice || selectedVariant.price)?.toLocaleString()
-                        : Math.min(...selectedProduct.variants.map((v) => v.discountPrice || v.price))?.toLocaleString()}
+                      {selectedVariant
+                        ? formatCurrency(selectedVariant.discountPrice || selectedVariant.price)
+                        : formatCurrency(getVariantPriceRange(selectedProduct.variants))}
                     </p>
                   ) : (
                     <p className="text-2xl font-bold text-gray-900">
-                      ₹{selectedProduct.discountPrice?.toLocaleString()}
+                      {formatCurrency(selectedProduct.discountPrice || selectedProduct.price)}
                     </p>
                   )}
                   <p className="text-xs text-gray-500 mt-0.5">
-                    + ₹{(selectedProduct.shippingCharge || 100).toLocaleString()} delivery
+                    + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery
                   </p>
                 </div>
 
@@ -537,8 +608,8 @@ const ProductDetails = ({ productId }) => {
                   onClick={handleAddToCart}
                   disabled={isButtonDisabled}
                   className={`w-full py-2.5 rounded-full font-bold text-sm mb-2 transition-all ${isButtonDisabled
-                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                      : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white shadow-md"
+                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                    : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white shadow-md"
                     }`}
                 >
                   {isButtonDisabled ? "Adding..." : "Add to Cart"}
@@ -559,13 +630,14 @@ const ProductDetails = ({ productId }) => {
             </div>
           </div>
 
-          {/* Description */}
+          {/* Mobile Description */}
           {selectedProduct.description && (
-            <div className="px-4 lg:px-6 pb-6 border-t border-gray-100 pt-4">
+            <div className="lg:hidden px-4 lg:px-6 pb-6 border-t border-gray-100 pt-4">
               <h2 className="text-base font-bold text-gray-900 mb-3">About this product</h2>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
-                {selectedProduct.description}
-              </p>
+              <div 
+                className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: selectedProduct.description }} 
+              />
             </div>
           )}
         </div>
