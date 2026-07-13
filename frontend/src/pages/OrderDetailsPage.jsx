@@ -163,7 +163,7 @@ const OrderDetailsPage = () => {
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
         <p className="text-gray-600 mt-1">
-          Order #{orderDetails._id.slice(-8)} • Placed{" "}
+          Order #{orderDetails.orderNumber || orderDetails._id.slice(-8)} • Placed{" "}
           {new Date(orderDetails.createdAt).toLocaleDateString()}
         </p>
       </div>

@@ -31,6 +31,16 @@ const orderItemSchema = new mongoose.Schema(
 
 const orderSchema = new mongoose.Schema(
   {
+    orderNumber: {
+      type: String,
+      unique: true,
+      default: () => {
+        const d = new Date();
+        const dateStr = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+        const randomStr = Math.floor(100000 + Math.random() * 900000).toString();
+        return `ORD-${dateStr}-${randomStr}`;
+      },
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // Reference to the "User" model

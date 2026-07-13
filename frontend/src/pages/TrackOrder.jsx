@@ -28,7 +28,7 @@ export default function TrackOrder() {
       <div className="track-order-page">
         <div className="error-box">
           <h2>Invalid Order</h2>
-          <p>No order ID provided.</p>
+          <p>No order number provided.</p>
         </div>
       </div>
     );
@@ -38,7 +38,7 @@ export default function TrackOrder() {
     <div className="track-order-page">
       <div className="page-header">
         <h1>Track Your Order</h1>
-        <p className="order-id-display">Order ID: {orderId.slice(0, 8)}...</p>
+        <p className="order-id-display">Order Number: {orderId.slice(0, 8)}...</p>
       </div>
 
       <div className="page-content">
@@ -94,7 +94,7 @@ export default function TrackOrder() {
             <h3>Need Help?</h3>
             <p>
               If you have questions about your order, please contact our support
-              team with your order ID and AWB number.
+              team with your order number and AWB number.
             </p>
           </div>
         </div>

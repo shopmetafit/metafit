@@ -74,7 +74,7 @@ export default function PendingOrdersList({ token, onRefresh }) {
             {orders.map((order) => (
               <tr key={order._id}>
                 <td className="order-id">
-                  {order._id.slice(0, 8)}...
+                  {order.orderNumber || order._id.slice(0, 8) + "..."}
                 </td>
                 <td>
                   <div className="customer-info">

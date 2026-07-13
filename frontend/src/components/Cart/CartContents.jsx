@@ -59,10 +59,14 @@ const CartContents = ({ cart, userId, guestId }) => {
             </Link>
 
             {/* Variant / size / color */}
-            {(product.size || product.color) && (
-              <p className="text-xs text-gray-400 mt-0.5">
+            {(product.size || product.color || product.variant) && (
+              <p className="text-xs text-gray-500 mt-0.5 space-x-2">
+                {product.variant && (
+                  <span className="font-medium text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+                    {product.variant.label}
+                  </span>
+                )}
                 {product.size && <span>Size: {product.size}</span>}
-                {product.size && product.color && " | "}
                 {product.color && <span>Color: {product.color}</span>}
               </p>
             )}
@@ -73,7 +77,7 @@ const CartContents = ({ cart, userId, guestId }) => {
                 ₹{(product.price || 0).toLocaleString()}
               </p>
               <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                + ₹{(product.shippingCharge || 100).toLocaleString()} shipping
+                + ₹{(product.shippingCharge ?? 100).toLocaleString()} shipping
               </span>
             </div>
 

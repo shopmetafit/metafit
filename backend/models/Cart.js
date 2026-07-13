@@ -23,6 +23,10 @@ const cartItemSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    variant: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
     quantity: {
       type: Number,
       default: 1,

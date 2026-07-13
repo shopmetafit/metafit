@@ -28,7 +28,7 @@ const generateBuyerEmail = (firstName, productList, totalAmount, payment_id, add
                 <ul>${productList}</ul>
                 <hr style="border:none; border-top:1px solid #1f2937; margin:16px 0;" />
                 <p><b>Amount Paid:</b> ₹${totalAmount}</p>
-                <p><b>Payment ID:</b> ${payment_id}</p>
+                <p><b>Order Number:</b> ${payment_id}</p>
                 <p><b>Shipping Address:</b> ${address}</p>
                 <p><b>Order Date:</b> ${new Date().toLocaleDateString()}</p>
               </div>
@@ -111,7 +111,7 @@ const generateSellerEmail = (firstName, lastName, email, phone, productList, tot
                     <td style="padding: 12px 0; color:#059669; font-size: 18px; font-weight:700; text-align: right;">₹${totalAmount}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px 0; color:#64748b;"><b>Payment ID:</b></td>
+                    <td style="padding: 12px 0; color:#64748b;"><b>Order Number:</b></td>
                     <td style="padding: 12px 0; color:#334155; text-align: right; font-family: monospace; font-size:14px;">${payment_id}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -341,7 +341,7 @@ const generateAdminOrderEmail = (buyerName, buyerEmail, buyerPhone, sellerName, 
                     <td style="padding: 12px 0; color:#059669; font-size: 18px; font-weight:700; text-align: right;">₹${totalAmount}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f1f5f9;">
-                    <td style="padding: 12px 0; color:#64748b;"><b>Payment ID:</b></td>
+                    <td style="padding: 12px 0; color:#64748b;"><b>Order Number:</b></td>
                     <td style="padding: 12px 0; color:#334155; text-align: right; font-family: monospace; font-size:14px;">${payment_id}</td>
                   </tr>
                   <tr style="border-bottom: 1px solid #f1f5f9;">

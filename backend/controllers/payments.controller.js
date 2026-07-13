@@ -169,7 +169,7 @@ exports.verifyPayment = async (req, res) => {
           }
 
           calculatedAmount += validItemPrice * (item.quantity || 1);
-          calculatedShipping += (dbProduct.shippingCharge ?? 100) * (item.quantity || 1);
+          calculatedShipping += (dbProduct.shippingCharge ?? 100);
         }
       }
 
@@ -234,10 +234,8 @@ exports.verifyPayment = async (req, res) => {
     const vendorCity = primaryVendor ? primaryVendor.city : null;
     const vendorPostalCode = primaryVendor ? primaryVendor.pincode : null;
 
-    console.log("✓ Vendor details and products mapped. Total vendors:", vendorMap.size);
-
-    // Save order to database BEFORE sending emails
     let savedOrderId = null;
+    let finalOrderNumber = payment_id;
     try {
       const addressParts = address.split(",").map((part) => part.trim());
       const finalCity = vendorCity || addressParts[1] || "Not provided";
@@ -269,7 +267,8 @@ exports.verifyPayment = async (req, res) => {
 
       await newOrder.save();
       savedOrderId = newOrder._id;
-      console.log("✓ Order saved successfully with ID:", savedOrderId);
+      finalOrderNumber = newOrder.orderNumber || payment_id;
+      console.log("✓ Order saved successfully with ID:", savedOrderId, "OrderNumber:", finalOrderNumber);
 
       // Save Admin Product Sales details if any product owner is ADMIN
       for (const p of products) {
@@ -299,7 +298,6 @@ exports.verifyPayment = async (req, res) => {
             },
             { upsert: true, new: true }
           );
-          console.log(`✓ Admin product sale saved for product: ${dbProduct.name}`);
         }
       }
     } catch (orderErr) {
@@ -319,7 +317,7 @@ exports.verifyPayment = async (req, res) => {
     });
 
     // Generate emails using template functions
-    const buyerEmailHtml = generateBuyerEmail(firstName, productList, totalAmount, payment_id, address);
+    const buyerEmailHtml = generateBuyerEmail(firstName, productList, totalAmount, finalOrderNumber, address);
 
     const adminSellerName = primaryVendor ? primaryVendor.vendorName : (vendorMap.size > 0 ? "Multiple Vendors" : "MetaFit Direct");
     const adminSellerEmail = primaryVendor ? primaryVendor.email : process.env.SELLER_EMAIL;
@@ -334,7 +332,7 @@ exports.verifyPayment = async (req, res) => {
       adminSellerPhone,
       productList,
       totalAmount,
-      payment_id,
+      finalOrderNumber,
       address
     );
 
@@ -393,7 +391,7 @@ exports.verifyPayment = async (req, res) => {
         phone,
         vendorProductListHtml,
         vendorTotalAmount,
-        payment_id,
+        finalOrderNumber,
         address
       );
 
@@ -434,14 +432,13 @@ exports.verifyPayment = async (req, res) => {
       const whatsappPayload = {
         customer_phone: phone,
         customer_name: firstName,
-        product_success_name: payment_id,
+        product_success_name: finalOrderNumber,
         product_name: productName,
         product_quantity: productQuantity,
         product_amount: `${totalAmount}`,
         payment_status: "completed"
       };
 
-      console.log("📱 Preparing WhatsApp Buyer Payload");
       whatsappPromises.push(
         sendWhatsAppOrderConfirmation(whatsappPayload).catch(whatsappErr => {
           console.error("✗ Failed to send WhatsApp buyer confirmation:", {
@@ -461,7 +458,7 @@ exports.verifyPayment = async (req, res) => {
 
       const adminNotificationPayload = {
         admin_phone: process.env.ADMIN_WHATSAPP_PHONE,
-        orderId: payment_id.toString(),
+        orderId: finalOrderNumber,
         product: productName,
         quantity: totalQuantity,
         total_amount: `${totalAmount} `,
@@ -488,7 +485,7 @@ exports.verifyPayment = async (req, res) => {
         const vendorNotificationPayload = {
           vendor_phone: currentVendor.phone,
           vendor_name: currentVendor.vendorName,
-          orderId: payment_id.toString(),
+          orderId: finalOrderNumber,
           product: vendorProductName,
           quantity: vendorTotalQuantity,
           total_amount: `${totalAmount} `,

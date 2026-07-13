@@ -32,6 +32,7 @@ const OrderManagement = () => {
     const matchesFilter = filter === "All" || order.status === filter;
     const matchesSearch =
       order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
@@ -169,7 +170,7 @@ const OrderManagement = () => {
                         onClick={() => navigate(`/order/${order._id}`)}
                         className="text-blue-600 hover:text-blue-900 font-medium text-sm"
                       >
-                        #{order._id.slice(-8)}
+                        #{order.orderNumber || order._id.slice(-8)}
                       </button>
                     </td>
 

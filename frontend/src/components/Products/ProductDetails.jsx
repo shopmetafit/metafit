@@ -159,7 +159,10 @@ const ProductDetails = ({ productId }) => {
         color: selectedColor || null,
         guestId,
         userId: user?._id,
-        variant: selectedVariant ? { label: selectedVariant.label, price: selectedVariant.price } : null,
+        variant: selectedVariant ? { 
+          label: selectedVariant.label, 
+          price: selectedVariant.discountPrice || selectedVariant.price 
+        } : null,
         referral: activeReferral
           ? {
             productId: productFetchId,

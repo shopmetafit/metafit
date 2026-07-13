@@ -23,7 +23,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
   const itemCount = cart?.products?.reduce((t, p) => t + p.quantity, 0) || 0;
   const wishlistCount = wishlist?.products?.length || 0;
   const subtotal = cart?.totalPrice ?? 0;
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 100) * Number(item.quantity || 1)), 0) ?? 0;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + Number(item.shippingCharge ?? 100), 0) ?? 0;
   const total = subtotal + deliveryCharge;
 
   const handleCheckout = () => {

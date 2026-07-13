@@ -76,7 +76,7 @@ const MyOrdersPage = () => {
                   <div className="flex gap-6 flex-wrap">
                     <div>
                       <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-0.5">Order Number</p>
-                      <p className="text-sm font-semibold text-gray-900">#{order._id.slice(-8).toUpperCase()}</p>
+                      <p className="text-sm font-semibold text-gray-900">#{order.orderNumber || order._id.slice(-8).toUpperCase()}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 uppercase font-bold tracking-wider mb-0.5">Order Date</p>

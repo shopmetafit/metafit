@@ -41,7 +41,7 @@ const CheckOut = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge ?? 100) * Number(item.quantity || 1)), 0) ?? 0;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + Number(item.shippingCharge ?? 100), 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
@@ -576,14 +576,23 @@ const CheckOut = () => {
                     className="w-20 h-24  object-cover mr-4"
                   />
                   <div>
-                    <h3 className="text-md">{product.name}</h3>
+                    <h3 className="text-md font-medium text-gray-800">{product.name}</h3>
+                    {product.variant && (
+                      <span className="text-xs text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded inline-block my-1 font-medium">
+                        {product.variant.label}
+                      </span>
+                    )}
                     {product.size && <p className="text-gray-500 text-sm">Size: {product.size}</p>}
                     {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
+                    <p className="text-gray-700 text-sm font-semibold mt-1">Qty: {product.quantity || 1}</p>
                     <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge ?? 100).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl">Rs {product.price?.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-gray-900">Rs {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
+                  {(product.quantity || 1) > 1 && (
+                    <p className="text-xs text-gray-500">Rs {product.price?.toLocaleString()} each</p>
+                  )}
                 </div>
               </div>
             ))}

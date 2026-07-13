@@ -43,7 +43,7 @@ const getCart = async (userId, guestId) => {
 // @access Public
 
 router.post("/", async (req, res) => {
-  const { productId, quantity, size, color, guestId, userId } = req.body;
+  const { productId, quantity, size, color, guestId, userId, variant } = req.body;
 
   try {
     const product = await Product.findById(productId);
@@ -58,7 +58,8 @@ router.post("/", async (req, res) => {
         (p) =>
           p.productId.toString() === productId &&
           p.size === size &&
-          p.color === color
+          p.color === color &&
+          (variant ? p.variant?.label === variant.label : true)
       );
       if (productIndex > -1) {
         // if product already exist with same size/color, update the quantity
@@ -69,13 +70,14 @@ router.post("/", async (req, res) => {
           productId,
           name: product.name,
           image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
-          price: product.discountPrice,
+          price: variant ? variant.price : product.discountPrice,
+          variant: variant || null,
           size: size || null,
           color: color || null,
           quantity,
           vendorId: product.vendorId || null,
           createdBy: product.createdBy || "ADMIN",
-          shippingCharge: product.shippingCharge || 100,
+          shippingCharge: product.shippingCharge ?? 100,
         });
       }
 
@@ -97,16 +99,17 @@ router.post("/", async (req, res) => {
             productId,
             name: product.name,
             image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
-            price: product.discountPrice,
+            price: variant ? variant.price : product.discountPrice,
+            variant: variant || null,
             size: size || null,
             color: color || null,
             quantity,
             vendorId: product.vendorId || null,
             createdBy: product.createdBy || "ADMIN",
-            shippingCharge: product.shippingCharge || 100,
+            shippingCharge: product.shippingCharge ?? 100,
           },
         ],
-        totalPrice: product.discountPrice * quantity,
+        totalPrice: (variant ? variant.price : product.discountPrice) * quantity,
       });
       return res.status(201).json(newCart);
     }
@@ -249,7 +252,8 @@ router.post("/merge", protect, async (req, res) => {
             (item) =>
               item.productId.toString() === guestItem.productId.toString() &&
               item.size === guestItem.size &&
-              item.color === guestItem.color
+              item.color === guestItem.color &&
+              (guestItem.variant ? item.variant?.label === guestItem.variant.label : true)
           );
           // Only add if product doesn't already exist in user cart
           if (productIndex === -1) {
