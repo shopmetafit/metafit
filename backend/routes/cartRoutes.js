@@ -27,10 +27,28 @@ const getCart = async (userId, guestId) => {
           p.shippingCharge = expectedShippingCharge;
           isModified = true;
         }
+
+        if (p.size && typeof p.size === 'string' && p.size.includes(":")) {
+          const sizeParts = p.size.split(":");
+          let correctPrice = p.price;
+          if (sizeParts.length === 3 && !isNaN(Number(sizeParts[2]))) {
+            correctPrice = Number(sizeParts[2]);
+          } else if (sizeParts.length === 2 && !isNaN(Number(sizeParts[1]))) {
+            correctPrice = Number(sizeParts[1]);
+          }
+          if (p.price !== correctPrice) {
+            p.price = correctPrice;
+            isModified = true;
+          }
+        }
       }
     });
 
     if (isModified) {
+      cart.totalPrice = cart.products.reduce(
+        (acc, item) => acc + (item.price * item.quantity),
+        0
+      );
       await cart.save();
     }
   }
@@ -65,12 +83,22 @@ router.post("/", async (req, res) => {
         // if product already exist with same size/color, update the quantity
         cart.products[productIndex].quantity += quantity;
       } else {
+        let finalPrice = variant ? variant.price : product.discountPrice;
+        if (size && typeof size === 'string' && size.includes(":")) {
+          const sizeParts = size.split(":");
+          if (sizeParts.length === 3 && !isNaN(Number(sizeParts[2]))) {
+            finalPrice = Number(sizeParts[2]);
+          } else if (sizeParts.length === 2 && !isNaN(Number(sizeParts[1]))) {
+            finalPrice = Number(sizeParts[1]);
+          }
+        }
+        
         // add new product (different size/color or new product)
         cart.products.push({
           productId,
           name: product.name,
           image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
-          price: variant ? variant.price : product.discountPrice,
+          price: finalPrice,
           variant: variant || null,
           size: size || null,
           color: color || null,
@@ -90,6 +118,16 @@ router.post("/", async (req, res) => {
       return res.status(200).json(cart);
     } else {
       // create a new cart for the user or guest
+      let finalPrice = variant ? variant.price : product.discountPrice;
+      if (size && typeof size === 'string' && size.includes(":")) {
+        const sizeParts = size.split(":");
+        if (sizeParts.length === 3 && !isNaN(Number(sizeParts[2]))) {
+          finalPrice = Number(sizeParts[2]);
+        } else if (sizeParts.length === 2 && !isNaN(Number(sizeParts[1]))) {
+          finalPrice = Number(sizeParts[1]);
+        }
+      }
+
       console.log(`✓ Creating new cart for userId: ${userId || "guest"}`);
       const newCart = await Cart.create({
         user: userId ? userId : undefined,
@@ -99,7 +137,7 @@ router.post("/", async (req, res) => {
             productId,
             name: product.name,
             image: product.images && product.images.length > 0 ? product.images[0].url : "https://via.placeholder.com/150",
-            price: variant ? variant.price : product.discountPrice,
+            price: finalPrice,
             variant: variant || null,
             size: size || null,
             color: color || null,
@@ -109,7 +147,7 @@ router.post("/", async (req, res) => {
             shippingCharge: product.shippingCharge ?? 100,
           },
         ],
-        totalPrice: (variant ? variant.price : product.discountPrice) * quantity,
+        totalPrice: finalPrice * quantity,
       });
       return res.status(201).json(newCart);
     }

@@ -582,7 +582,7 @@ const CheckOut = () => {
                         {product.variant.label}
                       </span>
                     )}
-                    {product.size && <p className="text-gray-500 text-sm">Size: {product.size}</p>}
+                    {product.size && <p className="text-gray-500 text-sm">Size: {product.size.split(":")[0]}</p>}
                     {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
                     <p className="text-gray-700 text-sm font-semibold mt-1">Qty: {product.quantity || 1}</p>
                     <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge ?? 100).toLocaleString()}</p>

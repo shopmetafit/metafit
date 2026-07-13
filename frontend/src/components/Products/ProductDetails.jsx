@@ -159,9 +159,9 @@ const ProductDetails = ({ productId }) => {
         color: selectedColor || null,
         guestId,
         userId: user?._id,
-        variant: selectedVariant ? { 
-          label: selectedVariant.label, 
-          price: selectedVariant.discountPrice || selectedVariant.price 
+        variant: selectedVariant ? {
+          label: selectedVariant.label,
+          price: selectedVariant.discountPrice || selectedVariant.price
         } : null,
         referral: activeReferral
           ? {
@@ -264,6 +264,20 @@ const ProductDetails = ({ productId }) => {
                       <img src={img.url} alt={img.altText || `View ${i + 1}`} className="w-full h-full object-contain" />
                     </button>
                   ))}
+                  {selectedProduct.extraImages && selectedProduct.extraImages.flatMap((img, i) => {
+                    const baseStr = typeof img === 'string' ? img : img.url;
+                    if (!baseStr) return [];
+                    return baseStr.split(',').map((urlStr) => urlStr.trim()).filter(Boolean).map((imgUrl, j) => (
+                      <button
+                        key={`extra-desktop-${i}-${j}`}
+                        onClick={() => setMainImage(imgUrl)}
+                        className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
+                          }`}
+                      >
+                        <img src={imgUrl} alt={img.altText || `Extra ${i + 1}`} className="w-full h-full object-contain" />
+                      </button>
+                    ))
+                  })}
                 </div>
 
                 {/* Main image */}
@@ -330,15 +344,30 @@ const ProductDetails = ({ productId }) => {
                     const imgUrl = typeof img === 'string' ? img : img.url;
                     if (!imgUrl) return null;
                     return (
-                    <button
-                      key={i}
-                      onClick={() => setMainImage(imgUrl)}
-                      className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
-                        }`}
-                    >
-                      <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
-                    </button>
-                  )})}
+                      <button
+                        key={i}
+                        onClick={() => setMainImage(imgUrl)}
+                        className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
+                          }`}
+                      >
+                        <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
+                      </button>
+                    )
+                  })}
+                  {selectedProduct.extraImages && selectedProduct.extraImages.flatMap((img, i) => {
+                    const baseStr = typeof img === 'string' ? img : img.url;
+                    if (!baseStr) return [];
+                    return baseStr.split(',').map((urlStr) => urlStr.trim()).filter(Boolean).map((imgUrl, j) => (
+                      <button
+                        key={`extra-mobile-${i}-${j}`}
+                        onClick={() => setMainImage(imgUrl)}
+                        className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
+                          }`}
+                      >
+                        <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
+                      </button>
+                    ))
+                  })}
                 </div>
               </div>
 
@@ -346,9 +375,9 @@ const ProductDetails = ({ productId }) => {
               {selectedProduct.description && (
                 <div className="hidden lg:block mt-8 pt-6 border-t border-gray-100">
                   <h2 className="text-base font-bold text-gray-900 mb-3">About this product</h2>
-                  <div 
+                  <div
                     className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: selectedProduct.description }} 
+                    dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
                   />
                 </div>
               )}
@@ -379,32 +408,51 @@ const ProductDetails = ({ productId }) => {
                 <span className="text-yellow-400 text-sm">★★★★★</span>
                 <span className="text-xs text-[#047ca8] hover:underline cursor-pointer">4.9 out of 5</span>
                 <span className="text-xs text-gray-400">|</span>
-                <span className="text-xs text-[#047ca8] hover:underline cursor-pointer">50,000+ sold</span>
               </div>
 
               <div className="border-t border-gray-100 pt-3 mb-4" />
 
               {/* Price Section */}
               {!selectedProduct.hasVariants ? (
-                <div className="mb-4">
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-3xl font-bold text-gray-900">
-                      {formatCurrency(selectedProduct.discountPrice || selectedProduct.price)}
-                    </span>
-                    {selectedProduct.price && selectedProduct.price !== selectedProduct.discountPrice && (
-                      <span className="text-base text-gray-400 line-through">
-                        M.R.P: {formatCurrency(selectedProduct.price)}
-                      </span>
-                    )}
-                    {discountPct > 0 && (
-                      <span className="text-base font-semibold text-red-500">({discountPct}% off)</span>
-                    )}
-                  </div>
+                (() => {
+                  let displayPrice = selectedProduct.discountPrice || selectedProduct.price;
+                  let displayMrp = selectedProduct.price;
+                  if (selectedSize && typeof selectedSize === 'string' && selectedSize.includes(":")) {
+                    const parts = selectedSize.split(":");
+                    if (parts.length === 3) {
+                      if (!isNaN(Number(parts[1]))) displayMrp = Number(parts[1]);
+                      if (!isNaN(Number(parts[2]))) displayPrice = Number(parts[2]);
+                    } else if (parts.length === 2) {
+                      if (!isNaN(Number(parts[1]))) displayPrice = Number(parts[1]);
+                    }
+                  }
+                  
+                  const computedDiscountPct = displayMrp && displayMrp > displayPrice
+                    ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100)
+                    : 0;
+
+                  return (
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-3 flex-wrap">
+                        <span className="text-3xl font-bold text-gray-900">
+                          {formatCurrency(displayPrice)}
+                        </span>
+                        {displayMrp && displayMrp > displayPrice && (
+                          <span className="text-base text-gray-400 line-through">
+                            M.R.P: {formatCurrency(displayMrp)}
+                          </span>
+                        )}
+                        {computedDiscountPct > 0 && (
+                          <span className="text-base font-semibold text-red-500">({computedDiscountPct}% off)</span>
+                        )}
+                      </div>
                   <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
                   <p className="text-sm text-gray-600 mt-1">
                     + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery charge
                   </p>
                 </div>
+              );
+              })()
               ) : (
                 <div className="mb-4">
                   <p className="text-sm text-gray-500 mb-2 font-medium">
@@ -454,18 +502,24 @@ const ProductDetails = ({ productId }) => {
                 <div className="mb-4">
                   <p className="text-sm font-bold text-gray-800 mb-2">Size:</p>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProduct.sizes.map((size, i) => (
+                    {selectedProduct.sizes.map((sizeRaw, i) => {
+                      const parts = sizeRaw.split(":");
+                      const sizeName = parts[0];
+                      const sizeMrp = parts.length === 3 ? parts[1] : "";
+                      const sizePrice = parts.length === 3 ? parts[2] : parts[1];
+                      return (
                       <button
                         key={i}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all ${selectedSize === size
+                        onClick={() => setSelectedSize(sizeRaw)}
+                        className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize === sizeRaw
                           ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
                           : "border-gray-300 hover:border-[#047ca8] text-gray-800"
                           }`}
                       >
-                        {size}
+                        <span>{sizeName}</span>
+                        {sizePrice && <span className="text-xs text-gray-500 font-bold mt-0.5">₹{sizePrice}</span>}
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
               )}
@@ -566,17 +620,18 @@ const ProductDetails = ({ productId }) => {
                 <div className="mt-5">
                   <h3 className="text-sm font-bold text-gray-800 mb-2">More Details</h3>
                   <div className="flex gap-3 overflow-x-auto pb-2">
-                    {selectedProduct.extraImages.map((img, i) => {
-                      const imgUrl = typeof img === 'string' ? img : img.url;
-                      if (!imgUrl) return null;
-                      return (
-                      <img
-                        key={i}
-                        src={imgUrl}
-                        alt={img.altText || `Detail ${i + 1}`}
-                        className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
-                      />
-                    )})}
+                    {selectedProduct.extraImages.flatMap((img, i) => {
+                      const baseStr = typeof img === 'string' ? img : img.url;
+                      if (!baseStr) return [];
+                      return baseStr.split(',').map((urlStr) => urlStr.trim()).filter(Boolean).map((imgUrl, j) => (
+                        <img
+                          key={`extra-info-${i}-${j}`}
+                          src={imgUrl}
+                          alt={img.altText || `Detail ${i + 1}`}
+                          className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
+                        />
+                      ))
+                    })}
                   </div>
                 </div>
               )}
@@ -624,10 +679,6 @@ const ProductDetails = ({ productId }) => {
                     <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>Secure transaction</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-[#047ca8] flex-shrink-0" />
-                    <span>Ships within 24hrs</span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -637,9 +688,9 @@ const ProductDetails = ({ productId }) => {
           {selectedProduct.description && (
             <div className="lg:hidden px-4 lg:px-6 pb-6 border-t border-gray-100 pt-4">
               <h2 className="text-base font-bold text-gray-900 mb-3">About this product</h2>
-              <div 
+              <div
                 className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: selectedProduct.description }} 
+                dangerouslySetInnerHTML={{ __html: selectedProduct.description }}
               />
             </div>
           )}

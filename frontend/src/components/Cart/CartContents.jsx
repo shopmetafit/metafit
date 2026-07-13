@@ -66,7 +66,7 @@ const CartContents = ({ cart, userId, guestId }) => {
                     {product.variant.label}
                   </span>
                 )}
-                {product.size && <span>Size: {product.size}</span>}
+                {product.size && <span>Size: {product.size.split(":")[0]}</span>}
                 {product.color && <span>Color: {product.color}</span>}
               </p>
             )}

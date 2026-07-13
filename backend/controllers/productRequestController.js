@@ -63,8 +63,6 @@ const createProductRequest = async (req, res) => {
     const productRequest = new ProductRequest({
       vendorId: req.user._id,
       vendorName: req.user.vendorName || req.user.name,
-      vendorEmail: req.user.email,
-      vendorPhone: req.user.phone,
       name,
       description,
       price: Number(price),

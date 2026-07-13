@@ -82,7 +82,7 @@ exports.verifyPayment = async (req, res) => {
         let details = `${p.name} - ₹${p.price}`;
         const attributes = [];
         if (p.quantity) attributes.push(`Qty: ${p.quantity}`);
-        if (p.size) attributes.push(`Size: ${p.size}`);
+        if (p.size) attributes.push(`Size: ${p.size.split(":")[0]}`);
         if (p.color) attributes.push(`Color: ${p.color}`);
         if (attributes.length > 0) {
           details += ` (${attributes.join(", ")})`;
@@ -380,6 +380,8 @@ exports.verifyPayment = async (req, res) => {
             <b>${item.name}</b> (x${item.quantity || 1})
             <br />
             <span style="color:#9ca3af; font-size:14px;">Price: ₹${item.price} | Total: ₹${itemTotal}</span>
+            ${item.size ? `<br /><span style="color:#9ca3af; font-size:14px;">Size: ${item.size.split(":")[0]}</span>` : ''}
+            ${item.color ? `<br /><span style="color:#9ca3af; font-size:14px;">Color: ${item.color}</span>` : ''}
           </li>
         `;
       });

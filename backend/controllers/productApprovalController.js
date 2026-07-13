@@ -41,7 +41,7 @@ const approveProduct = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const product = await Product.findById(id);
+    const product = await Product.findById(id).populate('vendorId', 'email vendorName phone');
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -64,13 +64,13 @@ const approveProduct = async (req, res) => {
     // Send vendor approval email notification
     try {
       const vendorEmailHtml = generateVendorApprovalEmail(
-        product.vendorName || "Vendor",
-        product.businessName || "Your Company"
+        (product.vendorId && product.vendorId.vendorName) || "Vendor",
+        (product.vendorId && product.vendorId.businessName) || "Your Company"
       );
 
       const vendorMailOptions = {
         from: process.env.SELLER_EMAIL,
-        to: product.vendorEmail || product.email,
+        to: (product.vendorId && product.vendorId.email) || product.email,
         subject: "Product Approved - MetaFit Vendor Portal",
         html: vendorEmailHtml
       };
