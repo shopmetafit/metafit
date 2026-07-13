@@ -41,7 +41,7 @@ const CheckOut = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge || 100) * Number(item.quantity || 1)), 0) ?? 0;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + (Number(item.shippingCharge ?? 100) * Number(item.quantity || 1)), 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
@@ -579,7 +579,7 @@ const CheckOut = () => {
                     <h3 className="text-md">{product.name}</h3>
                     {product.size && <p className="text-gray-500 text-sm">Size: {product.size}</p>}
                     {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
-                    <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge || 100).toLocaleString()}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge ?? 100).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="text-right">
