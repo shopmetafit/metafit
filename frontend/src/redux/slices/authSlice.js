@@ -84,6 +84,24 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+// Async Thunk for User Login via OTP
+export const loginOtpUser = createAsyncThunk(
+  "auth/loginOtpUser",
+  async (otpData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/login-otp`,
+        otpData
+      );
+      localStorage.setItem("userInfo", JSON.stringify(response.data.user));
+      localStorage.setItem("userToken", response.data.token);
+      return response.data.user;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || { message: 'Invalid OTP' });
+    }
+  }
+);
+
 // Thunk for Google login
 export const googleLoginUserThunk = createAsyncThunk(
   "auth/googleLoginUser",
@@ -192,6 +210,20 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message;
+      })
+      // Login OTP cases
+      .addCase(loginOtpUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginOtpUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(loginOtpUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message;
       })

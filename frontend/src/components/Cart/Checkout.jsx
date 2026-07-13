@@ -23,6 +23,7 @@ const CheckOut = () => {
 
   const navigate = useNavigate();
   const [checkoutId, setCheckoutId] = useState(null);
+  const [email, setEmail] = useState("");
   const [shippingAddress, setShippingAddress] = useState({
     firstName: "",
     lastName: "",
@@ -58,9 +59,9 @@ const CheckOut = () => {
       setIsApplyingCoupon(true);
       const { data } = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/coupons/apply`,
-        { 
-          code, 
-          subtotal: cart.totalPrice, 
+        {
+          code,
+          subtotal: cart.totalPrice,
           products: cart.products.map(p => ({
             productId: p.productId,
             price: p.price,
@@ -226,7 +227,11 @@ const CheckOut = () => {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
         order_id: data.id,
         ...data,
-
+        prefill: {
+          name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
+          email: user ? user.email : email,
+          contact: shippingAddress.phone,
+        },
         handler: async function (response) {
           setIsVerifying(true);
           // console.log("cho127", response);
@@ -235,7 +240,7 @@ const CheckOut = () => {
             order_id: response.razorpay_order_id,
             payment_id: response.razorpay_payment_id,
             signature: response.razorpay_signature,
-            email: user.email,
+            email: user ? user.email : email,
             products: cart.products.map(product => ({
               ...product,
               createdBy: product.createdBy || "ADMIN"
@@ -292,14 +297,13 @@ const CheckOut = () => {
   const handleCreateCheckout = async (e) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error("Please login first");
-      navigate("/login?redirect=checkout");
+    if (!user && !email) {
+      toast.error("Please enter an email address");
       return;
     }
 
     const formData = {
-      email: user ? user.email : "",
+      email: user ? user.email : email,
       shippingAddress,
     };
 
@@ -324,8 +328,9 @@ const CheckOut = () => {
     }
 
     if (cart && cart.products.length > 0) {
+      const currentEmail = user ? user.email : email;
       localStorage.setItem(
-        `shippingAddress_${user.email}`,
+        `shippingAddress_${currentEmail}`,
         JSON.stringify(shippingAddress)
       );
 
@@ -334,7 +339,7 @@ const CheckOut = () => {
         createCheckout({
           customerName: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
           customerPhone: shippingAddress.phone,
-          customerEmail: user?.email || "",
+          customerEmail: user?.email || email,
           shippingAddress,
           paymentMethod: "Razorpay",
           totalPrice: cart.totalPrice,
@@ -359,10 +364,11 @@ const CheckOut = () => {
   };
 
   useEffect(() => {
-    if (!user?.email) return;
+    const currentEmail = user?.email || email;
+    if (!currentEmail) return;
 
     const savedAddress = localStorage.getItem(
-      `shippingAddress_${user.email}`
+      `shippingAddress_${currentEmail}`
     );
 
     if (savedAddress) {
@@ -413,9 +419,14 @@ const CheckOut = () => {
               <label className="block text-gray-700">Email</label>
               <input
                 type="email"
-                value={user ? user.email : ""}
-                readOnly
-                className="w-full p-2 border rounded bg-gray-50 text-gray-500 cursor-not-allowed"
+                value={user ? user.email : email}
+                onChange={(e) => !user && setEmail(e.target.value)}
+                readOnly={!!user}
+                placeholder="Enter your email"
+                className={`w-full p-2 border rounded ${user
+                  ? "bg-gray-50 text-gray-500 cursor-not-allowed"
+                  : "bg-white text-gray-900"
+                  }`}
               />
             </div>
             <h3 className="text-lg mb-4">Delivery</h3>
@@ -538,7 +549,8 @@ const CheckOut = () => {
             <button
               type="button"
               onClick={() => {
-                const saved = localStorage.getItem(`shippingAddress_${user.email}`);
+                const currentEmail = user?.email || email;
+                const saved = localStorage.getItem(`shippingAddress_${currentEmail}`);
                 if (saved) setShippingAddress(JSON.parse(saved));
               }}
               className="text-sm text-blue-600 underline mb-4"

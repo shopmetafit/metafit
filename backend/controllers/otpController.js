@@ -1,20 +1,21 @@
 const { sendWhatsAppOTP } = require("../config/whatsappServices.js");
-
+const User = require("../models/User");
 /* -------------------------------------------------------------------------- */
 /*                               CONFIGURATION                                */
 /* -------------------------------------------------------------------------- */
 
 const OTP_EXPIRY_MINUTES = 10;
 const MAX_OTP_ATTEMPTS = 3;
-const MAX_OTP_SEND_ATTEMPTS = 900;
-const OTP_RATE_LIMIT_HOURS = 24;
+const MAX_OTP_SEND_ATTEMPTS = 3;
+const OTP_RATE_LIMIT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes window
+const OTP_BLOCK_DURATION_MS = 5 * 60 * 1000; // 5 minutes block
 
 /* -------------------------------------------------------------------------- */
 /*                              IN-MEMORY STORES                               */
 /* -------------------------------------------------------------------------- */
 
 // phone -> { otp, createdAt, attempts }
-const otpStore = new Map();
+const { otpStore } = require("../config/whatsappServices.js");
 
 // phone -> { sendAttempts: number[], blockedUntil }
 const otpRateLimitStore = new Map();
@@ -39,21 +40,27 @@ const isPhoneRateLimited = (phone) => {
     const remainingMs = data.blockedUntil - now;
     return {
       limited: true,
-      remainingTime: Math.ceil(remainingMs / (1000 * 60 * 60)),
+      remainingTimeMinutes: Math.ceil(remainingMs / (1000 * 60)),
     };
   }
 
-  const windowMs = OTP_RATE_LIMIT_HOURS * 60 * 60 * 1000;
+  // Clear block if expired
+  if (data.blockedUntil && now >= data.blockedUntil) {
+     data.blockedUntil = null;
+     data.sendAttempts = [];
+  }
+
+  // Filter attempts within the window
   data.sendAttempts = data.sendAttempts.filter(
-    (t) => now - t < windowMs
+    (t) => now - t < OTP_RATE_LIMIT_WINDOW_MS
   );
 
   if (data.sendAttempts.length >= MAX_OTP_SEND_ATTEMPTS) {
-    data.blockedUntil = data.sendAttempts[0] + windowMs;
+    data.blockedUntil = now + OTP_BLOCK_DURATION_MS;
     const remainingMs = data.blockedUntil - now;
     return {
       limited: true,
-      remainingTime: Math.ceil(remainingMs / (1000 * 60 * 60)),
+      remainingTimeMinutes: Math.ceil(remainingMs / (1000 * 60)),
     };
   }
 
@@ -69,7 +76,7 @@ const isPhoneRateLimited = (phone) => {
  */
 exports.sendOtpController = async (req, res) => {
   try {
-    let { phone } = req.body;
+    let { phone, checkUserExists } = req.body;
 
     if (!phone) {
       return res.status(400).json({
@@ -78,11 +85,24 @@ exports.sendOtpController = async (req, res) => {
       });
     }
 
+    const unnormalizedPhone = phone.replace(/\D/g, ""); // Keep 10-digit version for DB check
     phone = normalizePhone(phone);
 
     // Add India country code if 10-digit
     if (phone.length === 10) {
       phone = "91" + phone;
+    }
+
+    // Optional check for user existence before sending OTP
+    if (checkUserExists) {
+      // The User DB typically stores the 10-digit phone number without country code
+      const user = await User.findOne({ phone: unnormalizedPhone });
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "No account found with this phone number. Please register.",
+        });
+      }
     }
 
     // WhatsApp-compatible validation
@@ -97,7 +117,7 @@ exports.sendOtpController = async (req, res) => {
     if (rateLimit.limited) {
       return res.status(429).json({
         success: false,
-        message: `OTP limit exceeded. Try again in ${rateLimit.remainingTime} hour(s).`,
+        message: `Too many requests. Please try again in ${rateLimit.remainingTimeMinutes} minute(s).`,
       });
     }
 

@@ -28,11 +28,8 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
 
   const handleCheckout = () => {
     togglerCartOpen();
-    if (!user) {
-      navigate("/login?redirect=checkout");
-    } else {
-      navigate("/checkout");
-    }
+    navigate("/checkout");
+
   };
 
   const renderWishlist = () => {
@@ -120,7 +117,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
               <X className="h-5 w-5" />
             </button>
           </div>
-          
+
           <div className="flex gap-6">
             <button
               onClick={() => setActiveTab && setActiveTab('cart')}

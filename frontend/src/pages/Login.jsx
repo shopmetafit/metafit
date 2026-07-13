@@ -1,23 +1,27 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { loginUser, googleLoginUserThunk } from "../redux/slices/authSlice";
+import { loginUser, googleLoginUserThunk, sendOTP, loginOtpUser } from "../redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, Phone, Mail } from "lucide-react";
 
 const Login = () => {
+  const [loginMethod, setLoginMethod] = useState("phone"); // "phone" | "email"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, guestId } = useSelector((state) => state.auth || {});
+  const { user, otpLoading, loading } = useSelector((state) => state.auth || {});
   const { cart } = useSelector((state) => state.cart || {});
 
-  const redirect = new URLSearchParams(location.search).get("redirect") || "/";
+  const redirect = new URLSearchParams(location.search).get("redirect") || "/profile";
   const isCheckoutRedirect = redirect.includes("checkout");
 
   useEffect(() => {
@@ -26,29 +30,56 @@ const Login = () => {
       const hasGuestCart = cart?.products && cart.products.length > 0;
       if (hasGuestCart && guestIdFromStorage) {
         dispatch(mergeCart({ guestId: guestIdFromStorage, user }))
-          .then(() => navigate(isCheckoutRedirect ? "/checkout" : "/"))
-          .catch(() => navigate(isCheckoutRedirect ? "/checkout" : "/"));
+          .then(() => navigate(redirect))
+          .catch(() => navigate(redirect));
       } else {
-        navigate(isCheckoutRedirect ? "/checkout" : "/");
+        navigate(redirect);
       }
     }
-  }, [user, navigate, isCheckoutRedirect, dispatch]);
+  }, [user, navigate, redirect, dispatch, cart]);
 
-  const handleSubmit = async (e) => {
+  const handleEmailSubmit = async (e) => {
     e.preventDefault();
     const result = await dispatch(loginUser({ email, password }));
     if (loginUser.rejected.match(result)) {
       const error = result.payload;
       if (error?.errors) error.errors.forEach((err) => toast.error(err.message));
-      else if (error?.msg) toast.error(error.msg);
+      else if (error?.message || error?.msg) toast.error(error.message || error.msg);
       else toast.error("Login failed. Please try again.");
+    }
+  };
+
+  const handleSendOtp = async () => {
+    if (!phone || phone.length < 10) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+    
+    const result = await dispatch(sendOTP({ phone, checkUserExists: true }));
+    if (sendOTP.fulfilled.match(result)) {
+      setOtpSent(true);
+      toast.success("OTP sent successfully to WhatsApp");
+    } else {
+      toast.error(result.payload?.message || "Failed to send OTP");
+    }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    if (!otp || otp.length < 6) {
+      toast.error("Please enter a valid 6-digit OTP");
+      return;
+    }
+    const result = await dispatch(loginOtpUser({ phone, otp }));
+    if (loginOtpUser.rejected.match(result)) {
+      toast.error(result.payload?.message || "Invalid OTP");
     }
   };
 
   const handleGoogleLoginSuccess = async (credentialResponse) => {
     const resAction = await dispatch(googleLoginUserThunk(credentialResponse));
     if (googleLoginUserThunk.fulfilled.match(resAction)) {
-      navigate(isCheckoutRedirect ? "/checkout" : "/");
+      navigate(redirect);
     } else {
       toast.error("Google login failed. Please try again.");
     }
@@ -75,47 +106,126 @@ const Login = () => {
           <p className="text-sm text-gray-600 mb-4">Sign in to complete your purchase</p>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
-            />
-          </div>
+        <div className="flex gap-2 mb-6 p-1 bg-gray-100 rounded-lg">
+          <button
+            onClick={() => setLoginMethod("phone")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all flex items-center justify-center gap-2 ${loginMethod === "phone" ? "bg-white text-gray-900 shadow" : "text-gray-500 hover:text-gray-700"
+              }`}
+          >
+            <Phone className="w-4 h-4" /> Phone
+          </button>
+          <button
+            onClick={() => setLoginMethod("email")}
+            className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all flex items-center justify-center gap-2 ${loginMethod === "email" ? "bg-white text-gray-900 shadow" : "text-gray-500 hover:text-gray-700"
+              }`}
+          >
+            <Mail className="w-4 h-4" /> Email
+          </button>
+        </div>
 
-          <div>
-            <label className="block text-sm font-semibold text-gray-800 mb-1">Password</label>
-            <div className="relative">
+        {loginMethod === "phone" ? (
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Phone Number</label>
               <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                disabled={otpSent}
                 required
-                placeholder="Minimum 6 characters"
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm pr-10 focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
+                placeholder="Enter 10 digit number"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition disabled:bg-gray-100"
               />
+            </div>
+
+            {otpSent ? (
+              <div>
+                <label className="block text-sm font-semibold text-gray-800 mb-1">OTP</label>
+                <input
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  required
+                  placeholder="Enter 6-digit OTP"
+                  maxLength={6}
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition tracking-widest text-center"
+                />
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-gray-500">Sent to your WhatsApp</span>
+                  <button type="button" onClick={() => setOtpSent(false)} className="text-xs text-[#047ca8] hover:underline font-medium">Change Number</button>
+                </div>
+              </div>
+            ) : null}
+
+            {!otpSent ? (
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={handleSendOtp}
+                disabled={otpLoading || phone.length < 10}
+                className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-semibold py-2.5 rounded-full text-sm transition-colors shadow-md disabled:opacity-70 flex justify-center items-center"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {otpLoading ? (
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : "Send OTP"}
               </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-semibold py-2.5 rounded-full text-sm transition-colors shadow-md disabled:opacity-70 flex justify-center items-center"
+              >
+                {loading ? (
+                  <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                ) : "Verify & Login"}
+              </button>
+            )}
+          </form>
+        ) : (
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
+              />
             </div>
-          </div>
 
-          <button
-            type="submit"
-            className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-semibold py-2.5 rounded-full text-sm transition-colors shadow-md"
-          >
-            Sign in
-          </button>
-        </form>
+            <div>
+              <label className="block text-sm font-semibold text-gray-800 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="Minimum 6 characters"
+                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm pr-10 focus:outline-none focus:border-[#047ca8] focus:ring-2 focus:ring-[#047ca8]/20 transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-semibold py-2.5 rounded-full text-sm transition-colors shadow-md disabled:opacity-70 flex justify-center items-center"
+            >
+              {loading ? (
+                <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : "Sign in"}
+            </button>
+          </form>
+        )}
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-4">

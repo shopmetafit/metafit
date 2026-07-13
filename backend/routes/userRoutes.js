@@ -102,6 +102,66 @@ router.post("/login",validate(loginSchema), async (req, res) => {
   }
 });
 
+// @route POST /api/users/login-otp
+// @desc Authenticate user via phone OTP
+// @access Public
+router.post("/login-otp", async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ success: false, message: "Phone and OTP are required" });
+    }
+
+    const normalizedPhone = phone.replace(/\D/g, "").length === 10 ? "91" + phone.replace(/\D/g, "") : phone.replace(/\D/g, "");
+    const otpStore = require("../config/whatsappServices").otpStore;
+    const otpData = otpStore.get(normalizedPhone);
+
+    if (!otpData) {
+      return res.status(400).json({ success: false, message: "OTP expired or not found" });
+    }
+
+    if (otpData.otp !== otp) {
+      otpData.attempts += 1;
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
+    otpStore.delete(normalizedPhone);
+
+    let user = await User.findOne({ phone: phone });
+    if (!user) {
+      user = await User.create({
+        name: "Guest User",
+        email: `${phone}@guest.metafit.com`,
+        phone: phone,
+        role: "customer"
+      });
+    }
+
+    const payload = { user: { id: user._id, role: user.role } };
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      (err, token) => {
+        if (err) throw err;
+        res.json({
+          user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            phone: user.phone,
+          },
+          token,
+        });
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
 // @route GET /api/users/profile
 // @desc get logged-in user's profile(protected  Route)
 // @access Private

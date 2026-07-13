@@ -5,6 +5,8 @@ const Coupon = require("../models/Coupon");
 const Checkout = require("../models/Checkout");
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
 const { getProductReadModel } = require("../utils/productDataAccess");
 const { validateReferral, normalizeReferralCode, processReferralPurchase } = require("../utils/referralUtils");
@@ -126,7 +128,7 @@ router.get("/products/:id", async (req, res) => {
   }
 });
 
-router.post("/orders", protect, async (req, res) => {
+router.post("/orders", async (req, res) => {
   const {
     orderItems,
     shippingAddress,
@@ -147,6 +149,46 @@ router.post("/orders", protect, async (req, res) => {
   }
 
   try {
+    let userId = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      const token = req.headers.authorization.split(" ")[1];
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded?.user?.id || decoded?.id;
+      } catch (err) {}
+    }
+
+    if (!userId) {
+      const phone = customerPhone || shippingAddress?.phone;
+      const email = customerEmail;
+      const name = customerName || `${shippingAddress?.firstName || ''} ${shippingAddress?.lastName || ''}`.trim();
+
+      if (!phone) {
+        return res.status(400).json({ message: "Phone number is required for checkout" });
+      }
+
+      let user = await User.findOne({ phone });
+      if (!user && email) {
+        user = await User.findOne({ email });
+        if (user && !user.phone) {
+          user.phone = phone;
+          await user.save();
+        }
+      }
+
+      if (user) {
+        userId = user._id;
+      } else {
+        user = await User.create({
+          name: name || "Guest User",
+          email: email || `${phone}@guest.metafit.com`,
+          phone: phone,
+          role: "customer"
+        });
+        userId = user._id;
+      }
+    }
+
     const productIds = orderItems.map((item) => item.productId);
     const ProductReadModel = await getProductReadModel();
     const products = await ProductReadModel.find({ _id: { $in: productIds } }).lean();
@@ -200,7 +242,7 @@ router.post("/orders", protect, async (req, res) => {
     }
 
     const checkout = await Checkout.create({
-      user: req.user._id,
+      user: userId,
       checkoutItems: normalizedItems,
       shippingAddress,
       paymentMethod,
@@ -236,7 +278,7 @@ router.post("/orders", protect, async (req, res) => {
   }
 });
 
-router.post("/orders/:id/payment-success", protect, async (req, res) => {
+router.post("/orders/:id/payment-success", async (req, res) => {
   const { paymentStatus, paymentReference } = req.body;
 
   try {
