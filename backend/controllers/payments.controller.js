@@ -96,9 +96,19 @@ exports.verifyPayment = async (req, res) => {
 
   try {
 
-    const user = await User.findOne({ email });
+    let user = null;
+    if (email) {
+      user = await User.findOne({ email });
+    }
+    if (!user && phone) {
+      user = await User.findOne({ phone });
+    }
+    if (!user && email) {
+      user = await User.findOne({ alternateEmails: email });
+    }
+
     if (!user) {
-      console.warn("⚠️ User not found for email:", email);
+      console.warn("⚠️ User not found for email or phone:", email, phone);
     }
 
     // Resolve products and vendor details early

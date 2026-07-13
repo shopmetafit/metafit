@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     avatar: { type: String },
     googleId: { type: String },
     phone: { type: String },
+    alternateEmails: [{ type: String, lowercase: true, trim: true }],
     wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
 
     // Vendor-specific fields

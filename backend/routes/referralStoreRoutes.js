@@ -168,6 +168,7 @@ router.post("/orders", async (req, res) => {
       }
 
       let user = await User.findOne({ phone });
+      
       if (!user && email) {
         user = await User.findOne({ email });
         if (user && !user.phone) {
@@ -178,6 +179,14 @@ router.post("/orders", async (req, res) => {
 
       if (user) {
         userId = user._id;
+        
+        // Check if a new email is provided that differs from the primary email
+        if (email && user.email !== email && !email.includes('@guest.metafit.com')) {
+          if (!user.alternateEmails.includes(email)) {
+            user.alternateEmails.push(email);
+            await user.save();
+          }
+        }
       } else {
         user = await User.create({
           name: name || "Guest User",
