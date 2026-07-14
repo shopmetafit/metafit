@@ -15,6 +15,10 @@ const cartItemSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    freeShippingCities: {
+      type: [String],
+      default: [],
+    },
     size: {
       type: String,
       default: "",

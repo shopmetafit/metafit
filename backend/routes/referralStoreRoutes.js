@@ -219,7 +219,16 @@ router.post("/orders", async (req, res) => {
     let deliveryCharge = 0;
     const itemsTotal = normalizedItems.reduce((sum, item) => {
       const product = productMap.get(String(item.productId));
-      const shipping = Number(product?.shippingCharge ?? 100);
+      let shipping = Number(product?.shippingCharge ?? 100);
+      
+      const city = shippingAddress?.city?.trim().toLowerCase();
+      if (city && product?.freeShippingCities && product.freeShippingCities.length > 0) {
+        const match = product.freeShippingCities.some(c => c.trim().toLowerCase() === city);
+        if (match) {
+          shipping = 0;
+        }
+      }
+      
       deliveryCharge += shipping;
       return sum + Number(item.price || 0) * Number(item.quantity || 0);
     }, 0);

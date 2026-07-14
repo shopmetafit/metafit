@@ -47,6 +47,9 @@ exports.verifyPayment = async (req, res) => {
     firstName,
     lastName,
     address,
+    city,
+    postalCode,
+    country,
     phone,
   } = req.body;
 
@@ -169,7 +172,17 @@ exports.verifyPayment = async (req, res) => {
           }
 
           calculatedAmount += validItemPrice * (item.quantity || 1);
-          calculatedShipping += (dbProduct.shippingCharge ?? 100);
+          
+          let itemShipping = (dbProduct.shippingCharge ?? 100);
+          if (city && dbProduct.freeShippingCities && dbProduct.freeShippingCities.length > 0) {
+            const match = dbProduct.freeShippingCities.some(
+              c => c.trim().toLowerCase() === city.trim().toLowerCase()
+            );
+            if (match) {
+              itemShipping = 0;
+            }
+          }
+          calculatedShipping += itemShipping;
         }
       }
 

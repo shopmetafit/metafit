@@ -41,6 +41,7 @@ const createProductRequest = async (req, res) => {
       metaKeywords,
       isFeatured,
       priority,
+      freeShippingCities,
     } = req.body;
 
     // Validate required fields
@@ -91,6 +92,7 @@ const createProductRequest = async (req, res) => {
       metaKeywords,
       isFeatured: isFeatured !== false,
       priority: priority || 0,
+      freeShippingCities: freeShippingCities || [],
     });
 
     const createdRequest = await productRequest.save();
@@ -214,6 +216,7 @@ const updateProductRequest = async (req, res) => {
       metaKeywords,
       isFeatured,
       priority,
+      freeShippingCities,
     } = req.body;
 
     // Update fields
@@ -245,6 +248,7 @@ const updateProductRequest = async (req, res) => {
     request.metaKeywords = metaKeywords || request.metaKeywords;
     request.isFeatured = isFeatured !== undefined ? isFeatured : request.isFeatured;
     request.priority = priority || request.priority;
+    request.freeShippingCities = freeShippingCities || request.freeShippingCities;
 
     const updatedRequest = await request.save();
     res.json({
@@ -442,6 +446,7 @@ const approveProductRequest = async (req, res) => {
       isFeatured: request.isFeatured,
       isPublished: true,
       priority: request.priority,
+      freeShippingCities: request.freeShippingCities || [],
       rating: 0,
       numReviews: 0,
       user: request.vendorId._id, // Vendor as the user

@@ -41,10 +41,27 @@ const CheckOut = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + Number(item.shippingCharge ?? 100), 0) ?? 0;
+  const deliveryCharge = cart?.products?.reduce((acc, item) => {
+    let itemShipping = Number(item.shippingCharge ?? 100);
+    if (shippingAddress.city && item.freeShippingCities && item.freeShippingCities.length > 0) {
+      const match = item.freeShippingCities.some(
+        city => city.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
+      );
+      if (match) {
+        itemShipping = 0;
+      }
+    }
+    return acc + itemShipping;
+  }, 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
+
+  const hasFreeShippingItem = cart?.products?.some((item) => {
+    return shippingAddress.city && item.freeShippingCities && item.freeShippingCities.some(
+      c => c.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
+    );
+  });
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -489,9 +506,17 @@ const CheckOut = () => {
                       city: e.target.value,
                     });
                   }}
-                  className="w-full p-2 border rounded"
+                  className={`w-full p-2 border rounded ${hasFreeShippingItem ? 'border-green-500 bg-green-50 focus:ring-green-500' : ''}`}
                   required
                 />
+                {hasFreeShippingItem && (
+                  <p className="text-green-600 text-xs font-medium mt-1 flex items-center">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Eligible for free shipping!
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-gray-700">Postal Code *</label>
@@ -564,38 +589,56 @@ const CheckOut = () => {
         <div className="bg-gray-50 p-6">
           <h3 className="text-lg mb-4">Order Summary</h3>
           <div className="border-t py-4 mb-4">
-            {cart.products.map((product, index) => (
-              <div
-                key={index}
-                className="flex items-start justify-between py-2 border-b"
-              >
-                <div className="flex  items-start">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-20 h-24  object-cover mr-4"
-                  />
-                  <div>
-                    <h3 className="text-md font-medium text-gray-800">{product.name}</h3>
-                    {product.variant && (
-                      <span className="text-xs text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded inline-block my-1 font-medium">
-                        {product.variant.label}
-                      </span>
+            {cart.products.map((product, index) => {
+              let itemShipping = Number(product.shippingCharge ?? 100);
+              let isFreeShipping = false;
+              if (shippingAddress.city && product.freeShippingCities && product.freeShippingCities.length > 0) {
+                const match = product.freeShippingCities.some(
+                  city => city.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
+                );
+                if (match) {
+                  itemShipping = 0;
+                  isFreeShipping = true;
+                }
+              }
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-start justify-between py-2 border-b"
+                >
+                  <div className="flex  items-start">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-20 h-24  object-cover mr-4"
+                    />
+                    <div>
+                      <h3 className="text-md font-medium text-gray-800">{product.name}</h3>
+                      {product.variant && (
+                        <span className="text-xs text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded inline-block my-1 font-medium">
+                          {product.variant.label}
+                        </span>
+                      )}
+                      {product.size && <p className="text-gray-500 text-sm">Size: {product.size.split(":")[0]}</p>}
+                      {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
+                      <p className="text-gray-700 text-sm font-semibold mt-1">Qty: {product.quantity || 1}</p>
+                      {isFreeShipping ? (
+                        <p className="text-green-600 font-medium text-xs mt-0.5">Free Shipping (City: {shippingAddress.city})</p>
+                      ) : (
+                        <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {itemShipping.toLocaleString()}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">Rs {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
+                    {(product.quantity || 1) > 1 && (
+                      <p className="text-xs text-gray-500">Rs {product.price?.toLocaleString()} each</p>
                     )}
-                    {product.size && <p className="text-gray-500 text-sm">Size: {product.size.split(":")[0]}</p>}
-                    {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
-                    <p className="text-gray-700 text-sm font-semibold mt-1">Qty: {product.quantity || 1}</p>
-                    <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {(product.shippingCharge ?? 100).toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">Rs {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
-                  {(product.quantity || 1) > 1 && (
-                    <p className="text-xs text-gray-500">Rs {product.price?.toLocaleString()} each</p>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="flex justify-between items-center text-lg mb-4">
             <p>Sub Total</p>

@@ -23,6 +23,7 @@ const ProductRequestForm = () => {
     brand: '',
     collection: '',
     location: '',
+    freeShippingCities: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -76,6 +77,7 @@ const ProductRequestForm = () => {
             brand: request.brand || '',
             collection: request.collection || '',
             location: request.location || '',
+            freeShippingCities: request.freeShippingCities ? request.freeShippingCities.join(', ') : '',
           });
 
           setHasVariants(request.variants && request.variants.length > 0);
@@ -229,6 +231,7 @@ const ProductRequestForm = () => {
         brand: form.brand,
         collection: form.collection,
         location: form.location,
+        freeShippingCities: form.freeShippingCities.split(',').map(city => city.trim()).filter(Boolean),
         hasVariants,
         variants: hasVariants ? form.variants : [],
         // Format images for the backend
@@ -425,6 +428,20 @@ const ProductRequestForm = () => {
                   placeholder="0"
                 />
                 {errors.countInStock && <p className="text-red-500 text-sm mt-1">{errors.countInStock}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Free Shipping Cities
+                </label>
+                <input
+                  type="text"
+                  name="freeShippingCities"
+                  value={form.freeShippingCities}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g. Udaipur, Ahmedabad (comma separated)"
+                />
               </div>
             </div>
 
