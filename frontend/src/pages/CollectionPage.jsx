@@ -21,6 +21,21 @@ const CollectionPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParams = Object.fromEntries([...searchParams]);
 
+  useEffect(() => {
+    if (searchParams.get("sidebar") === "true") {
+      setIsSidebarOpen(true);
+    }
+  }, [searchParams]);
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+    if (searchParams.get("sidebar") === "true") {
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("sidebar");
+      setSearchParams(newParams, { replace: true });
+    }
+  };
+
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
 
@@ -130,10 +145,9 @@ const CollectionPage = () => {
 
         {/* ── Main Content ── */}
         <div className="flex-1 min-w-0 space-y-3">
-
           {/* ── Location Bar ── */}
           {allLocations.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex items-center gap-2 flex-wrap">
+            <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar relative">
               <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
               {/* All locations button to clear selection */}
               <button
@@ -141,7 +155,7 @@ const CollectionPage = () => {
                 onClick={() => {
                   setSelectedLocation(null);
                 }}
-                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === null ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === null ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
               >
                 All
               </button>
@@ -151,7 +165,7 @@ const CollectionPage = () => {
                   onClick={() => {
                     setSelectedLocation(selectedLocation === loc ? null : loc);
                   }}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === loc ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === loc ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
                 >
                   <MapPin className="h-3.5 w-3.5" />
                   {loc}
@@ -191,18 +205,21 @@ const CollectionPage = () => {
             </div>
           )}
 
-          {/* Mobile Filter & Refine Button */}
-          <div className="lg:hidden flex items-center justify-between bg-white rounded-lg shadow-sm px-4 py-3">
-            <span className="text-sm font-semibold text-gray-700">
-              Products ({selectedLocation ? products.filter(p => p.location === selectedLocation).length : products?.length || 0})
-            </span>
-            <button
+          {/* Mobile Product Header & Filter */}
+          <div className="lg:hidden flex items-center justify-between bg-white px-4 py-2">
+            <div>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">SHOP</p>
+              <h1 className="text-lg font-bold text-gray-900">
+                All Products <span className="text-gray-500 font-normal text-sm">({selectedLocation ? products.filter(p => p.location === selectedLocation).length : products?.length || 0})</span>
+              </h1>
+            </div>
+            {/* <button
               onClick={() => setIsSidebarOpen(true)}
-              className="flex items-center gap-2 bg-[#0FB7A3] hover:bg-[#0DA28E] text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors"
+              className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
             >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filter & Refine
-            </button>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+              Sort
+            </button> */}
           </div>
 
           {/* ── Product Grid ── */}
@@ -263,7 +280,7 @@ const CollectionPage = () => {
                 Refine Results
               </h2>
               <button
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={closeSidebar}
                 className="p-1 hover:bg-white/10 rounded transition-colors"
                 aria-label="Close filters"
               >
@@ -275,7 +292,7 @@ const CollectionPage = () => {
             </div>
             <div className="p-4 border-t border-gray-200 flex-shrink-0">
               <button
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={closeSidebar}
                 className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-bold py-3 rounded-lg transition-colors"
               >
                 Show {products?.length || 0} Results
@@ -284,7 +301,7 @@ const CollectionPage = () => {
           </div>
           <div
             className="flex-1 bg-black/60 backdrop-blur-sm"
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={closeSidebar}
           />
         </div>
       )}
