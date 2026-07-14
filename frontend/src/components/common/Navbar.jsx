@@ -21,7 +21,7 @@ const moreLinks = [
   { label: "My Orders", link: "/my-orders" },
   {
     label: "Become a Vendor",
-    link: "https://mwellnessbazaar-admin-frontend.vercel.app/become-vendor",
+    link: "https://partner.mwellnessbazaar.com/become-vendor",
     external: true,
   },
 ];
@@ -151,7 +151,7 @@ const Navbar = () => {
 
           {/* Become Vendor */}
           <a
-            href="https://mwellnessbazaar-admin-frontend.vercel.app/become-vendor"
+            href="https://partner.mwellnessbazaar.com/become-vendor"
             className="ml-auto px-3 py-2.5 text-sm font-medium text-teal-300 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
           >
             Become a Vendor
