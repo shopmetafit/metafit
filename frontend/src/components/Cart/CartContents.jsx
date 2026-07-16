@@ -43,7 +43,7 @@ const CartContents = ({ cart, userId, guestId }) => {
           {/* Image */}
           <Link to={`/product/${product.productId}`} className="flex-shrink-0">
             <img
-              src={product.image}
+              src={product.image || "https://via.placeholder.com/150"}
               alt={product.name}
               className="w-20 h-20 object-contain rounded-lg border border-gray-100 bg-gray-50"
             />
@@ -88,9 +88,9 @@ const CartContents = ({ cart, userId, guestId }) => {
             ) : null}
 
             {/* Qty + Remove row */}
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-3 mt-2">
               {/* Qty control */}
-              <div className="flex items-center border border-gray-200 rounded-md overflow-hidden text-sm">
+              <div className="flex items-center border border-gray-200 rounded-md overflow-hidden text-sm flex-shrink-0">
                 <button
                   onClick={() => handleQtyChange(product.productId, -1, product.quantity, product.size, product.color)}
                   className="px-2 py-1 hover:bg-gray-100 transition-colors"
@@ -108,23 +108,26 @@ const CartContents = ({ cart, userId, guestId }) => {
                 </button>
               </div>
 
-              {/* Remove */}
-              <button
-                onClick={() => handleRemove(product.productId, product.size, product.color)}
-                className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors pl-2 border-l border-gray-200"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-                Delete
-              </button>
+              {/* Actions container to keep them together if they wrap */}
+              <div className="flex items-center">
+                {/* Remove */}
+                <button
+                  onClick={() => handleRemove(product.productId, product.size, product.color)}
+                  className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors pr-2 border-r border-gray-200 flex-shrink-0"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </button>
 
-              {/* Wishlist */}
-              <button
-                onClick={() => handleSaveToWishlist(product)}
-                className="text-xs text-[#047ca8] hover:text-[#035f82] flex items-center gap-1 transition-colors pl-2 border-l border-gray-200"
-              >
-                <Heart className="h-3.5 w-3.5" />
-                Save
-              </button>
+                {/* Wishlist */}
+                <button
+                  onClick={() => handleSaveToWishlist(product)}
+                  className="text-xs text-[#047ca8] hover:text-[#035f82] flex items-center gap-1 transition-colors pl-2 flex-shrink-0"
+                >
+                  <Heart className="h-3.5 w-3.5" />
+                  Save
+                </button>
+              </div>
             </div>
           </div>
 

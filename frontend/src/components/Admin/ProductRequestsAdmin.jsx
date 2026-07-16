@@ -271,7 +271,7 @@ const ProductRequestsAdmin = () => {
                             onClick={() => setSelectedImage(image.url)}
                           >
                             <img
-                              src={image.url}
+                              src={image.url || "https://via.placeholder.com/150"}
                               alt={`Product ${index + 1}`}
                               className="w-full h-20 object-cover rounded-lg border border-gray-200 group-hover:shadow-md transition-shadow"
                               onError={(e) => {

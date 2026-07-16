@@ -111,7 +111,7 @@ export default function BlogDetail() {
         {blog.featuredImage && (
           <div className="mb-8 rounded-lg overflow-hidden">
             <img
-              src={blog.featuredImage}
+              src={blog.featuredImage || "https://via.placeholder.com/600"}
               alt={blog.title}
               className="w-full h-96 object-cover"
             />
@@ -136,7 +136,7 @@ export default function BlogDetail() {
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-gray-200">
               {blog.author.avatar && (
                 <img
-                  src={blog.author.avatar}
+                  src={blog.author.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(blog.author.name || "A")}
                   alt={blog.author.name}
                   className="w-12 h-12 rounded-full"
                 />

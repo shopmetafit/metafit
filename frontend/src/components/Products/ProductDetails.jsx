@@ -261,7 +261,7 @@ const ProductDetails = ({ productId }) => {
                       className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage === img.url ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
                         }`}
                     >
-                      <img src={img.url} alt={img.altText || `View ${i + 1}`} className="w-full h-full object-contain" />
+                      <img src={img.url || "https://via.placeholder.com/150"} alt={img.altText || `View ${i + 1}`} className="w-full h-full object-contain" />
                     </button>
                   ))}
                   {selectedProduct.extraImages && selectedProduct.extraImages.flatMap((img, i) => {
@@ -274,7 +274,7 @@ const ProductDetails = ({ productId }) => {
                         className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200 hover:border-[#047ca8]"
                           }`}
                       >
-                        <img src={imgUrl} alt={img.altText || `Extra ${i + 1}`} className="w-full h-full object-contain" />
+                        <img src={imgUrl || "https://via.placeholder.com/150"} alt={img.altText || `Extra ${i + 1}`} className="w-full h-full object-contain" />
                       </button>
                     ))
                   })}
@@ -285,7 +285,7 @@ const ProductDetails = ({ productId }) => {
                   {mainImage === "video" ? (
                     <video src={selectedProduct.videoUrl} controls autoPlay className="w-full h-full object-contain" />
                   ) : (
-                    <img src={mainImage} alt={selectedProduct.name} className="w-full h-full object-contain" />
+                    <img src={mainImage || "https://via.placeholder.com/600"} alt={selectedProduct.name} className="w-full h-full object-contain" />
                   )}
                   <div className="absolute top-3 right-3 bg-white/90 rounded-lg p-2 shadow">
                     <img
@@ -308,7 +308,7 @@ const ProductDetails = ({ productId }) => {
                   {mainImage === "video" ? (
                     <video src={selectedProduct.videoUrl} controls autoPlay className="w-full h-full object-contain" />
                   ) : (
-                    <img src={mainImage} alt={selectedProduct.name} className="w-full h-full object-contain" />
+                    <img src={mainImage || "https://via.placeholder.com/600"} alt={selectedProduct.name} className="w-full h-full object-contain" />
                   )}
                   <div className="absolute top-3 right-3 bg-white/90 rounded-lg p-2 shadow">
                     <img
@@ -350,7 +350,7 @@ const ProductDetails = ({ productId }) => {
                         className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
                           }`}
                       >
-                        <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
+                        <img src={imgUrl || "https://via.placeholder.com/150"} alt={img.altText || ""} className="w-full h-full object-contain" />
                       </button>
                     )
                   })}
@@ -364,7 +364,7 @@ const ProductDetails = ({ productId }) => {
                         className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage === imgUrl ? "border-[#047ca8]" : "border-gray-200"
                           }`}
                       >
-                        <img src={imgUrl} alt={img.altText || ""} className="w-full h-full object-contain" />
+                        <img src={imgUrl || "https://via.placeholder.com/150"} alt={img.altText || ""} className="w-full h-full object-contain" />
                       </button>
                     ))
                   })}
@@ -426,7 +426,7 @@ const ProductDetails = ({ productId }) => {
                       if (!isNaN(Number(parts[1]))) displayPrice = Number(parts[1]);
                     }
                   }
-                  
+
                   const computedDiscountPct = displayMrp && displayMrp > displayPrice
                     ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100)
                     : 0;
@@ -446,13 +446,13 @@ const ProductDetails = ({ productId }) => {
                           <span className="text-base font-semibold text-red-500">({computedDiscountPct}% off)</span>
                         )}
                       </div>
-                  <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery charge
-                  </p>
-                </div>
-              );
-              })()
+                      <p className="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
+                      <p className="text-sm text-gray-600 mt-1">
+                        + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery charge
+                      </p>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="mb-4">
                   <p className="text-sm text-gray-500 mb-2 font-medium">
@@ -508,18 +508,19 @@ const ProductDetails = ({ productId }) => {
                       const sizeMrp = parts.length === 3 ? parts[1] : "";
                       const sizePrice = parts.length === 3 ? parts[2] : parts[1];
                       return (
-                      <button
-                        key={i}
-                        onClick={() => setSelectedSize(sizeRaw)}
-                        className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize === sizeRaw
-                          ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
-                          : "border-gray-300 hover:border-[#047ca8] text-gray-800"
-                          }`}
-                      >
-                        <span>{sizeName}</span>
-                        {sizePrice && <span className="text-xs text-gray-500 font-bold mt-0.5">₹{sizePrice}</span>}
-                      </button>
-                    )})}
+                        <button
+                          key={i}
+                          onClick={() => setSelectedSize(sizeRaw)}
+                          className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize === sizeRaw
+                            ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
+                            : "border-gray-300 hover:border-[#047ca8] text-gray-800"
+                            }`}
+                        >
+                          <span>{sizeName}</span>
+                          {sizePrice && <span className="text-xs text-gray-500 font-bold mt-0.5">₹{sizePrice}</span>}
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               )}
@@ -626,7 +627,7 @@ const ProductDetails = ({ productId }) => {
                       return baseStr.split(',').map((urlStr) => urlStr.trim()).filter(Boolean).map((imgUrl, j) => (
                         <img
                           key={`extra-info-${i}-${j}`}
-                          src={imgUrl}
+                          src={imgUrl || "https://via.placeholder.com/150"}
                           alt={img.altText || `Detail ${i + 1}`}
                           className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
                         />
@@ -635,52 +636,6 @@ const ProductDetails = ({ productId }) => {
                   </div>
                 </div>
               )}
-            </div>
-
-            {/* ── Right: Buy Box (desktop only) ── */}
-            <div className="hidden xl:block w-64 flex-shrink-0 p-4">
-              <div className="border border-gray-200 rounded-lg p-4 sticky top-[110px]">
-                {/* Price */}
-                <div className="mb-3">
-                  {selectedProduct.hasVariants ? (
-                    <p className="text-2xl font-bold text-gray-900">
-                      {selectedVariant
-                        ? formatCurrency(selectedVariant.discountPrice || selectedVariant.price)
-                        : formatCurrency(getVariantPriceRange(selectedProduct.variants))}
-                    </p>
-                  ) : (
-                    <p className="text-2xl font-bold text-gray-900">
-                      {formatCurrency(selectedProduct.discountPrice || selectedProduct.price)}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    + {formatCurrency(selectedProduct.shippingCharge || 100)} delivery
-                  </p>
-                </div>
-
-                {/* Stock status */}
-                <p className="text-green-600 font-semibold text-sm mb-3">In Stock</p>
-
-                {/* Add to Cart */}
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isButtonDisabled}
-                  className={`w-full py-2.5 rounded-full font-bold text-sm mb-2 transition-all ${isButtonDisabled
-                    ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                    : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white shadow-md"
-                    }`}
-                >
-                  {isButtonDisabled ? "Adding..." : "Add to Cart"}
-                </button>
-
-                {/* Trust signals */}
-                <div className="mt-3 space-y-2 text-xs text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Secure transaction</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 

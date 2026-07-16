@@ -62,7 +62,7 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
       {products && products.length > 0 ? (
         products.map((product) => {
           const imageSrc = hoveredImage[product._id] ||
-            (product.images && product.images.length > 0
+            (product.images && product.images.length > 0 && product.images[0].url
               ? product.images[0].url
               : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png");
 

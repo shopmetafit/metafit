@@ -160,6 +160,20 @@ exports.verifyPayment = async (req, res) => {
               if (v.discountPrice) validPrices.push(v.discountPrice);
             });
           }
+          
+          if (dbProduct.sizes && dbProduct.sizes.length > 0) {
+            dbProduct.sizes.forEach(sizeStr => {
+              if (typeof sizeStr === 'string' && sizeStr.includes(':')) {
+                const parts = sizeStr.split(':');
+                if (parts.length >= 2 && !isNaN(Number(parts[1]))) {
+                  validPrices.push(Number(parts[1])); // MRP
+                }
+                if (parts.length >= 3 && !isNaN(Number(parts[2]))) {
+                  validPrices.push(Number(parts[2])); // DISCOUNT
+                }
+              }
+            });
+          }
 
           // If the frontend item.price is one of the valid DB prices, use it.
           // Otherwise, fallback to the main dbProduct.discountPrice or dbProduct.price

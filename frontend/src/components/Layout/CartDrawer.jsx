@@ -55,7 +55,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
           <div key={product._id} className="flex gap-3 py-4">
             <Link to={`/product/${product._id}`} className="flex-shrink-0" onClick={togglerCartOpen}>
               <img
-                src={product.images && product.images.length > 0 ? product.images[0].url : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png"}
+                src={product.images && product.images.length > 0 && product.images[0].url ? product.images[0].url : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png"}
                 alt={product.name}
                 className="w-20 h-20 object-contain rounded-lg border border-gray-100 bg-gray-50"
               />

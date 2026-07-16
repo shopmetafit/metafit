@@ -364,6 +364,10 @@ const CheckOut = () => {
           orderItems: cart.products.map((product) => ({
             productId: product.productId,
             qty: product.quantity,
+            price: product.price,
+            size: product.size,
+            color: product.color,
+            variant: product.variant
           })),
           vendorId: referralContext?.vendorId,
           productId: referralContext?.productId,
@@ -609,7 +613,7 @@ const CheckOut = () => {
                 >
                   <div className="flex  items-start">
                     <img
-                      src={product.image}
+                      src={product.image || "https://via.placeholder.com/150"}
                       alt={product.name}
                       className="w-20 h-24  object-cover mr-4"
                     />

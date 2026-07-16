@@ -100,7 +100,7 @@ export default function BlogList() {
                 {blog.featuredImage && (
                   <div className="h-48 overflow-hidden bg-gray-200">
                     <img
-                      src={blog.featuredImage}
+                      src={blog.featuredImage || "https://via.placeholder.com/150"}
                       alt={blog.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
@@ -138,7 +138,7 @@ export default function BlogList() {
                     <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
                       {blog.author.avatar && (
                         <img
-                          src={blog.author.avatar}
+                          src={blog.author.avatar || "https://ui-avatars.com/api/?name=" + encodeURIComponent(blog.author.name || "A")}
                           alt={blog.author.name}
                           className="w-8 h-8 rounded-full"
                         />
