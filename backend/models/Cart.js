@@ -19,6 +19,10 @@ const cartItemSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    localShippingCharge: {
+      type: Number,
+      default: 0,
+    },
     size: {
       type: String,
       default: "",

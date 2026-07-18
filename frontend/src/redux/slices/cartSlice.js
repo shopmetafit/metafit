@@ -148,6 +148,29 @@ const cartSlice = createSlice({
       state.cart = { products: [] };
       localStorage.removeItem("cart");
     },
+    updateLocalCartItemQuantity: (state, action) => {
+      const { productId, size, color, quantity } = action.payload;
+      if (!state.cart || !state.cart.products) return;
+      
+      const product = state.cart.products.find(
+        (p) => p.productId === productId && p.size === size && p.color === color
+      );
+      if (product) {
+        product.quantity = quantity;
+      }
+      state.cart.totalPrice = state.cart.products.reduce((total, p) => total + (p.price * p.quantity), 0);
+      saveCartToStorage(state.cart);
+    },
+    removeLocalCartItem: (state, action) => {
+      const { productId, size, color } = action.payload;
+      if (!state.cart || !state.cart.products) return;
+      
+      state.cart.products = state.cart.products.filter(
+        (p) => !(p.productId === productId && p.size === size && p.color === color)
+      );
+      state.cart.totalPrice = state.cart.products.reduce((total, p) => total + (p.price * p.quantity), 0);
+      saveCartToStorage(state.cart);
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -213,6 +236,6 @@ const cartSlice = createSlice({
   },
 });
 
-export const {clearCart}= cartSlice.actions;
+export const { clearCart, updateLocalCartItemQuantity, removeLocalCartItem } = cartSlice.actions;
 
 export default cartSlice.reducer;

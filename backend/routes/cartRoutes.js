@@ -27,6 +27,11 @@ const getCart = async (userId, guestId) => {
           p.shippingCharge = expectedShippingCharge;
           isModified = true;
         }
+        const expectedLocalShippingCharge = product.localShippingCharge || 0;
+        if (p.localShippingCharge !== expectedLocalShippingCharge) {
+          p.localShippingCharge = expectedLocalShippingCharge;
+          isModified = true;
+        }
         const expectedFreeCities = product.freeShippingCities || [];
         if (JSON.stringify(p.freeShippingCities) !== JSON.stringify(expectedFreeCities)) {
           p.freeShippingCities = expectedFreeCities;
@@ -111,6 +116,7 @@ router.post("/", async (req, res) => {
           vendorId: product.vendorId || null,
           createdBy: product.createdBy || "ADMIN",
           shippingCharge: product.shippingCharge ?? 100,
+          localShippingCharge: product.localShippingCharge ?? 0,
           freeShippingCities: product.freeShippingCities || [],
         });
       }
@@ -151,6 +157,7 @@ router.post("/", async (req, res) => {
             vendorId: product.vendorId || null,
             createdBy: product.createdBy || "ADMIN",
             shippingCharge: product.shippingCharge ?? 100,
+            localShippingCharge: product.localShippingCharge ?? 0,
             freeShippingCities: product.freeShippingCities || [],
           },
         ],

@@ -283,7 +283,7 @@ const ProductDetails = ({ productId }) => {
                 {/* Main image */}
                 <div className="relative flex-1 aspect-square rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
                   {mainImage === "video" ? (
-                    <video src={selectedProduct.videoUrl} controls autoPlay className="w-full h-full object-contain" />
+                    <video src={selectedProduct.videoUrl} controls className="w-full h-full object-contain" />
                   ) : (
                     <img src={mainImage || "https://via.placeholder.com/600"} alt={selectedProduct.name} className="w-full h-full object-contain" />
                   )}
@@ -306,7 +306,7 @@ const ProductDetails = ({ productId }) => {
               <div className="lg:hidden">
                 <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
                   {mainImage === "video" ? (
-                    <video src={selectedProduct.videoUrl} controls autoPlay className="w-full h-full object-contain" />
+                    <video src={selectedProduct.videoUrl} controls className="w-full h-full object-contain" />
                   ) : (
                     <img src={mainImage || "https://via.placeholder.com/600"} alt={selectedProduct.name} className="w-full h-full object-contain" />
                   )}

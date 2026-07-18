@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createCheckout, setCheckoutData } from "../../redux/slices/checkoutSlice";
-import { mergeCart, fetchCart } from "../../redux/slices/cartSlice";
+import { mergeCart, fetchCart, updateLocalCartItemQuantity, removeLocalCartItem } from "../../redux/slices/cartSlice";
+import { Minus, Plus, Trash2 } from "lucide-react";
 import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
@@ -12,7 +13,17 @@ import {
   clearReferralContext,
   getReferralForCartItems,
 } from "../../services/referralStorage";
-// import { use } from "../../../../backend/utils/email";
+
+const handleQtyChange = (dispatch, user, productId, delta, quantity, size, color) => {
+  const newQty = quantity + delta;
+  if (newQty > 0) {
+    dispatch(updateLocalCartItemQuantity({ productId, quantity: newQty, size, color }));
+  }
+};
+
+const handleRemove = (dispatch, user, productId, size, color) => {
+  dispatch(removeLocalCartItem({ productId, size, color }));
+};
 
 const CheckOut = () => {
   const dispatch = useDispatch();
@@ -48,7 +59,7 @@ const CheckOut = () => {
         city => city.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
       );
       if (match) {
-        itemShipping = 0;
+        itemShipping = Number(item.localShippingCharge ?? 0);
       }
     }
     return acc + itemShipping;
@@ -57,11 +68,14 @@ const CheckOut = () => {
   const totalWithDelivery = subtotal + deliveryCharge;
   const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
 
-  const hasFreeShippingItem = cart?.products?.some((item) => {
+  const localShippingItems = cart?.products?.filter((item) => {
     return shippingAddress.city && item.freeShippingCities && item.freeShippingCities.some(
       c => c.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
     );
-  });
+  }) || [];
+
+  const hasFreeShippingItem = localShippingItems.some(item => Number(item.localShippingCharge ?? 0) === 0);
+  const hasLocalShippingItem = localShippingItems.length > 0;
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -397,13 +411,13 @@ const CheckOut = () => {
     }
   }, [user]);
 
-  // Show loading state while cart is being synced from server
-  if (loading || !isCartLoaded) {
+  // Show loading state while cart is being synced from server initially
+  if (!isCartLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading cart...</p>
+          <p className="text-gray-600">Loading checkout...</p>
         </div>
       </div>
     );
@@ -510,15 +524,15 @@ const CheckOut = () => {
                       city: e.target.value,
                     });
                   }}
-                  className={`w-full p-2 border rounded ${hasFreeShippingItem ? 'border-green-500 bg-green-50 focus:ring-green-500' : ''}`}
+                  className={`w-full p-2 border rounded ${hasLocalShippingItem ? (hasFreeShippingItem ? 'border-green-500 bg-green-50 focus:ring-green-500' : 'border-teal-500 bg-teal-50 focus:ring-teal-500') : ''}`}
                   required
                 />
-                {hasFreeShippingItem && (
-                  <p className="text-green-600 text-xs font-medium mt-1 flex items-center">
+                {hasLocalShippingItem && (
+                  <p className={`${hasFreeShippingItem ? 'text-green-600' : 'text-teal-600'} text-xs font-medium mt-1 flex items-center`}>
                     <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    Eligible for free shipping!
+                    {hasFreeShippingItem ? 'Eligible for free shipping!' : 'Eligible for local shipping rates!'}
                   </p>
                 )}
               </div>
@@ -590,55 +604,106 @@ const CheckOut = () => {
         </div>
 
         {/* right section */}
-        <div className="bg-gray-50 p-6">
+        <div className="bg-gray-50 p-6 relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-teal-600 border-t-transparent"></div>
+            </div>
+          )}
           <h3 className="text-lg mb-4">Order Summary</h3>
           <div className="border-t py-4 mb-4">
             {cart.products.map((product, index) => {
               let itemShipping = Number(product.shippingCharge ?? 100);
-              let isFreeShipping = false;
+              let isLocalShipping = false;
               if (shippingAddress.city && product.freeShippingCities && product.freeShippingCities.length > 0) {
                 const match = product.freeShippingCities.some(
                   city => city.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
                 );
                 if (match) {
-                  itemShipping = 0;
-                  isFreeShipping = true;
+                  itemShipping = Number(product.localShippingCharge ?? 0);
+                  isLocalShipping = true;
                 }
               }
 
               return (
                 <div
                   key={index}
-                  className="flex items-start justify-between py-2 border-b"
+                  className="flex flex-col sm:flex-row sm:items-start justify-between py-4 border-b gap-4"
                 >
-                  <div className="flex  items-start">
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
                     <img
                       src={product.image || "https://via.placeholder.com/150"}
                       alt={product.name}
-                      className="w-20 h-24  object-cover mr-4"
+                      className="w-20 h-24 object-contain rounded border border-gray-100 bg-white shrink-0"
                     />
-                    <div>
-                      <h3 className="text-md font-medium text-gray-800">{product.name}</h3>
-                      {product.variant && (
-                        <span className="text-xs text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded inline-block my-1 font-medium">
-                          {product.variant.label}
-                        </span>
-                      )}
-                      {product.size && <p className="text-gray-500 text-sm">Size: {product.size.split(":")[0]}</p>}
-                      {product.color && <p className="text-gray-500 text-sm">Color: {product.color}</p>}
-                      <p className="text-gray-700 text-sm font-semibold mt-1">Qty: {product.quantity || 1}</p>
-                      {isFreeShipping ? (
-                        <p className="text-green-600 font-medium text-xs mt-0.5">Free Shipping (City: {shippingAddress.city})</p>
-                      ) : (
-                        <p className="text-gray-400 text-xs mt-0.5">Shipping: Rs {itemShipping.toLocaleString()}</p>
-                      )}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm sm:text-md font-semibold text-gray-800 line-clamp-2">{product.name}</h3>
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {product.variant && (
+                          <span className="text-xs text-gray-700 bg-gray-200 px-1.5 py-0.5 rounded font-medium">
+                            {product.variant.label}
+                          </span>
+                        )}
+                        {product.size && <span className="text-gray-500 text-xs border px-1.5 py-0.5 rounded">Size: {product.size.split(":")[0]}</span>}
+                        {product.color && <span className="text-gray-500 text-xs border px-1.5 py-0.5 rounded">Color: {product.color}</span>}
+                      </div>
+
+                      <div className="mt-2 flex flex-wrap items-center gap-3">
+                        <div className="flex items-center border border-gray-300 rounded overflow-hidden h-7">
+                          <button
+                            type="button"
+                            onClick={() => handleQtyChange(dispatch, user, product.productId, -1, product.quantity, product.size, product.color)}
+                            className="px-2 h-full bg-gray-50 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="px-3 text-xs font-semibold text-gray-800 min-w-[28px] text-center border-x border-gray-300">
+                            {product.quantity || 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleQtyChange(dispatch, user, product.productId, 1, product.quantity, product.size, product.color)}
+                            className="px-2 h-full bg-gray-50 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemove(dispatch, user, product.productId, product.size, product.color)}
+                          className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors font-medium"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remove
+                        </button>
+                      </div>
+
+                      <div className="mt-2">
+                        {isLocalShipping ? (
+                          itemShipping === 0 ? (
+                            <span className="text-green-600 font-medium text-xs">Free Shipping (Local: {shippingAddress.city})</span>
+                          ) : (
+                            <span className="text-teal-600 font-medium text-xs">Local Shipping: Rs {itemShipping.toLocaleString()} ({shippingAddress.city})</span>
+                          )
+                        ) : (
+                          itemShipping === 0 ? (
+                            <span className="text-green-600 font-medium text-xs">Free Shipping</span>
+                          ) : (
+                            <span className="text-gray-500 text-xs">Shipping: Rs {itemShipping.toLocaleString()}</span>
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">Rs {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
-                    {(product.quantity || 1) > 1 && (
-                      <p className="text-xs text-gray-500">Rs {product.price?.toLocaleString()} each</p>
-                    )}
+                  <div className="text-left sm:text-right shrink-0 mt-2 sm:mt-0 flex flex-row sm:flex-col justify-between sm:justify-start items-center sm:items-end w-full sm:w-auto">
+                    <span className="text-xs sm:hidden font-medium text-gray-500">Total Price:</span>
+                    <div>
+                      <p className="text-lg font-bold text-gray-900">Rs {((product.price || 0) * (product.quantity || 1)).toLocaleString()}</p>
+                      {(product.quantity || 1) > 1 && (
+                        <p className="text-xs text-gray-500 hidden sm:block">Rs {product.price?.toLocaleString()} each</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

@@ -159,22 +159,24 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
                   )}
 
                   {/* Price & Add to Cart */}
-                  <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-1.5 sm:gap-3 mt-auto pt-2 sm:pt-3 border-t border-gray-100">
-                    <div className="flex flex-row sm:flex-col items-center sm:items-start gap-1.5 sm:gap-0">
-                      <span className="text-sm sm:text-[24px] font-serif text-gray-900 leading-none">
+                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                    <div className="flex flex-col">
+                      <span className="text-sm sm:text-lg font-bold text-gray-900 leading-none">
                         ₹{product.discountPrice || product.price}
                       </span>
                       {product.discountPrice && (
-                        <span className="text-[9px] sm:text-[12px] font-medium text-gray-400 line-through sm:mt-1.5">₹{product.price}</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-400 line-through mt-1">
+                          ₹{product.price}
+                        </span>
                       )}
                     </div>
 
                     <button
                       onClick={(e) => handleAddToCart(e, product, product.hasVariants ? product.variants[0] : null)}
                       disabled={addingId === product._id}
-                      className="bg-[#1e4620] text-white px-2 py-1.5 sm:px-4 sm:py-2.5 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-[13px] font-semibold hover:bg-[#153216] transition-colors shadow-sm disabled:bg-gray-400 w-full sm:w-auto flex-shrink-0"
+                      className="bg-[#1e4620] text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-[12px] font-semibold hover:bg-[#153216] transition-colors shadow-sm disabled:bg-gray-400 flex-shrink-0"
                     >
-                      <ShoppingCart className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                       {addingId === product._id ? "..." : "Add to Cart"}
                     </button>
                   </div>

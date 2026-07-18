@@ -193,7 +193,7 @@ exports.verifyPayment = async (req, res) => {
               c => c.trim().toLowerCase() === city.trim().toLowerCase()
             );
             if (match) {
-              itemShipping = 0;
+              itemShipping = Number(dbProduct.localShippingCharge ?? 0);
             }
           }
           calculatedShipping += itemShipping;

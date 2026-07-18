@@ -225,7 +225,7 @@ router.post("/orders", async (req, res) => {
       if (city && product?.freeShippingCities && product.freeShippingCities.length > 0) {
         const match = product.freeShippingCities.some(c => c.trim().toLowerCase() === city);
         if (match) {
-          shipping = 0;
+          shipping = Number(product?.localShippingCharge ?? 0);
         }
       }
       
