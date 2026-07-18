@@ -18,6 +18,7 @@ const createProductRequest = async (req, res) => {
       price,
       discountPrice,
       shippingCharge,
+      localShippingCharge,
       countInStock,
       sku,
       category,
@@ -69,6 +70,7 @@ const createProductRequest = async (req, res) => {
       price: Number(price),
       discountPrice: discountPrice ? Number(discountPrice) : undefined,
       shippingCharge: shippingCharge ? Number(shippingCharge) : 0,
+      localShippingCharge: localShippingCharge ? Number(localShippingCharge) : 0,
       countInStock: Number(countInStock),
       sku,
       category,
@@ -193,6 +195,7 @@ const updateProductRequest = async (req, res) => {
       price,
       discountPrice,
       shippingCharge,
+      localShippingCharge,
       countInStock,
       sku,
       category,
@@ -225,6 +228,8 @@ const updateProductRequest = async (req, res) => {
     request.price = price ? Number(price) : request.price;
     request.discountPrice = discountPrice ? Number(discountPrice) : request.discountPrice;
     request.shippingCharge = shippingCharge !== undefined ? Number(shippingCharge) : request.shippingCharge;
+    request.localShippingCharge = localShippingCharge !== undefined ? Number(localShippingCharge) : request.localShippingCharge;
+    if (freeShippingCities !== undefined) request.freeShippingCities = freeShippingCities;
     request.countInStock = countInStock ? Number(countInStock) : request.countInStock;
     request.sku = sku || request.sku;
     request.category = category || request.category;
@@ -422,6 +427,8 @@ const approveProductRequest = async (req, res) => {
       price: request.price,
       discountPrice: request.discountPrice,
       shippingCharge: request.shippingCharge || 0,
+      localShippingCharge: request.localShippingCharge || 0,
+      freeShippingCities: request.freeShippingCities || [],
       countInStock: request.countInStock,
       sku: request.sku,
       category: request.category,

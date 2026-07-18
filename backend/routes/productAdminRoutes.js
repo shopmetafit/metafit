@@ -36,6 +36,8 @@ router.post("/", protect, admin, async (req, res) => {
       price,
       discountPrice,
       shippingCharge,
+      localShippingCharge,
+      freeShippingCities,
       countInStock,
       sku,
       category,
@@ -57,6 +59,8 @@ router.post("/", protect, admin, async (req, res) => {
       price,
       discountPrice,
       shippingCharge: shippingCharge || 0,
+      localShippingCharge: localShippingCharge || 0,
+      freeShippingCities: freeShippingCities || [],
       countInStock,
       sku,
       category,
@@ -90,6 +94,8 @@ router.put("/:id", protect, admin, async (req, res) => {
       price,
       discountPrice,
       shippingCharge,
+      localShippingCharge,
+      freeShippingCities,
       countInStock,
       sku,
       category,
@@ -117,6 +123,10 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.price = price ?? product.price;
       product.discountPrice = discountPrice || product.discountPrice;
       product.shippingCharge = shippingCharge ?? product.shippingCharge;
+      product.localShippingCharge = localShippingCharge ?? product.localShippingCharge;
+      if (freeShippingCities !== undefined) {
+        product.freeShippingCities = freeShippingCities;
+      }
       product.countInStock = countInStock || product.countInStock;
       product.category = category || product.category;
       product.brand = brand || product.brand;

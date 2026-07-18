@@ -17,6 +17,7 @@ const ProductRequestForm = () => {
     price: '',
     discountPrice: '',
     shippingCharge: '',
+    localShippingCharge: '',
     countInStock: '',
     sku: '',
     category: '',
@@ -24,6 +25,7 @@ const ProductRequestForm = () => {
     collection: '',
     location: '',
     freeShippingCities: '',
+    variants: [],
   });
 
   const [errors, setErrors] = useState({});
@@ -31,7 +33,6 @@ const ProductRequestForm = () => {
   const [video, setVideo] = useState(null);
   const [videoUploading, setVideoUploading] = useState(false);
   const [hasVariants, setHasVariants] = useState(false);
-  const [variants, setVariants] = useState([]);
   const [newVariant, setNewVariant] = useState({
     label: '',
     weight: '',
@@ -71,6 +72,7 @@ const ProductRequestForm = () => {
             price: request.price || '',
             discountPrice: request.discountPrice || '',
             shippingCharge: request.shippingCharge || '',
+            localShippingCharge: request.localShippingCharge || '',
             countInStock: request.countInStock || '',
             sku: request.sku || '',
             category: request.category || '',
@@ -78,10 +80,10 @@ const ProductRequestForm = () => {
             collection: request.collection || '',
             location: request.location || '',
             freeShippingCities: request.freeShippingCities ? request.freeShippingCities.join(', ') : '',
+            variants: request.variants || [],
           });
 
           setHasVariants(request.variants && request.variants.length > 0);
-          setVariants(request.variants || []);
           setImagePreviews(request.images || []);
           setVideo(request.videoUrl || null);
           setIsEditing(true);
@@ -149,7 +151,7 @@ const ProductRequestForm = () => {
     setForm(prev => ({
       ...prev,
       variants: [
-        ...prev.variants,
+        ...(prev.variants || []),
         {
           label: newVariant.label,
           weight: newVariant.weight || '',
@@ -169,7 +171,7 @@ const ProductRequestForm = () => {
   const removeVariant = (index) => {
     setForm(prev => ({
       ...prev,
-      variants: prev.variants.filter((_, i) => i !== index)
+      variants: (prev.variants || []).filter((_, i) => i !== index)
     }));
   };
 
@@ -225,6 +227,7 @@ const ProductRequestForm = () => {
         price: form.price,
         discountPrice: form.discountPrice || undefined,
         shippingCharge: form.shippingCharge || 0,
+        localShippingCharge: form.localShippingCharge || 0,
         countInStock: form.countInStock,
         sku: form.sku,
         category: form.category,
@@ -410,6 +413,22 @@ const ProductRequestForm = () => {
                   placeholder="0.00"
                 />
                 {errors.shippingCharge && <p className="text-red-500 text-sm mt-1">{errors.shippingCharge}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Local Shipping Charge (₹)
+                </label>
+                <input
+                  type="number"
+                  name="localShippingCharge"
+                  value={form.localShippingCharge}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="0.00"
+                />
               </div>
 
               <div>
@@ -613,7 +632,7 @@ const ProductRequestForm = () => {
                   </div>
 
                   <div className="space-y-4">
-                    {form.variants.map((variant, index) => (
+                    {(form.variants || []).map((variant, index) => (
                       <div key={index} className="p-4 border rounded bg-white">
                         <div className="grid md:grid-cols-2 gap-4">
                           <div>

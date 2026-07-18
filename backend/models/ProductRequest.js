@@ -26,6 +26,7 @@ const productRequestSchema = new mongoose.Schema(
     price: { type: Number, required: true },
     discountPrice: { type: Number },
     shippingCharge: { type: Number, default: 0 },
+    localShippingCharge: { type: Number, default: 0 },
     freeShippingCities: { type: [String], default: [] },
     countInStock: { type: Number, required: true, default: 0 },
     sku: { type: String, required: true },

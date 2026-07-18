@@ -227,6 +227,9 @@ router.put("/:id", protect, admin, async (req, res) => {
       description,
       price,
       discountPrice,
+      shippingCharge,
+      localShippingCharge,
+      freeShippingCities,
       countInStock,
       category,
       brand,
@@ -253,6 +256,9 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.description = description ?? product.description;
       product.price = price ?? product.price;
       product.discountPrice = discountPrice ?? product.discountPrice;
+      if (shippingCharge !== undefined) product.shippingCharge = shippingCharge;
+      if (localShippingCharge !== undefined) product.localShippingCharge = localShippingCharge;
+      if (freeShippingCities !== undefined) product.freeShippingCities = freeShippingCities;
       product.countInStock = countInStock ?? product.countInStock;
       product.category = category ?? product.category;
       product.brand = brand ?? product.brand;

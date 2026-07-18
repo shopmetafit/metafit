@@ -30,6 +30,9 @@ const vendorSchema = new mongoose.Schema({
   approvedAt: Date,
   rejectedAt: Date,
   rejectionReason: String,
+  termsAcceptedAt: Date,
+  actionMailSentAt: Date,
+  signatureProofUrl: String,
 
   createdAt: {
     type: Date,
