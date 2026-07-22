@@ -78,7 +78,7 @@ const referralPurchaseSchema = new mongoose.Schema(
     },
     commissionType: {
       type: String,
-      enum: ["percentage", "fixed"],
+      enum: ["percentage", "fixed", "flat"],
       required: true,
     },
     commissionValue: {

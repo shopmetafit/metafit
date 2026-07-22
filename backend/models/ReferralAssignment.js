@@ -64,7 +64,7 @@ const referralAssignmentSchema = new mongoose.Schema(
     },
     commissionType: {
       type: String,
-      enum: ["percentage", "fixed"],
+      enum: ["percentage", "fixed", "flat"],
       required: true,
     },
     commissionValue: {
@@ -88,7 +88,7 @@ const referralAssignmentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    collection: "referralassignments"
+    collection: "vendor_product_assignments"
   }
 );
 referralAssignmentSchema.index({

@@ -66,6 +66,11 @@ const computeCouponDiscount = (coupon, cartSubtotal, items) => {
 router.get("/referrals/validate", async (req, res) => {
   try {
     const { productId, vendorId, assignedProductId, ref } = req.query;
+
+    if (!ref) {
+      return res.status(400).json({ valid: false, message: "Missing referral code" });
+    }
+
     const validation = await validateReferral({ productId, vendorId, assignedProductId, ref });
 
     if (!validation.valid) {
@@ -74,9 +79,9 @@ router.get("/referrals/validate", async (req, res) => {
 
     res.json({
       valid: true,
-      productId,
-      vendorId,
-      assignedProductId,
+      productId: validation.assignment.productId || productId,
+      vendorId: validation.assignment.externalVendorId || validation.assignment.vendorSnapshot?.mentorId || validation.assignment.vendorId || vendorId,
+      assignedProductId: validation.assignment.assignedProductId || assignedProductId,
       shareCode: validation.assignment.shareCode,
       refCode: validation.assignment.refCode,
       commissionType: validation.assignment.commissionType,
@@ -99,7 +104,7 @@ router.get("/products/:id", async (req, res) => {
     const { vendorId, assignedProductId, ref } = req.query;
     let referral = null;
 
-    if (vendorId && assignedProductId && ref) {
+    if (ref) {
       const validation = await validateReferral({
         productId: req.params.id,
         vendorId,
@@ -110,8 +115,8 @@ router.get("/products/:id", async (req, res) => {
       referral = validation.valid
         ? {
             valid: true,
-            vendorId,
-            assignedProductId,
+            vendorId: validation.assignment.externalVendorId || validation.assignment.vendorSnapshot?.mentorId || validation.assignment.vendorId || vendorId,
+            assignedProductId: validation.assignment.assignedProductId || assignedProductId,
             shareCode: validation.assignment.shareCode,
             refCode: validation.assignment.refCode,
           }

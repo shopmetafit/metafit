@@ -12,7 +12,8 @@ const computeCommissionAmount = (orderAmount, commissionType, commissionValue) =
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   if (!Number.isFinite(value) || value <= 0) return 0;
 
-  if (commissionType === "fixed") {
+  const type = String(commissionType || "").toLowerCase();
+  if (type === "fixed" || type === "flat") {
     return Math.min(value, amount);
   }
 
@@ -22,27 +23,14 @@ const computeCommissionAmount = (orderAmount, commissionType, commissionValue) =
 const findAssignment = async ({ productId, vendorId, assignedProductId, ref }) => {
   const normalizedRef = normalizeReferralCode(ref);
 
-  if (!productId || !vendorId || !assignedProductId || !normalizedRef) {
+  if (!normalizedRef) {
     return null;
   }
 
   const query = {
-    productId,
     isActive: true,
     $or: [{ shareCode: normalizedRef }, { refCode: normalizedRef }],
   };
-
-  if (mongoose.Types.ObjectId.isValid(assignedProductId)) {
-    query._id = new mongoose.Types.ObjectId(assignedProductId);
-  } else {
-    query.assignedProductId = String(assignedProductId).trim();
-  }
-
-  if (mongoose.Types.ObjectId.isValid(vendorId)) {
-    query.vendorId = new mongoose.Types.ObjectId(vendorId);
-  } else {
-    query.externalVendorId = String(vendorId).trim();
-  }
 
   return ReferralAssignment.findOne(query);
 };
