@@ -133,6 +133,9 @@ const productRequestSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    platformCommission: {
+      type: Number,
+    },
     priority: {
       type: Number,
       default: 0,

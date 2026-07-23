@@ -58,6 +58,9 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    platformCommission: {
+      type: Number,
+    },
     rating: {
       type: Number,
       default: 0,

@@ -85,6 +85,10 @@ const referralAssignmentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isAssignToAll: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

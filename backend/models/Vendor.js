@@ -18,6 +18,7 @@ const vendorSchema = new mongoose.Schema({
   state: String,
   city: String,
   pincode: String,
+  platformCommission: { type: Number, default: 10 },
 
   // 🔥 IMPORTANT
   status: {

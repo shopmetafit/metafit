@@ -657,6 +657,52 @@ router.get("/orders", protectVendor, vendorApproved, async (req, res) => {
   }
 });
 
+// Get single vendor order detail
+router.get("/orders/:id", protectVendor, vendorApproved, async (req, res) => {
+  try {
+    const Order = require("../models/Order");
+    const ReferralPurchase = require("../models/ReferralPurchase");
+    const { id } = req.params;
+
+    const [order, referralPurchase] = await Promise.all([
+      Order.findById(id)
+        .populate("user", "name email phone")
+        .populate("orderItems.productId", "name sku price discountPrice images vendorId platformCommission")
+        .lean(),
+      ReferralPurchase.findOne({ $or: [{ orderId: id }, { orderObjectId: id }] })
+        .populate("productId", "name sku price discountPrice images vendorId platformCommission")
+        .lean()
+    ]);
+
+    if (!order && !referralPurchase) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    const loggedVendorId = String(req.user.vendorId || req.user._id || "");
+    const isReferrer = Boolean(
+      (order?.referral?.vendorId && String(order.referral.vendorId) === loggedVendorId) ||
+      (referralPurchase?.vendorId && String(referralPurchase.vendorId) === loggedVendorId)
+    );
+
+    const safeOrder = order ? { ...order } : null;
+    if (safeOrder && !isReferrer) {
+      delete safeOrder.referral;
+    }
+
+    res.json({
+      success: true,
+      order: safeOrder || (isReferrer ? referralPurchase : null),
+      referralPurchase: isReferrer ? referralPurchase : null
+    });
+  } catch (error) {
+    console.error("Error fetching vendor order detail:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching order detail"
+    });
+  }
+});
+
 // Update vendor product (for vendor dashboard)
 router.put("/products/:id", protectVendor, vendorApproved, async (req, res) => {
   try {

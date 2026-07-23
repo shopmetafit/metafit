@@ -95,6 +95,52 @@ router.get("/vendor/shared-products", protectVendor, vendorApproved, async (req,
       .populate("productId", "name sku discountPrice price")
       .sort({ createdAt: -1 });
 
+    const globalAssignments = await ReferralAssignment.find({
+      $or: [{ isAssignedToAll: true }, { isAssignToAll: true }],
+      isActive: true,
+    }).lean();
+
+    const existingProductIds = new Set(assignments.map(a => String(a.productId?._id || a.productId)));
+
+    for (const globalAssign of globalAssignments) {
+      const pIdStr = String(globalAssign.productId);
+      if (pIdStr && !existingProductIds.has(pIdStr)) {
+        const vendorIdSuffix = vendorIdStr.slice(-6).toUpperCase();
+        const prodIdSuffix = pIdStr.slice(-6).toUpperCase();
+        const newAssignedProductId = `VP-${vendorIdSuffix}-${prodIdSuffix}`;
+        const newShareCode = `REF-${vendorIdSuffix}-${prodIdSuffix}`;
+
+        try {
+          const created = await ReferralAssignment.findOneAndUpdate(
+            {
+              productId: globalAssign.productId,
+              ...(isMongoId ? { vendorId: new mongoose.Types.ObjectId(vendorIdStr) } : { externalVendorId: vendorIdStr }),
+            },
+            {
+              $set: {
+                assignedProductId: newAssignedProductId,
+                shareCode: newShareCode,
+                commissionType: globalAssign.commissionType || "percentage",
+                commissionValue: globalAssign.commissionValue || 10,
+                isActive: true,
+                isAssignedToAll: true,
+                isAssignToAll: true,
+                assignmentStatus: "assigned",
+              }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          ).populate("productId", "name sku discountPrice price");
+
+          if (created && created.productId) {
+            assignments.push(created);
+            existingProductIds.add(pIdStr);
+          }
+        } catch (e) {
+          // Ignore duplicate key race conditions
+        }
+      }
+    }
+
     res.json({ success: true, assignments });
   } catch (error) {
     console.error("Error fetching shared products", error);

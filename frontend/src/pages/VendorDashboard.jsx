@@ -99,6 +99,10 @@ const VendorDashboard = () => {
                 <p className="text-sm text-gray-600">Email</p>
                 <p className="font-medium text-gray-900">{vendorInfo.email}</p>
               </div>
+              <div>
+                <p className="text-sm text-gray-600">Platform Charge</p>
+                <p className="font-medium text-gray-900">{vendorInfo.platformCommission ?? 10}%</p>
+              </div>
             </div>
           </div>
 
@@ -260,7 +264,7 @@ const VendorDashboard = () => {
                 <p className="text-2xl font-bold text-green-600">₹{Number(referralData.summary.totalSales || 0).toFixed(2)}</p>
               </div>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-600">Commission</h4>
+                <h4 className="text-sm font-medium text-gray-600">Referral Earnings</h4>
                 <p className="text-2xl font-bold text-blue-600">₹{Number(referralData.summary.totalCommission || 0).toFixed(2)}</p>
               </div>
             </div>
@@ -277,7 +281,7 @@ const VendorDashboard = () => {
                       <p className="text-sm text-gray-500">{sale.customerName || sale.customerEmail || sale.orderId}</p>
                     </div>
                     <div className="text-sm text-gray-700">
-                      Sale ₹{Number(sale.orderAmount || 0).toFixed(2)} | Commission ₹{Number(sale.commissionAmount || 0).toFixed(2)}
+                      Sale ₹{Number(sale.orderAmount || 0).toFixed(2)} | Referral Earnings ₹{Number(sale.commissionAmount || 0).toFixed(2)}
                     </div>
                   </div>
                 ))}
