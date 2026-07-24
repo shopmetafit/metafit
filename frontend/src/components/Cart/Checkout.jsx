@@ -240,7 +240,23 @@ const CheckOut = () => {
     try {
       const option = {
         courseId: checkoutId,
-        amount: price, //
+        checkoutId: checkoutId,
+        amount: price,
+        email: user ? user.email : email,
+        phone: shippingAddress.phone,
+        firstName: shippingAddress.firstName,
+        lastName: shippingAddress.lastName,
+        shippingAddress,
+        products: cart?.products?.map((product) => ({
+          productId: product.productId || product._id || product.id,
+          name: product.name,
+          image: product.image,
+          price: product.price,
+          quantity: product.quantity,
+          size: product.size,
+          color: product.color,
+          createdBy: product.createdBy || "ADMIN",
+        })) || [],
       };
       const res = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/createOrder`,

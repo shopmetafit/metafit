@@ -1,5 +1,5 @@
-const mongoose=require("mongoose");
-const connectDB=async()=>{
+const mongoose = require("mongoose");
+const connectDB = async () => {
     try {
         const mongoUri =
             process.env.METAFIT_WELLNESS_MONGO_URI ||
