@@ -127,7 +127,7 @@ const generateSellerEmail = (firstName, lastName, email, phone, productList, tot
 
               <!-- CTA -->
               <div style="text-align:center; margin-top:35px;">
-                <a href="${process.env.VENDOR_DASHBOARD_URL || 'https://mwellnessbazaar-vendor-frontend.vercel.app/'}" style="display:inline-block; background:#10b981; color:#ffffff; font-weight:600; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px;">Go to Vendor Dashboard</a>
+                <a href="${process.env.VENDOR_DASHBOARD_URL || 'https://partner.mwellnessbazaar.com/vendor-login'}" style="display:inline-block; background:#10b981; color:#ffffff; font-weight:600; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px;">Go to Vendor Dashboard</a>
               </div>
             </td>
           </tr>
@@ -357,7 +357,7 @@ const generateAdminOrderEmail = (buyerName, buyerEmail, buyerPhone, sellerName, 
 
               <!-- CTA -->
               <div style="text-align:center; margin-top:35px;">
-                <a href="${process.env.ADMIN_DASHBOARD_URL || 'https://mwellnessbazaar-admin-frontend.vercel.app/'}" style="display:inline-block; background:#2563eb; color:#ffffff; font-weight:600; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px;">View in Dashboard</a>
+                <a href="${process.env.ADMIN_DASHBOARD_URL || 'https://partner.mwellnessbazaar.com/'}" style="display:inline-block; background:#2563eb; color:#ffffff; font-weight:600; text-decoration:none; padding:14px 32px; border-radius:8px; font-size:16px;">View in Dashboard</a>
               </div>
             </td>
           </tr>
