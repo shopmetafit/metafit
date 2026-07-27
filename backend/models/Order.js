@@ -125,8 +125,30 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
+      enum: [
+        "Processing",
+        "Will be Out for Delivery in 1–2 Days",
+        "Will be Out for Delivery in 1-2 Days",
+        "Out for Delivery",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+      ],
       default: "Processing",
+    },
+    statusHistory: [
+      {
+        status: { type: String, required: true },
+        timestamp: { type: Date, default: Date.now },
+        updatedBy: { type: String, default: "Vendor" },
+        note: { type: String, default: "" },
+      },
+    ],
+    willBeOutForDeliveryAt: {
+      type: Date,
+    },
+    outForDeliveryAt: {
+      type: Date,
     },
     // Blue Dart Shipping
     courier: {

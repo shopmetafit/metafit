@@ -253,6 +253,30 @@ router.post("/referral-assignments", protect, admin, async (req, res) => {
 
     const vendorFields = resolveAssignmentVendorFields(req.body);
 
+    const Product = require("../models/Product");
+    const targetProduct = await Product.findById(productId).lean();
+    if (targetProduct) {
+      const prodVendorId = String(targetProduct.vendorId?._id || targetProduct.vendorId || "").trim();
+      const prodVendorUserId = String(targetProduct.vendorUserId?._id || targetProduct.vendorUserId || "").trim();
+      const prodMentorId = String(targetProduct.mentorId || "").trim();
+
+      const targetVendorIds = [
+        String(vendorFields.vendorId || "").trim(),
+        String(vendorFields.externalVendorId || "").trim(),
+        String(vendorId || "").trim(),
+      ].filter(Boolean);
+
+      if (
+        targetVendorIds.some(
+          (vId) => vId === prodVendorId || vId === prodVendorUserId || vId === prodMentorId
+        )
+      ) {
+        return res.status(400).json({
+          message: "Vendor cannot be assigned a product referral for their own product",
+        });
+      }
+    }
+
     const normalizedAssignmentStatus =
       typeof assignmentStatus === "string" &&
         assignmentStatus.trim()
@@ -376,7 +400,33 @@ router.post("/referral-assignments/bulk", protect, admin, async (req, res) => {
       });
     }
 
-    const bulkOps = vendors.map((vendor) => {
+    const Product = require("../models/Product");
+    const targetProduct = await Product.findById(productId).lean();
+    const prodVendorId = String(targetProduct?.vendorId?._id || targetProduct?.vendorId || "").trim();
+    const prodVendorUserId = String(targetProduct?.vendorUserId?._id || targetProduct?.vendorUserId || "").trim();
+    const prodMentorId = String(targetProduct?.mentorId || "").trim();
+
+    const eligibleVendors = vendors.filter((vendor) => {
+      const vendorRef = String(
+        vendor.vendorId ||
+        vendor.mentorId ||
+        vendor._id ||
+        vendor.id ||
+        ""
+      ).trim();
+      if (prodVendorId && vendorRef === prodVendorId) return false;
+      if (prodVendorUserId && vendorRef === prodVendorUserId) return false;
+      if (prodMentorId && vendorRef === prodMentorId) return false;
+      return true;
+    });
+
+    if (!eligibleVendors.length) {
+      return res.status(404).json({
+        message: "No eligible vendors found for bulk assignment",
+      });
+    }
+
+    const bulkOps = eligibleVendors.map((vendor) => {
       const vendorRef = String(
         vendor.vendorId ||
         vendor.mentorId ||

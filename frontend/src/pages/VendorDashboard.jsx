@@ -130,6 +130,27 @@ const VendorDashboard = () => {
               </div>
             </div>
 
+            {/* Order Management */}
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xl">🚚</span>
+                </div>
+                <span className="text-emerald-600 text-sm font-semibold">ORDERS</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Order Management</h3>
+              <p className="text-gray-600 mb-4">Update order status (Processing, Out for Delivery, Delivered) and view timestamps</p>
+              <div className="space-y-2">
+                <button 
+                  onClick={() => navigate('/vendor/orders')}
+                  disabled={vendorInfo.status !== 'approved'}
+                  className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
+                >
+                  Manage Orders & Status
+                </button>
+              </div>
+            </div>
+
             {/* Manage Products */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between mb-4">

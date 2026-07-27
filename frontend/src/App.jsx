@@ -1,6 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import UserLayout from "./components/Layout/UserLayout";
-import Home from "./pages/Home";
+
 import { Toaster } from "sonner";
 import Login from "./pages/Login";
 import PrivacyPolicy from "./pages/privacyPolicy";
@@ -40,6 +40,7 @@ import VendorLogin from "./pages/VendorLogin";
 import VendorRegister from "./pages/VendorRegister";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorManageProducts from "./pages/VendorManageProducts";
+import VendorOrdersPage from "./pages/VendorOrdersPage";
 import VendorApprovals from "./components/Admin/VendorApprovals";
 import ProductRequestForm from "./components/Vendor/ProductRequestForm";
 import ProductRequestsList from "./components/Vendor/ProductRequestsList";
@@ -55,12 +56,13 @@ const App = () => {
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<UserLayout />}>
-             <Route index element={<Collection />} />
+            <Route index element={<Collection />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="vendor-login" element={<VendorLogin />} />
             <Route path="vendor-register" element={<VendorRegister />} />
             <Route path="vendor-dashboard" element={<VendorDashboard />} />
+            <Route path="vendor/orders" element={<VendorOrdersPage />} />
             <Route path="vendor/manage-products" element={<VendorManageProducts />} />
             <Route path="vendor/product-request/new" element={<ProductRequestForm />} />
             <Route path="vendor/product-request/:requestId" element={<ProductRequestForm />} />
@@ -70,12 +72,12 @@ const App = () => {
             <Route path="product/:id" element={<ProductDetails />} />
             <Route path="checkout" element={<Checkout />} />
             <Route path="contactUs" element={<ContactUs />} />
-            <Route path="aboutUs" element={< AboutUs/>} />
-            <Route path="privacyPolicy" element={< PrivacyPolicy/>} />
-            <Route path="refundPolicy" element={< RefundPolicy/>} />
-            <Route path="shippingPolicy" element={< ShippingPolicy/>} />
-            <Route path="termsConditions" element={< TermsConditions/>} />
-            <Route path="pricingPolicy" element={< PricingPolicy/>} />
+            <Route path="aboutUs" element={< AboutUs />} />
+            <Route path="privacyPolicy" element={< PrivacyPolicy />} />
+            <Route path="refundPolicy" element={< RefundPolicy />} />
+            <Route path="shippingPolicy" element={< ShippingPolicy />} />
+            <Route path="termsConditions" element={< TermsConditions />} />
+            <Route path="pricingPolicy" element={< PricingPolicy />} />
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}
@@ -84,35 +86,35 @@ const App = () => {
             <Route path="my-orders" element={<MyOrdersPage />} />
 
             <Route path="blog" element={<BlogList />} />
-             <Route path="blog/:slug" element={<BlogDetail />} />
-            
-            </Route>
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoutes role="admin">
-                  <AdminLayout />
-                </ProtectedRoutes>
-              }
-            >
-              <Route index element={<AdminHomePage />} />
-              <Route path="users" element={<UserManagement />} />
+            <Route path="blog/:slug" element={<BlogDetail />} />
 
-              <Route path="products" element={<ProductManagement />} />
-              <Route path="products/new" element={<NewProductPage />} />
-              <Route path="products/:id/edit" element={<EditProductPage />} />
-              <Route path="vendor-approvals" element={<VendorApprovals />} />
-              <Route path="product-requests" element={<ProductRequestsAdmin />} />
-              <Route path="referrals" element={<ReferralAssignments />} />
-              <Route path="orders" element={<OrderManagement />} />
-              <Route path="blogs" element={<BlogDashboard />} />
-              <Route path="blogs/create" element={<BlogEditor />} />
-              <Route path="blogs/:id" element={<BlogEditor />} />
-          
-            </Route>
+          </Route>
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoutes role="admin">
+                <AdminLayout />
+              </ProtectedRoutes>
+            }
+          >
+            <Route index element={<AdminHomePage />} />
+            <Route path="users" element={<UserManagement />} />
+
+            <Route path="products" element={<ProductManagement />} />
+            <Route path="products/new" element={<NewProductPage />} />
+            <Route path="products/:id/edit" element={<EditProductPage />} />
+            <Route path="vendor-approvals" element={<VendorApprovals />} />
+            <Route path="product-requests" element={<ProductRequestsAdmin />} />
+            <Route path="referrals" element={<ReferralAssignments />} />
+            <Route path="orders" element={<OrderManagement />} />
+            <Route path="blogs" element={<BlogDashboard />} />
+            <Route path="blogs/create" element={<BlogEditor />} />
+            <Route path="blogs/:id" element={<BlogEditor />} />
+
+          </Route>
 
 
-          </Routes>
+        </Routes>
       </BrowserRouter>
     </Provider>
   );

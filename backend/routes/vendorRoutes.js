@@ -508,6 +508,26 @@ router.get("/assigned-products", async (req, res) => {
         const missingGlobalProducts = globalProducts.filter(p => !existingProductIds.has(String(p._id)));
 
         if (missingGlobalProducts.length > 0) {
+          // Exclude products owned by the vendor from auto-assignment
+          const isVendorProduct = (product, targetVendorId) => {
+            if (!product || !targetVendorId) return false;
+            const target = String(targetVendorId).trim();
+            const prodVendorId = String(product.vendorId?._id || product.vendorId || "").trim();
+            const prodVendorUserId = String(product.vendorUserId?._id || product.vendorUserId || "").trim();
+            const prodMentorId = String(product.mentorId || "").trim();
+            return (
+              (prodVendorId && prodVendorId === target) ||
+              (prodVendorUserId && prodVendorUserId === target) ||
+              (prodMentorId && prodMentorId === target)
+            );
+          };
+
+          const eligibleGlobalProducts = missingGlobalProducts.filter(p => {
+            if (isVendorProduct(p, requestedVendorId)) return false;
+            if (assignmentVendorId && isVendorProduct(p, assignmentVendorId)) return false;
+            return true;
+          });
+
           // Resolve vendor information to build snapshot
           let vendorInfo = null;
           if (mongoose.Types.ObjectId.isValid(requestedVendorId)) {
@@ -527,7 +547,7 @@ router.get("/assigned-products", async (req, res) => {
           };
 
           // Find existing assignments for these products to use as a template for commission details
-          const productIds = missingGlobalProducts.map((p) => String(p._id));
+          const productIds = eligibleGlobalProducts.map((p) => String(p._id));
           const existingAssignments = await ReferralAssignment.find({
             productId: { $in: productIds },
             assignmentStatus: "assigned",
@@ -545,7 +565,7 @@ router.get("/assigned-products", async (req, res) => {
             }
           }
 
-          const newAssignments = missingGlobalProducts.map((product) => {
+          const newAssignments = eligibleGlobalProducts.map((product) => {
             const prodId = String(product._id);
             const template = assignmentTemplateMap.get(prodId) || {
               commissionType: "percentage",
@@ -580,7 +600,9 @@ router.get("/assigned-products", async (req, res) => {
             }
           }));
 
-          await ReferralAssignment.bulkWrite(bulkOps);
+          if (bulkOps.length > 0) {
+            await ReferralAssignment.bulkWrite(bulkOps);
+          }
 
           // Re-fetch assignments after generating missing ones
           assignments = await ReferralAssignment.find(assignmentQuery).sort({ createdAt: -1 });
@@ -592,33 +614,55 @@ router.get("/assigned-products", async (req, res) => {
 
     const productMap = await fetchProductsByIds(assignments.map((assignment) => assignment.productId));
 
-    const assignedProducts = assignments.map((assignment) => {
-      const effectiveVendorId =
-        assignment.externalVendorId ||
-        assignment.vendorSnapshot?.mentorId ||
-        String(assignment.vendorId || "");
+    const isVendorProduct = (product, targetVendorId) => {
+      if (!product || !targetVendorId) return false;
+      const target = String(targetVendorId).trim();
+      const prodVendorId = String(product.vendorId?._id || product.vendorId || "").trim();
+      const prodVendorUserId = String(product.vendorUserId?._id || product.vendorUserId || "").trim();
+      const prodMentorId = String(product.mentorId || "").trim();
+      return (
+        (prodVendorId && prodVendorId === target) ||
+        (prodVendorUserId && prodVendorUserId === target) ||
+        (prodMentorId && prodMentorId === target)
+      );
+    };
 
-      return {
-        _id: assignment._id,
-        product: productMap.get(String(assignment.productId)) || assignment.productId,
-        vendorId: effectiveVendorId,
-        commission: {
-          type: assignment.commissionType,
-          value: assignment.commissionValue,
-        },
-        shareCode: assignment.shareCode,
-        refCode: assignment.refCode || "",
-        assignedProductId: assignment.assignedProductId,
-        isActive: assignment.isActive,
-        isAssignedToAll: assignment.isAssignedToAll,
-        shareUrl: buildShareUrl(
-          assignment.productId,
-          effectiveVendorId,
-          assignment.assignedProductId,
-          assignment.shareCode
-        ),
-      };
-    });
+    const assignedProducts = assignments
+      .map((assignment) => {
+        const effectiveVendorId =
+          assignment.externalVendorId ||
+          assignment.vendorSnapshot?.mentorId ||
+          String(assignment.vendorId || "");
+
+        const product = productMap.get(String(assignment.productId)) || assignment.productId;
+
+        return {
+          _id: assignment._id,
+          product,
+          vendorId: effectiveVendorId,
+          commission: {
+            type: assignment.commissionType,
+            value: assignment.commissionValue,
+          },
+          shareCode: assignment.shareCode,
+          refCode: assignment.refCode || "",
+          assignedProductId: assignment.assignedProductId,
+          isActive: assignment.isActive,
+          isAssignedToAll: assignment.isAssignedToAll,
+          shareUrl: buildShareUrl(
+            assignment.productId,
+            effectiveVendorId,
+            assignment.assignedProductId,
+            assignment.shareCode
+          ),
+        };
+      })
+      .filter((ap) => {
+        if (!ap.product) return false;
+        if (isVendorProduct(ap.product, requestedVendorId)) return false;
+        if (assignmentVendorId && isVendorProduct(ap.product, assignmentVendorId)) return false;
+        return true;
+      });
 
     res.json({
       success: true,
@@ -765,37 +809,121 @@ router.delete("/products/:id", protectVendor, vendorApproved, async (req, res) =
   }
 });
 
-// Update order status (for vendor dashboard)
+// Update order status (for vendor dashboard with unidirectional flow and timestamp history)
 router.put("/orders/:id/status", protectVendor, vendorApproved, async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    let { status, note } = req.body;
     const Order = require("../models/Order");
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: "Status is required",
+      });
+    }
+
+    // Normalize hyphen/en-dash variants for "Will be Out for Delivery in 1-2 Days"
+    if (status.replace(/–/g, "-") === "Will be Out for Delivery in 1-2 Days") {
+      status = "Will be Out for Delivery in 1–2 Days";
+    }
+
+    const VENDOR_STATUS_SEQUENCE = [
+      "Processing",
+      "Will be Out for Delivery in 1–2 Days",
+      "Out for Delivery",
+      "Delivered",
+    ];
+
+    const getStatusIndex = (s) => {
+      if (!s) return -1;
+      const normalized = String(s).trim().replace(/–/g, "-");
+      if (normalized === "Processing") return 0;
+      if (normalized === "Will be Out for Delivery in 1-2 Days") return 1;
+      if (normalized === "Out for Delivery" || normalized === "Shipped") return 2;
+      if (normalized === "Delivered") return 3;
+      return -1;
+    };
+
+    const newIndex = getStatusIndex(status);
+    if (newIndex === -1) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status option. Allowed options: ${VENDOR_STATUS_SEQUENCE.join(", ")}`,
+      });
+    }
 
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "Order not found"
+        message: "Order not found",
       });
     }
 
-    order.status = status;
-    if (status === 'Delivered') {
-      order.deliveredAt = new Date();
+    const currentIndex = getStatusIndex(order.status);
+
+    // Unidirectional check: Cannot edit once delivered or revert to a previous/same stage
+    if (currentIndex === 3 || order.status === "Delivered") {
+      return res.status(400).json({
+        success: false,
+        message: "Order is already Delivered and status cannot be modified further.",
+      });
     }
+
+    if (currentIndex >= 0 && newIndex <= currentIndex) {
+      return res.status(400).json({
+        success: false,
+        message: "Order status cannot be reverted to a previous or same stage. Vendor can only edit status forward once per stage.",
+      });
+    }
+
+    // Initialize statusHistory if empty
+    if (!order.statusHistory || order.statusHistory.length === 0) {
+      order.statusHistory = [
+        {
+          status: order.status || "Processing",
+          timestamp: order.createdAt || new Date(),
+          updatedBy: "System",
+          note: "Initial order status",
+        },
+      ];
+    }
+
+    const updaterName = req.user?.vendorName || req.user?.businessName || req.user?.name || "Vendor";
+
+    // Record timestamp entry in statusHistory
+    order.statusHistory.push({
+      status,
+      timestamp: new Date(),
+      updatedBy: updaterName,
+      note: note || `Status updated to ${status}`,
+    });
+
+    order.status = status;
+
+    if (status === "Will be Out for Delivery in 1–2 Days") {
+      order.willBeOutForDeliveryAt = new Date();
+    } else if (status === "Out for Delivery") {
+      order.outForDeliveryAt = new Date();
+    } else if (status === "Delivered") {
+      order.deliveredAt = new Date();
+      order.isDelivered = true;
+    }
+
     await order.save();
 
     res.json({
       success: true,
       message: "Order status updated successfully",
-      order
+      order,
     });
   } catch (error) {
     console.error("Error updating order status:", error);
     res.status(500).json({
       success: false,
-      message: "Error updating order status"
+      message: "Error updating order status",
+      error: error.message,
     });
   }
 });

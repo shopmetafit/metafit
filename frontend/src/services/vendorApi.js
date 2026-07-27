@@ -278,6 +278,36 @@ export const vendorApiService = {
     }
   },
 
+  // Get vendor orders
+  getVendorOrders: async () => {
+    try {
+      const response = await vendorApi.get('/api/vendor/orders');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching vendor orders' };
+    }
+  },
+
+  // Get vendor order detail
+  getVendorOrderById: async (orderId) => {
+    try {
+      const response = await vendorApi.get(`/api/vendor/orders/${orderId}`);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching order detail' };
+    }
+  },
+
+  // Update order status (unidirectional progression with timestamp tracking)
+  updateVendorOrderStatus: async (orderId, status, note = '') => {
+    try {
+      const response = await vendorApi.put(`/api/vendor/orders/${orderId}/status`, { status, note });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating order status' };
+    }
+  },
+
   getVendorReferralDashboard: async () => {
     try {
       const response = await vendorApi.get('/api/referrals/vendor/dashboard');
