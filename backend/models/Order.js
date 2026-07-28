@@ -150,10 +150,10 @@ const orderSchema = new mongoose.Schema(
     outForDeliveryAt: {
       type: Date,
     },
-    // Blue Dart Shipping
+    // Standard Shipping
     courier: {
       type: String,
-      default: "bluedart",
+      default: "standard",
     },
     awbNo: {
       type: String,

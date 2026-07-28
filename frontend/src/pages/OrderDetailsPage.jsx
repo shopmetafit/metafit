@@ -48,10 +48,10 @@ const OrderDetailsPage = () => {
 
   // Determine order status based on current state
   const getOrderStatus = () => {
-    if (
-      orderDetails.status === "Cancelled" ||
-      orderDetails.status === "cancelled"
-    ) {
+    const rawStatus = String(orderDetails.status || "").trim();
+    const statusLower = rawStatus.toLowerCase().replace(/–/g, "-");
+
+    if (statusLower === "cancelled") {
       return {
         stage: "Cancelled",
         color: "red",
@@ -60,36 +60,43 @@ const OrderDetailsPage = () => {
       };
     }
 
-    if (orderDetails.isDelivered) {
+    if (orderDetails.isDelivered || statusLower === "delivered") {
       return {
         stage: "Delivered",
         color: "green",
         icon: "check",
-        message: "Your order has been delivered",
+        message: "Your order has been delivered successfully!",
       };
     }
 
-    if (
-      orderDetails.status === "Shipped" ||
-      orderDetails.status === "shipped"
-    ) {
+    if (statusLower === "out for delivery") {
       return {
-        stage: "Shipped",
+        stage: "Out for Delivery",
         color: "blue",
         icon: "truck",
-        message: "Your order is on the way",
+        message: "Your product is out for delivery and will arrive today!",
       };
     }
 
     if (
-      orderDetails.status === "Processing" ||
-      orderDetails.status === "processing"
+      statusLower === "will be out for delivery in 1-2 days" ||
+      statusLower === "will be out for delivery in 2-3 days" ||
+      statusLower.includes("out for delivery in")
     ) {
+      return {
+        stage: "Out in 1–2 Days",
+        color: "yellow",
+        icon: "truck",
+        message: "Your order will be out for delivery in 1–2 days.",
+      };
+    }
+
+    if (statusLower === "processing") {
       return {
         stage: "Processing",
         color: "yellow",
         icon: "clock",
-        message: "We are preparing your order",
+        message: "Vendor is preparing your order for shipment",
       };
     }
 
@@ -106,11 +113,38 @@ const OrderDetailsPage = () => {
       stage: "Pending",
       color: "gray",
       icon: "clock",
-      message: "Order received and awaiting processing",
+      message: "Order received and awaiting vendor processing",
     };
   };
 
   const currentStatus = getOrderStatus();
+
+  const rawStatus = String(orderDetails.status || "").trim();
+  const normStatus = rawStatus.toLowerCase().replace(/–/g, "-");
+
+  const isProcessingPassed =
+    normStatus === "processing" ||
+    normStatus.includes("out for delivery in") ||
+    normStatus === "out for delivery" ||
+    normStatus === "shipped" ||
+    normStatus === "delivered" ||
+    Boolean(orderDetails.isDelivered);
+
+  const isWillBeOutPassed =
+    normStatus.includes("out for delivery in") ||
+    normStatus === "out for delivery" ||
+    normStatus === "shipped" ||
+    normStatus === "delivered" ||
+    Boolean(orderDetails.isDelivered);
+
+  const isOutForDeliveryPassed =
+    normStatus === "out for delivery" ||
+    normStatus === "shipped" ||
+    normStatus === "delivered" ||
+    Boolean(orderDetails.isDelivered);
+
+  const isDeliveredPassed =
+    normStatus === "delivered" || Boolean(orderDetails.isDelivered);
 
   // Define order timeline stages
   const timelineStages = [
@@ -122,17 +156,22 @@ const OrderDetailsPage = () => {
     {
       name: "Processing",
       icon: "clock",
-      completed: orderDetails.status === "Processing" || orderDetails.isDelivered,
+      completed: isProcessingPassed,
     },
     {
-      name: "Shipped",
+      name: "Out in 1–2 Days",
       icon: "truck",
-      completed: orderDetails.status === "Shipped" || orderDetails.isDelivered,
+      completed: isWillBeOutPassed,
+    },
+    {
+      name: "Out for Delivery",
+      icon: "truck",
+      completed: isOutForDeliveryPassed,
     },
     {
       name: "Delivered",
       icon: "check",
-      completed: orderDetails.isDelivered,
+      completed: isDeliveredPassed,
     },
   ];
 
@@ -333,12 +372,22 @@ const OrderDetailsPage = () => {
               <p className="text-gray-600 text-sm">Delivery Status</p>
               <span
                 className={`inline-block mt-1 px-3 py-1 rounded-full text-sm font-medium ${
-                  orderDetails.isDelivered
+                  isDeliveredPassed
                     ? "bg-green-100 text-green-800"
+                    : isOutForDeliveryPassed
+                    ? "bg-blue-100 text-blue-800"
+                    : isWillBeOutPassed
+                    ? "bg-amber-100 text-amber-800"
                     : "bg-yellow-100 text-yellow-800"
                 }`}
               >
-                {orderDetails.isDelivered ? "✓ Delivered" : "⏱ In Transit"}
+                {isDeliveredPassed
+                  ? "✓ Delivered"
+                  : isOutForDeliveryPassed
+                  ? "🚚 Out for Delivery"
+                  : isWillBeOutPassed
+                  ? "🚚 Out in 1–2 Days"
+                  : "⏱ Processing"}
               </span>
             </div>
           </div>

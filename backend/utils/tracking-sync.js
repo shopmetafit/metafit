@@ -6,7 +6,6 @@
 
 const Order = require("../models/Order");
 const TrackingHistory = require("../models/TrackingHistory");
-const bluedartService = require("./bluedart.service");
 
 class TrackingSync {
   constructor() {

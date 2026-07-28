@@ -91,7 +91,7 @@ const MyOrdersPage = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0 justify-between sm:justify-end">
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0 justify-between sm:justify-end">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide inline-flex items-center gap-1 ${
                         order.isPaid
@@ -100,6 +100,25 @@ const MyOrdersPage = () => {
                       }`}
                     >
                       {order.isPaid ? "Paid" : "Pending"}
+                    </span>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide inline-flex items-center gap-1 ${
+                        order.isDelivered || String(order.status).toLowerCase() === "delivered"
+                          ? "bg-green-100 text-green-800"
+                          : String(order.status).toLowerCase() === "out for delivery"
+                          ? "bg-blue-100 text-blue-800"
+                          : String(order.status).toLowerCase().includes("out for delivery in")
+                          ? "bg-purple-100 text-purple-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {order.isDelivered || String(order.status).toLowerCase() === "delivered"
+                        ? "✓ Delivered"
+                        : String(order.status).toLowerCase() === "out for delivery"
+                        ? "🚚 Out for Delivery"
+                        : String(order.status).toLowerCase().includes("out for delivery in")
+                        ? "🚚 Out in 1–2 Days"
+                        : order.status || "Processing"}
                     </span>
                     <button className="text-emerald-600 sm:hidden flex items-center text-sm font-semibold">
                       View <ChevronRight className="h-4 w-4" />
