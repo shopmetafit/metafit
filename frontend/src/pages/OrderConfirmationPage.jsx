@@ -63,6 +63,7 @@ const OrderConfirmationPage = () => {
 
   const itemsList = checkout.orderItems || checkout.checkoutItems || [];
   const subtotal = itemsList.reduce((acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || item.qty || 1)), 0);
+  const serviceFee = Math.round(checkout.serviceFee ?? (subtotal * 0.03));
   const deliveryCharge = checkout.deliveryCharge || 0;
   const discount = checkout.couponDiscount || 0;
 
@@ -152,6 +153,10 @@ const OrderConfirmationPage = () => {
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
                     <span className="font-medium text-gray-900">₹{subtotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Handling Fee (3%)</span>
+                    <span className="font-medium text-gray-900">₹{serviceFee.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   FaLeaf,
@@ -30,6 +30,7 @@ const FilterSidebar = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const dispatch = useDispatch();
   const { allProducts } = useSelector((state) => state.products);
+  const sidebarRef = useRef(null);
 
   // Frontend workaround for known category typos.
   // Ideally, this should be corrected at the data source (backend/database).
@@ -61,9 +62,6 @@ const FilterSidebar = () => {
       // Apply typo correction
       if (typoCorrectionMap[normalizedCategory]) {
         normalizedCategory = typoCorrectionMap[normalizedCategory];
-        // If the original category was a typo, try to find a correct displayName
-        // This is a simple approach; a more robust solution might store preferred display names
-        // alongside normalized names in the typoCorrectionMap.
         if (category.toLowerCase() in typoCorrectionMap) {
           category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, s => s.toUpperCase()); // Capitalize corrected name for display
         }
@@ -100,6 +98,13 @@ const FilterSidebar = () => {
   const [categoriesData, setCategoriesData] = useState([]);
   const [activeCategoryMenu, setActiveCategoryMenu] = useState(null);
 
+  // Auto scroll sidebar back to top when switching category panels
+  useEffect(() => {
+    if (sidebarRef.current) {
+      sidebarRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [activeCategoryMenu]);
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -122,8 +127,13 @@ const FilterSidebar = () => {
     setSelectedSubCategory(searchParams.get("subCategory")?.toLowerCase() || "");
   }, [searchParams]);
 
-  const handleCategoryChange = (normalizedCategory) => {
-    const newCategory = selectedCategory === normalizedCategory ? "" : normalizedCategory;
+  const handleCategoryChange = (normalizedCategory, forceSelect = false) => {
+    let newCategory;
+    if (forceSelect) {
+      newCategory = normalizedCategory;
+    } else {
+      newCategory = selectedCategory === normalizedCategory ? "" : normalizedCategory;
+    }
     setSelectedCategory(newCategory);
     setSelectedSubCategory(""); // clear subcategory when category changes
 
@@ -173,49 +183,45 @@ const FilterSidebar = () => {
   };
 
   const handleBrandChange = (normalizedBrand) => {
-    const newSelectedBrands = selectedBrands.includes(normalizedBrand)
+    const isSelected = selectedBrands.includes(normalizedBrand);
+    const newBrands = isSelected
       ? selectedBrands.filter((b) => b !== normalizedBrand)
-      : [normalizedBrand]; // Only one brand can be selected
-    setSelectedBrands(newSelectedBrands);
+      : [...selectedBrands, normalizedBrand];
 
-    // Apply filters directly
+    setSelectedBrands(newBrands);
+
     const params = new URLSearchParams(searchParams);
     params.delete("search");
+
+    if (newBrands.length > 0) {
+      params.set("brand", newBrands.join(","));
+    } else {
+      params.delete("brand");
+    }
 
     if (selectedCategory) {
       params.set("category", selectedCategory);
     } else {
       params.delete("category");
     }
-    
+
     if (selectedSubCategory) {
       params.set("subCategory", selectedSubCategory);
     } else {
       params.delete("subCategory");
     }
 
-    if (newSelectedBrands.length > 0) {
-      params.set("brand", newSelectedBrands.join(","));
-    } else {
-      params.delete("brand");
-    }
-
     setSearchParams(params);
   };
 
   const resetFilters = () => {
-    const params = new URLSearchParams();
-    // Keep search if it exists, clear only filters
-    const searchTerm = searchParams.get("search");
-    if (searchTerm) {
-      params.set("search", searchTerm);
-    }
-    setMinPriceInput("");
-    setMaxPriceInput("");
     setSelectedCategory("");
     setSelectedSubCategory("");
+    setMinPriceInput("");
+    setMaxPriceInput("");
+    setSelectedBrands([]);
+    setSearchParams(new URLSearchParams());
     setActiveCategoryMenu(null);
-    setSearchParams(params);
   };
 
   const toggleSection = (section) => {
@@ -238,17 +244,56 @@ const FilterSidebar = () => {
       params.delete("maxPrice");
     }
 
+    if (selectedCategory) {
+      params.set("category", selectedCategory);
+    } else {
+      params.delete("category");
+    }
+
+    if (selectedSubCategory) {
+      params.set("subCategory", selectedSubCategory);
+    } else {
+      params.delete("subCategory");
+    }
+
+    if (selectedBrands.length > 0) {
+      params.set("brand", selectedBrands.join(","));
+    } else {
+      params.delete("brand");
+    }
+
     setSearchParams(params);
   };
 
+  const fallbackCategories = (allProducts || [])
+    .filter((product) => product.isPublished !== false)
+    .reduce((acc, product) => {
+      let category = product.category?.trim();
+      if (category) {
+        let normalizedCategory = category.toLowerCase();
+        if (typoCorrectionMap[normalizedCategory]) {
+          normalizedCategory = typoCorrectionMap[normalizedCategory];
+          if (category.toLowerCase() in typoCorrectionMap) {
+            category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, s => s.toUpperCase());
+          }
+        }
+        if (!acc.find(c => c.name.toLowerCase() === normalizedCategory)) {
+          acc.push({ _id: normalizedCategory, name: category, subCategories: [] });
+        }
+      }
+      return acc;
+    }, []);
+
+  const activeCategoriesList = categoriesData.length > 0 ? categoriesData : fallbackCategories;
+
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      applyPriceFilter();
+    if (e.key === 'Enter') {
+        applyPriceFilter();
     }
   };
 
   return (
-    <div className="w-full flex flex-col p-5 font-sans h-full overflow-y-auto scrollbar-custom">
+    <div ref={sidebarRef} className="w-full flex flex-col p-5 font-sans h-full overflow-y-auto scrollbar-custom">
       <div className="flex-grow pr-4 -mr-4">
 
         {/* Category Filter */}
@@ -275,10 +320,13 @@ const FilterSidebar = () => {
               {/* Main Menu Panel */}
               <div className="w-1/2 flex-shrink-0 pr-2">
                 <div className="space-y-1">
-                  {categoriesData.map((category) => (
+                  {activeCategoriesList.map((category) => (
                     <div 
                       key={category._id || category.name}
-                      onClick={() => setActiveCategoryMenu(category)}
+                      onClick={() => {
+                        setActiveCategoryMenu(category);
+                        handleCategoryChange(category.name.toLowerCase(), true);
+                      }}
                       className="flex items-center justify-between py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
                     >
                       <span className={`text-[15px] ${selectedCategory === category.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#0FA958]' : 'text-gray-800'}`}>
@@ -298,7 +346,7 @@ const FilterSidebar = () => {
                     
                     <div 
                       className="py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
-                      onClick={() => handleCategoryChange(activeCategoryMenu.name.toLowerCase())}
+                      onClick={() => handleCategoryChange(activeCategoryMenu.name.toLowerCase(), true)}
                     >
                       <span className={`text-[15px] ${selectedCategory === activeCategoryMenu.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#0FA958]' : 'text-gray-700'}`}>
                         All {activeCategoryMenu.name}

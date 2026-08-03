@@ -149,8 +149,11 @@ router.post("/", protect, async (req, res) => {
       }
     }
 
-    // Use calculated total with delivery charge (ignore frontend price)
-    const correctTotal = Math.max(itemsTotal + deliveryCharge - discountAmount, 0);
+    // 3% handling/service fee on product amount (excluding shipping)
+    const serviceFee = Math.round(itemsTotal * 0.03);
+
+    // Use calculated total with service fee and delivery charge (ignore frontend price)
+    const correctTotal = Math.round(Math.max(itemsTotal + serviceFee + deliveryCharge - discountAmount, 0));
 
     // create a new checkout session
     const newCheckout = await Checkout.create({
@@ -159,6 +162,7 @@ router.post("/", protect, async (req, res) => {
       shippingAddress,
       paymentMethod,
       totalPrice: correctTotal,
+      serviceFee,
       deliveryCharge,
       couponCode: code,
       couponDiscount: discountAmount,
@@ -232,6 +236,7 @@ router.post("/:id/finalize", protect, async (req, res) => {
         shippingAddress: checkout.shippingAddress,
         paymentMethod: checkout.paymentMethod,
         totalPrice: checkout.totalPrice,
+        serviceFee: checkout.serviceFee || 0,
         deliveryCharge: checkout.deliveryCharge,
         couponCode: checkout.couponCode || "",
         couponDiscount: checkout.couponDiscount || 0,

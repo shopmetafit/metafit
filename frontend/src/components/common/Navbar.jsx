@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ChevronRight, Phone } from "lucide-react";
+import { X, ChevronRight, Phone } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchAllProducts } from "../../redux/slices/productSlice";
 

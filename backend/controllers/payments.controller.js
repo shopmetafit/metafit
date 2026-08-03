@@ -156,7 +156,8 @@ exports.createOrder = async (req, res) => {
     }
 
     const couponDiscount = Math.max(Number(rawCouponDiscount || 0), 0);
-    const calculatedTotal = Math.max(calculatedProductsTotal + calculatedShipping - couponDiscount, 0);
+    const calculatedServiceFee = Math.round(checkoutDoc?.serviceFee ?? (calculatedProductsTotal * 0.03));
+    const calculatedTotal = Math.round(Math.max(calculatedProductsTotal + calculatedServiceFee + calculatedShipping - couponDiscount, 0));
 
     const option = {
       amount: Math.round(calculatedTotal * 100),
@@ -194,6 +195,7 @@ exports.createOrder = async (req, res) => {
       customerEmail: targetEmail || "",
       paymentMethod: "Razorpay",
       totalPrice: calculatedTotal,
+      serviceFee: calculatedServiceFee,
       deliveryCharge: calculatedShipping,
       couponCode: couponCode || "",
       couponDiscount,
@@ -215,6 +217,7 @@ exports.createOrder = async (req, res) => {
       orderId: pendingOrder._id,
       pendingOrderId: pendingOrder._id,
       calculatedTotal,
+      calculatedServiceFee,
       calculatedShipping,
     });
   } catch (error) {

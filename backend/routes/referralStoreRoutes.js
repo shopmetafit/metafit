@@ -264,12 +264,15 @@ router.post("/orders", async (req, res) => {
       discountAmount = computeCouponDiscount(coupon, itemsTotal, normalizedItems);
     }
 
+    const serviceFee = Math.round(itemsTotal * 0.03);
+
     const checkout = await Checkout.create({
       user: userId,
       checkoutItems: normalizedItems,
       shippingAddress,
       paymentMethod,
-      totalPrice: Math.max(itemsTotal + deliveryCharge - discountAmount, 0),
+      totalPrice: Math.round(Math.max(itemsTotal + serviceFee + deliveryCharge - discountAmount, 0)),
+      serviceFee,
       deliveryCharge,
       couponCode: code,
       couponDiscount: discountAmount,
@@ -338,6 +341,7 @@ router.post("/orders/:id/payment-success", async (req, res) => {
       order.referral = checkout.referral;
       order.couponCode = checkout.couponCode || "";
       order.couponDiscount = checkout.couponDiscount || 0;
+      order.serviceFee = checkout.serviceFee || 0;
       await order.save();
     } else {
       order = await Order.create({
@@ -347,6 +351,7 @@ router.post("/orders/:id/payment-success", async (req, res) => {
         shippingAddress: checkout.shippingAddress,
         paymentMethod: checkout.paymentMethod,
         totalPrice: checkout.totalPrice,
+        serviceFee: checkout.serviceFee || 0,
         deliveryCharge: checkout.deliveryCharge,
         couponCode: checkout.couponCode || "",
         couponDiscount: checkout.couponDiscount || 0,

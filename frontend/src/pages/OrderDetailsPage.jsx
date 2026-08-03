@@ -497,9 +497,19 @@ const OrderDetailsPage = () => {
                 </span>
               </div>
               <div className="flex justify-between mb-2">
+                <span className="text-gray-600">Handling Fee (3%)</span>
+                <span className="text-gray-900">
+                  ₹
+                  {Math.round(
+                    orderDetails.serviceFee ??
+                    ((orderDetails.orderItems?.reduce((sum, item) => sum + item.price * item.quantity, 0) || 0) * 0.03)
+                  ).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between mb-2">
                 <span className="text-gray-600">Shipping</span>
                 <span className={`text-gray-900 ${!orderDetails.deliveryCharge ? 'text-emerald-600' : ''}`}>
-                  {orderDetails.deliveryCharge ? `₹${orderDetails.deliveryCharge.toFixed(2)}` : "Free"}
+                  {orderDetails.deliveryCharge ? `₹${Math.round(orderDetails.deliveryCharge).toLocaleString()}` : "Free"}
                 </span>
               </div>
               {orderDetails.couponDiscount > 0 && (
@@ -508,14 +518,14 @@ const OrderDetailsPage = () => {
                     Discount {orderDetails.couponCode && `(${orderDetails.couponCode})`}
                   </span>
                   <span className="text-emerald-600">
-                    - ₹{orderDetails.couponDiscount.toFixed(2)}
+                    - ₹{Math.round(orderDetails.couponDiscount).toLocaleString()}
                   </span>
                 </div>
               )}
               <div className="border-t pt-2 flex justify-between">
                 <span className="font-semibold text-gray-900">Total</span>
                 <span className="font-bold text-lg text-gray-900">
-                  ₹{orderDetails.totalPrice?.toFixed(2) || "0.00"}
+                  ₹{Math.round(orderDetails.totalPrice || 0).toLocaleString()}
                 </span>
               </div>
             </div>

@@ -27,7 +27,10 @@ const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
+const compression = require("compression");
+
 const app = express();
+app.use(compression());
 
 const allowedOrigins = [
   "http://localhost:3000",

@@ -113,26 +113,11 @@ const CollectionPage = () => {
   return (
     <div className="min-h-screen bg-[#f0f2f2]">
 
-      {/* ── Breadcrumb ── */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center gap-1.5 text-xs text-gray-500">
-          <Link to="/" className="hover:text-[#047ca8] hover:underline">Home</Link>
-          <ChevronRight className="h-3 w-3 flex-shrink-0" />
-          <Link to="/collections/all" className="hover:text-[#047ca8] hover:underline">Shop</Link>
-          {queryParams.category && (
-            <>
-              <ChevronRight className="h-3 w-3 flex-shrink-0" />
-              <span className="text-gray-800 font-medium capitalize">{queryParams.category}</span>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="max-w-screen-2xl mx-auto px-4 py-4 flex gap-4 items-start">
+      <div className="max-w-screen-2xl mx-auto px-4 pt-2.5 pb-4 flex gap-4 items-start">
 
         {/* ── Desktop Sidebar ── */}
-        <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-[105px] self-start">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-120px)]">
+        <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-[11px] self-start">
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-85px)]">
             <div className="bg-[#232f3e] text-white px-4 py-3">
               <h2 className="text-sm font-bold flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />

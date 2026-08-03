@@ -204,28 +204,6 @@ const ProductDetails = ({ productId }) => {
   return (
     <div className="min-h-screen bg-[#f0f2f2]">
 
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-screen-2xl mx-auto px-4 py-2 flex items-center gap-1.5 text-xs text-gray-500 flex-wrap">
-          <Link to="/" className="hover:text-[#047ca8] hover:underline">Home</Link>
-          <ChevronRight className="h-3 w-3" />
-          <Link to="/collections/all" className="hover:text-[#047ca8] hover:underline">Shop</Link>
-          {selectedProduct.category && (
-            <>
-              <ChevronRight className="h-3 w-3" />
-              <Link
-                to={`/collections/all?category=${selectedProduct.category}`}
-                className="hover:text-[#047ca8] hover:underline capitalize"
-              >
-                {selectedProduct.category}
-              </Link>
-            </>
-          )}
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-gray-800 font-medium line-clamp-1">{selectedProduct.name}</span>
-        </div>
-      </div>
-
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
 
         {/* ── Main Product Card ── */}

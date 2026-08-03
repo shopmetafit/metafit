@@ -65,8 +65,9 @@ const CheckOut = () => {
     return acc + itemShipping;
   }, 0) ?? 0;
   const subtotal = cart?.totalPrice ?? 0;
-  const totalWithDelivery = subtotal + deliveryCharge;
-  const finalTotal = Math.max(totalWithDelivery - couponDiscount, 0);
+  const serviceCharge = Math.round(subtotal * 0.03);
+  const totalWithDelivery = subtotal + serviceCharge + deliveryCharge;
+  const finalTotal = Math.round(Math.max(totalWithDelivery - couponDiscount, 0));
 
   const localShippingItems = cart?.products?.filter((item) => {
     return shippingAddress.city && item.freeShippingCities && item.freeShippingCities.some(
@@ -728,6 +729,10 @@ const CheckOut = () => {
           <div className="flex justify-between items-center text-lg mb-4">
             <p>Sub Total</p>
             <p>Rs {cart.totalPrice.toLocaleString()}</p>
+          </div>
+          <div className="flex justify-between items-center text-lg mb-4">
+            <p>Handling Fee (3%)</p>
+            <p>Rs {serviceCharge.toLocaleString()}</p>
           </div>
           <div className="flex justify-between items-center text-lg">
             <p>Shipping</p>
