@@ -415,10 +415,10 @@ router.get("/assigned-products", async (req, res) => {
         ""
     ).trim();
 
-    // PUBLIC FALLBACK: If requestedVendorId is not provided, fetch all products where isAssignedToAll is true
+    // PUBLIC FALLBACK: If requestedVendorId is not provided, fetch all products
     if (!requestedVendorId) {
       const Product = require("../models/Product");
-      const globalProducts = await Product.find({ isAssignedToAll: true });
+      const globalProducts = await Product.find({});
 
       const productIds = globalProducts.map((p) => String(p._id));
       const existingAssignments = await ReferralAssignment.find({
@@ -497,10 +497,10 @@ router.get("/assigned-products", async (req, res) => {
     let assignments = await ReferralAssignment.find(assignmentQuery)
       .sort({ createdAt: -1 });
 
-    // Lazy Auto-Assign: Fetch globally assigned products
+    // Lazy Auto-Assign: Fetch all products
     try {
       const Product = require("../models/Product");
-      const globalProducts = await Product.find({ isAssignedToAll: true });
+      const globalProducts = await Product.find({});
 
       if (globalProducts.length > 0) {
         // Find which global products the vendor doesn't have an assignment for yet
@@ -523,8 +523,9 @@ router.get("/assigned-products", async (req, res) => {
           };
 
           const eligibleGlobalProducts = missingGlobalProducts.filter(p => {
-            if (isVendorProduct(p, requestedVendorId)) return false;
-            if (assignmentVendorId && isVendorProduct(p, assignmentVendorId)) return false;
+            // DO NOT filter out vendor's own products, the user explicitly requested them to be visible
+            // if (isVendorProduct(p, requestedVendorId)) return false;
+            // if (assignmentVendorId && isVendorProduct(p, assignmentVendorId)) return false;
             return true;
           });
 
@@ -659,8 +660,9 @@ router.get("/assigned-products", async (req, res) => {
       })
       .filter((ap) => {
         if (!ap.product) return false;
-        if (isVendorProduct(ap.product, requestedVendorId)) return false;
-        if (assignmentVendorId && isVendorProduct(ap.product, assignmentVendorId)) return false;
+        // DO NOT filter out vendor's own products, the user explicitly requested them to be visible
+        // if (isVendorProduct(ap.product, requestedVendorId)) return false;
+        // if (assignmentVendorId && isVendorProduct(ap.product, assignmentVendorId)) return false;
         return true;
       });
 

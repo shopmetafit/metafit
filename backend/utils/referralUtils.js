@@ -32,7 +32,7 @@ const findAssignment = async ({ productId, vendorId, assignedProductId, ref }) =
     $or: [{ shareCode: normalizedRef }, { refCode: normalizedRef }],
   };
 
-  return ReferralAssignment.findOne(query);
+  return ReferralAssignment.findOne(query).populate("productId", "name");
 };
 
 const validateReferral = async ({ productId, vendorId, assignedProductId, ref }) => {
@@ -134,6 +134,57 @@ const processReferralPurchase = async (payload = {}) => {
     { $set: update, $setOnInsert: { orderId } },
     { new: true, upsert: true }
   );
+
+  const isNewPurchase = !existingPurchase;
+
+  if (isNewPurchase) {
+    try {
+      const {
+        sendWhatsAppVendorOrderNotification,
+        sendWhatsAppAdminOrderNotification,
+      } = require("../config/whatsappServices");
+      
+      const vendorName = assignment.vendorSnapshot?.name || "Referral Vendor";
+      const vendorPhone = assignment.vendorSnapshot?.phone || "";
+      const productNameForMsg = assignment.productId?.name || "Product";
+      
+      const whatsappPromises = [];
+      
+      if (vendorPhone) {
+        whatsappPromises.push(
+          sendWhatsAppVendorOrderNotification({
+            vendor_phone: vendorPhone,
+            vendor_name: vendorName,
+            orderId: String(orderId),
+            product: productNameForMsg,
+            quantity: String(qty || 1),
+            total_amount: `Rs. ${commissionAmount} (Commission)`,
+            customer_name: customerName || "Customer",
+            customer_phone: customerPhone || "N/A",
+            address: "Online Referral Sale",
+            number: process.env.ADMIN_WHATSAPP_PHONE || "",
+          }).catch(err => console.error("Failed to send WhatsApp to referral vendor:", err.message))
+        );
+      }
+      
+      whatsappPromises.push(
+        sendWhatsAppAdminOrderNotification({
+          admin_phone: process.env.ADMIN_WHATSAPP_PHONE || "",
+          orderId: String(orderId),
+          product: `(Referral by ${vendorName}) ${productNameForMsg}`,
+          quantity: String(qty || 1),
+          total_amount: `Commission: Rs. ${commissionAmount} / Total: Rs. ${orderAmount}`,
+          name: customerName || "Customer",
+          phone: customerPhone || "N/A",
+          address: "Online Referral Sale"
+        }).catch(err => console.error("Failed to send WhatsApp admin referral notification:", err.message))
+      );
+      
+      Promise.all(whatsappPromises).catch(() => {});
+    } catch (err) {
+      console.error("Error setting up referral WhatsApp notifications:", err.message);
+    }
+  }
 
   return {
     success: true,

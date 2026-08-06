@@ -148,7 +148,7 @@ router.get("/vendor/shared-products", protectVendor, vendorApproved, async (req,
   }
 });
 
-router.get("/vendor/purchases", protectVendor, vendorApproved, async (req, res) => {
+router.get("/vendor/purchases", protectVendor, async (req, res) => {
   try {
     const vendorId = req.user.vendorId || req.user.mentorId || req.user._id;
     const vendorIdStr = String(vendorId);
