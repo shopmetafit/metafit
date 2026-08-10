@@ -12,12 +12,17 @@ const computeCommissionAmount = (orderAmount, commissionType, commissionValue) =
   if (!Number.isFinite(amount) || amount <= 0) return 0;
   if (!Number.isFinite(value) || value <= 0) return 0;
 
+  // Deduct mwellness shop 15% cut before applying commission
+  const platformCutPercent = 15;
+  const platformCutAmount = (amount * platformCutPercent) / 100;
+  const vendorProductRevenue = amount - platformCutAmount;
+
   const type = String(commissionType || "").toLowerCase();
   if (type === "fixed" || type === "flat") {
-    return Math.min(value, amount);
+    return Math.min(value, vendorProductRevenue);
   }
 
-  return Number(((amount * value) / 100).toFixed(2));
+  return Number(((vendorProductRevenue * value) / 100).toFixed(2));
 };
 
 const findAssignment = async ({ productId, vendorId, assignedProductId, ref }) => {
