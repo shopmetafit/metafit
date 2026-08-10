@@ -5,7 +5,6 @@ const referralPurchaseSchema = new mongoose.Schema(
     orderId: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     orderObjectId: {
@@ -123,5 +122,7 @@ const referralPurchaseSchema = new mongoose.Schema(
 referralPurchaseSchema.index({ vendorId: 1, createdAt: -1 });
 referralPurchaseSchema.index({ externalVendorId: 1, createdAt: -1 });
 referralPurchaseSchema.index({ shareCode: 1 });
+
+referralPurchaseSchema.index({ orderId: 1, productId: 1 }, { unique: true });
 
 module.exports = mongoose.model("ReferralPurchase", referralPurchaseSchema);

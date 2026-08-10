@@ -464,7 +464,14 @@ const CheckOut = () => {
             <h3 className="text-lg mb-4">Contact Details</h3>
             {referralContext ? (
               <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                Referral applied: {referralContext.shareCode}
+                Vendor Referral Applied (ID: {(() => {
+                  if (referralContext.shareCode && referralContext.shareCode !== "STORE-LINK") {
+                    return referralContext.shareCode;
+                  }
+                  const vId = String(referralContext.vendorId || "");
+                  const shortVId = vId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(-4);
+                  return `MWREF-STORE-${shortVId}`;
+                })()})
               </div>
             ) : null}
             <div className="mb-4">

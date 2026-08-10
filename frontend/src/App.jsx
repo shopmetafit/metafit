@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import UserLayout from "./components/Layout/UserLayout";
 
 import { Toaster } from "sonner";
@@ -47,12 +47,26 @@ import ProductRequestsList from "./components/Vendor/ProductRequestsList";
 import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
 import ReferralAssignments from "./components/Admin/ReferralAssignments";
 import SessionExpiredModal from "./components/common/SessionExpiredModal";
+import { useEffect } from "react";
+import { readReferralParams, saveReferralContext } from "./services/referralStorage";
+
+const GlobalReferralTracker = () => {
+  const location = useLocation();
+  useEffect(() => {
+    const params = readReferralParams(location.search);
+    if (params) {
+      saveReferralContext(params);
+    }
+  }, [location]);
+  return null;
+};
 
 const App = () => {
   return (
     <Provider store={store}>
       <SessionExpiredModal />
       <BrowserRouter>
+        <GlobalReferralTracker />
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<UserLayout />}>

@@ -6,7 +6,7 @@ export const readReferralParams = (search) => {
   const assignedProductId = params.get("assignedProductId");
   const ref = params.get("ref");
 
-  if (!vendorId || !assignedProductId || !ref) {
+  if (!vendorId) {
     return null;
   }
 
@@ -18,15 +18,15 @@ export const readReferralParams = (search) => {
 };
 
 export const saveReferralContext = (referral) => {
-  if (!referral?.productId || !referral?.vendorId || !referral?.assignedProductId || !referral?.shareCode) {
+  if (!referral?.vendorId) {
     return;
   }
 
   const payload = JSON.stringify({
-    productId: String(referral.productId),
+    productId: referral.productId ? String(referral.productId) : null,
     vendorId: String(referral.vendorId),
-    assignedProductId: String(referral.assignedProductId),
-    shareCode: String(referral.shareCode),
+    assignedProductId: referral.assignedProductId ? String(referral.assignedProductId) : null,
+    shareCode: referral.shareCode ? String(referral.shareCode) : null,
   });
 
   localStorage.setItem(REFERRAL_STORAGE_KEY, payload);
@@ -42,7 +42,7 @@ export const getReferralContext = () => {
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed?.productId || !parsed?.vendorId || !parsed?.assignedProductId || !parsed?.shareCode) {
+    if (!parsed?.vendorId) {
       clearReferralContext();
       return null;
     }
@@ -70,31 +70,25 @@ export const getReferralForCartItems = (products = []) => {
   const storedReferral = getReferralContext();
   if (!storedReferral) return null;
 
-  const hasMatchingProduct = products.some(
-    (product) => String(product?.productId) === String(storedReferral.productId)
-  );
-
-  return hasMatchingProduct ? storedReferral : null;
+  // Universal Store-wide Affiliate tracking:
+  // We return the stored referral regardless of which specific product was originally shared.
+  return storedReferral;
 };
 
 export const attachReferralToCartProducts = (products = [], referral) => {
-  if (!Array.isArray(products) || products.length === 0 || !referral?.productId) {
+  if (!Array.isArray(products) || products.length === 0 || !referral?.vendorId) {
     return products || [];
   }
 
-  return products.map((product) =>
-    String(product.productId) === String(referral.productId)
-      ? {
-          ...product,
-          referral: {
-            productId: String(referral.productId),
-            vendorId: referral.vendorId,
-            assignedProductId: referral.assignedProductId,
-            shareCode: referral.shareCode,
-          },
-        }
-      : product
-  );
+  return products.map((product) => ({
+    ...product,
+    referral: {
+      productId: referral.productId ? String(referral.productId) : String(product.productId),
+      vendorId: referral.vendorId,
+      assignedProductId: referral.assignedProductId,
+      shareCode: referral.shareCode || "STORE-LINK",
+    },
+  }));
 };
 
 export const clearReferralContext = () => {

@@ -6,6 +6,8 @@ const Checkout = require("../models/Checkout");
 const Order = require("../models/Order");
 const Cart = require("../models/Cart");
 const User = require("../models/User");
+const ReferralAssignment = require("../models/ReferralAssignment");
+const Vendor = require("../models/Vendor");
 const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
 const { getProductReadModel } = require("../utils/productDataAccess");
@@ -281,15 +283,23 @@ router.post("/orders", async (req, res) => {
       customerName,
       customerPhone,
       customerEmail,
-      referral: productId && vendorId && assignedProductId && shareCode
+      referral: vendorId
         ? {
             productId: mongoose.Types.ObjectId.isValid(productId) ? new mongoose.Types.ObjectId(productId) : null,
             vendorId: mongoose.Types.ObjectId.isValid(vendorId) ? new mongoose.Types.ObjectId(vendorId) : null,
             externalVendorId: !mongoose.Types.ObjectId.isValid(vendorId) ? String(vendorId) : "",
-            assignedProductId,
-            shareCode: normalizeReferralCode(shareCode),
+            assignedProductId: assignedProductId || "",
+            shareCode: normalizeReferralCode(shareCode || "STORE-LINK"),
           }
-        : undefined,
+        : req.body.referral?.vendorId
+          ? {
+              productId: mongoose.Types.ObjectId.isValid(req.body.referral.productId) ? new mongoose.Types.ObjectId(req.body.referral.productId) : null,
+              vendorId: mongoose.Types.ObjectId.isValid(req.body.referral.vendorId) ? new mongoose.Types.ObjectId(req.body.referral.vendorId) : null,
+              externalVendorId: !mongoose.Types.ObjectId.isValid(req.body.referral.vendorId) ? String(req.body.referral.vendorId) : "",
+              assignedProductId: req.body.referral.assignedProductId || "",
+              shareCode: normalizeReferralCode(req.body.referral.shareCode || "STORE-LINK"),
+            }
+          : undefined,
     });
 
     res.status(201).json({
@@ -374,31 +384,95 @@ router.post("/orders/:id/payment-success", async (req, res) => {
 
     await Cart.findOneAndDelete({ user: checkout.user }).catch(() => null);
 
-    if (checkout.referral?.productId && (checkout.referral?.vendorId || checkout.referral?.externalVendorId) && checkout.referral?.assignedProductId && checkout.referral?.shareCode) {
-      const referredItem = checkout.checkoutItems.find(
-        (item) => String(item.productId) === String(checkout.referral.productId)
-      );
+    if (checkout.referral?.vendorId || checkout.referral?.externalVendorId) {
+      const vendorId = checkout.referral.vendorId || checkout.referral.externalVendorId;
 
-      if (referredItem) {
-        await processReferralPurchase({
-          orderId: String(order._id),
-          orderObjectId: order._id,
-          productId: referredItem.productId,
-          vendorId: checkout.referral.vendorId || checkout.referral.externalVendorId,
-          assignedProductId: checkout.referral.assignedProductId,
-          shareCode: checkout.referral.shareCode,
-          customerName: checkout.customerName,
-          customerPhone: checkout.customerPhone,
-          customerEmail: checkout.customerEmail,
-          qty: referredItem.quantity || 1,
-          orderAmount: Number(referredItem.price || 0) * Number(referredItem.quantity || 1),
-          paymentStatus: "paid",
-          paymentReference,
-          source: "mwellness-store",
-          metadata: {
-            checkoutId: checkout._id,
-          },
+      for (const item of checkout.checkoutItems) {
+        const productId = String(item.productId);
+        const orConditions = [{ externalVendorId: String(vendorId) }];
+        if (mongoose.Types.ObjectId.isValid(vendorId)) {
+          orConditions.push({ vendorId: new mongoose.Types.ObjectId(vendorId) });
+        }
+
+        let assignment = await ReferralAssignment.findOne({
+          productId,
+          isActive: true,
+          assignmentStatus: "assigned",
+          $or: orConditions,
         });
+
+        if (!assignment) {
+          let vendorInfo = null;
+          if (mongoose.Types.ObjectId.isValid(vendorId)) {
+            vendorInfo = await Vendor.findById(vendorId).lean();
+          } else {
+            vendorInfo = await Vendor.findOne({
+              $or: [{ vendorId: vendorId }, { externalVendorId: vendorId }]
+            }).lean();
+          }
+
+          if (vendorInfo) {
+            const vendorSnapshotObj = {
+              mentorId: vendorId,
+              name: vendorInfo?.vendorName || vendorInfo?.businessName || "Partner",
+              email: vendorInfo?.email || "",
+              phone: vendorInfo?.phone || "",
+              role: vendorInfo?.role || "vendor",
+            };
+
+            const normalizeCodeSegment = (value, fallback) => {
+              const normalized = String(value || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+              return normalized || fallback;
+            };
+            const vendorPart = normalizeCodeSegment(vendorId, "VEND").slice(-4);
+            const productPart = normalizeCodeSegment(productId, "PROD").slice(-4);
+            
+            assignment = await ReferralAssignment.findOneAndUpdate(
+              {
+                productId: productId,
+                $or: orConditions
+              },
+              {
+                $setOnInsert: {
+                  vendorId: mongoose.Types.ObjectId.isValid(vendorId) ? vendorId : null,
+                  externalVendorId: vendorId,
+                  vendorSnapshot: vendorSnapshotObj,
+                  assignedProductId: `AP-${vendorPart}-${productPart}`,
+                  shareCode: `MWREF-${vendorPart}-${productPart}`,
+                  refCode: `REF-${vendorPart}-${productPart}`,
+                  commissionType: "percentage",
+                  commissionValue: 10,
+                  isActive: true,
+                  assignmentStatus: "assigned",
+                  isAssignedToAll: true,
+                }
+              },
+              { new: true, upsert: true }
+            );
+          }
+        }
+
+        if (assignment) {
+          await processReferralPurchase({
+            orderId: String(order._id),
+            orderObjectId: order._id,
+            productId: item.productId,
+            vendorId: vendorId,
+            assignedProductId: assignment.assignedProductId,
+            shareCode: assignment.shareCode,
+            customerName: checkout.customerName,
+            customerPhone: checkout.customerPhone,
+            customerEmail: checkout.customerEmail,
+            qty: item.quantity || 1,
+            orderAmount: Number(item.price || 0) * Number(item.quantity || 1),
+            paymentStatus: "paid",
+            paymentReference,
+            source: "mwellness-store",
+            metadata: {
+              checkoutId: checkout._id,
+            },
+          });
+        }
       }
     }
 

@@ -112,7 +112,6 @@ const processReferralPurchase = async (payload = {}) => {
   const update = {
     orderObjectId: orderObjectId || null,
     assignmentId: assignment._id,
-    productId,
     vendorId: mongoose.Types.ObjectId.isValid(vendorId) ? new mongoose.Types.ObjectId(vendorId) : null,
     externalVendorId: !mongoose.Types.ObjectId.isValid(vendorId) ? String(vendorId) : "",
     assignedProductId: assignment.assignedProductId,
@@ -133,10 +132,10 @@ const processReferralPurchase = async (payload = {}) => {
     metadata: metadata || {},
   };
 
-  const existingPurchase = await ReferralPurchase.findOne({ orderId });
+  const existingPurchase = await ReferralPurchase.findOne({ orderId, productId });
   const purchase = await ReferralPurchase.findOneAndUpdate(
-    { orderId },
-    { $set: update, $setOnInsert: { orderId } },
+    { orderId, productId },
+    { $set: update },
     { new: true, upsert: true }
   );
 
