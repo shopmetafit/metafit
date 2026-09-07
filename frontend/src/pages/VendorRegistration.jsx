@@ -581,10 +581,14 @@ const VendorRegistration = () => {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                       >
-                        <option value="company">Company</option>
-                        <option value="individual">Individual/Sole Proprietor</option>
-                        <option value="partnership">Partnership</option>
-                        <option value="llp">LLP</option>
+                        <option value="private_limited">Private Limited (Pvt. Ltd.)</option>
+                        <option value="llp">Limited Liability Partnership (LLP)</option>
+                        <option value="sole_proprietorship">Sole Proprietorship</option>
+                        <option value="partnership">Partnership Firm</option>
+                        <option value="public_limited">Public Limited Company</option>
+                        <option value="one_person_company">One Person Company (OPC)</option>
+                        <option value="individual">Individual</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
 

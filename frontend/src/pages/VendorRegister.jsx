@@ -872,10 +872,14 @@ export default function VendorRegistration() {
                   className="w-full pl-4 pr-4 py-3 bg-white text-black border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
                   required
                 >
-                  <option value="company">Company</option>
+                  <option value="private_limited">Private Limited (Pvt. Ltd.)</option>
+                  <option value="llp">Limited Liability Partnership (LLP)</option>
+                  <option value="sole_proprietorship">Sole Proprietorship</option>
+                  <option value="partnership">Partnership Firm</option>
+                  <option value="public_limited">Public Limited Company</option>
+                  <option value="one_person_company">One Person Company (OPC)</option>
                   <option value="individual">Individual</option>
-                  <option value="partnership">Partnership</option>
-                  <option value="sole_proprietor">Sole Proprietor</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
             </div>
