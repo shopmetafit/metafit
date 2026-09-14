@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node api/server.js",
     "dev": "nodemon api/server.js",
+    "build": "echo Backend build not required",
     "seed": "node seeder.js"
   },
   "keywords": [],

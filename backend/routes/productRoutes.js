@@ -737,17 +737,51 @@ router.get("/new-arrivals", async (req, res) => {
 });
 
 // @route get/api/products/:id
-// @desc get single product by ID
+// @route get/api/products/:id
+// @desc get single product by ID or Slug
 // @access Public
+
+const slugify = (name) => {
+  return String(name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
 
 router.get("/:id", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const product = await ProductReadModel.findOne({ _id: req.params.id, isPublished: true }).lean();
+    const mongoose = require("mongoose");
+    const param = req.params.id;
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(param) && String(new mongoose.Types.ObjectId(param)) === param) {
+      product = await ProductReadModel.findOne({ _id: param, isPublished: true }).lean();
+    }
+
+    if (!product) {
+      product = await ProductReadModel.findOne({ slug: param.toLowerCase(), isPublished: true }).lean();
+    }
+
+    if (!product) {
+      const nameSearch = param.toLowerCase().replace(/-/g, " ");
+      product = await ProductReadModel.findOne({ searchName: nameSearch, isPublished: true }).lean();
+    }
+
+    if (!product) {
+      const allProducts = await ProductReadModel.find({ isPublished: true }).lean();
+      product = allProducts.find((p) => slugify(p.name) === param.toLowerCase());
+    }
+
     if (product) {
+      if (!product.slug) {
+        product.slug = slugify(product.name);
+      }
       res.json(product);
     } else {
-      res.status(404).json({ message: " Product not found" });
+      res.status(404).json({ message: "Product not found" });
     }
   } catch (error) {
     console.error(error);
@@ -763,12 +797,32 @@ router.get("/similar/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const ProductReadModel = await getProductReadModel();
-    const product = await ProductReadModel.findById(id).lean();
+    const mongoose = require("mongoose");
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(id) && String(new mongoose.Types.ObjectId(id)) === id) {
+      product = await ProductReadModel.findById(id).lean();
+    }
+
+    if (!product) {
+      product = await ProductReadModel.findOne({ slug: id.toLowerCase() }).lean();
+    }
+
+    if (!product) {
+      const nameSearch = id.toLowerCase().replace(/-/g, " ");
+      product = await ProductReadModel.findOne({ searchName: nameSearch }).lean();
+    }
+
+    if (!product) {
+      const allProducts = await ProductReadModel.find({}).lean();
+      product = allProducts.find((p) => slugify(p.name) === id.toLowerCase());
+    }
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
     const similarProduct = await ProductReadModel.find({
-      _id: { $ne: id },
+      _id: { $ne: product._id },
       gender: product.gender,
       category: product.category,
       isPublished: true,

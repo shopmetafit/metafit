@@ -5,6 +5,28 @@ import { fetchProductsByFilters } from "../redux/slices/productSlice";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ChevronRight, Truck, ShieldCheck, RefreshCw, Headphones } from "lucide-react";
+import SEO from "../components/SEO/SEO";
+
+const homeJsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "M Wellness Bazaar",
+    "url": "https://mwellnessbazaar.com",
+    "logo": "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "M Wellness Bazaar",
+    "url": "https://mwellnessbazaar.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://mwellnessbazaar.com/collections/all?search={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+];
 
 const categoryTiles = [
   { icon: "🌿", name: "Ayurvedic Devices", desc: "Traditional Healing", link: "/collections/all?category=ayurvedic devices", bg: "bg-green-50", border: "border-green-200", hover: "hover:border-green-400" },
@@ -68,6 +90,7 @@ const Home = () => {
 
   return (
     <div className="w-full min-h-screen bg-[#f0f2f2]">
+      <SEO jsonLd={homeJsonLd} />
 
       {/* ── Hero / Deal Banner ── */}
       <Hero />

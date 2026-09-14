@@ -1,10 +1,25 @@
 User-agent: *
-Disallow: /wp-admin/
-Disallow: /wp-login.php
-Disallow: /cart/
+Disallow: /admin/
 Disallow: /checkout/
-Disallow: /my-account/
-Disallow: /?*
-Disallow: /search/
+Disallow: /cart/
+Disallow: /profile/
+Disallow: /my-orders/
+Disallow: /order-confirmation/
+Disallow: /order/
+Disallow: /vendor/
+Disallow: /vendor-*
 
-Allow: /wp-admin/admin-ajax.php
+Allow: /
+Allow: /collections/
+Allow: /product/
+Allow: /category/
+Allow: /blog/
+Allow: /about
+Allow: /contact
+Allow: /privacy-policy
+Allow: /refund-policy
+Allow: /shipping-policy
+Allow: /terms
+Allow: /pricing-policy
+
+Sitemap: https://mwellnessbazaar.com/sitemap.xml

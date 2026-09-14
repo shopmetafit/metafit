@@ -1,9 +1,14 @@
-// src/pages/TermsConditions.jsx
 import React from "react";
+import SEO from "../components/SEO/SEO";
 
 export default function TermsConditions() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-8 lg:px-20">
+      <SEO
+        title="Terms & Conditions — User Agreement & Legal Policies"
+        description="Read M Wellness Bazaar's terms and conditions, platform user agreement, customer responsibilities, and legal policies."
+        canonical="/terms"
+      />
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">
           Terms & Conditions

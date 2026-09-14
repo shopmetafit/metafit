@@ -1,9 +1,14 @@
-// src/pages/ShippingPolicy.jsx
 import React from "react";
+import SEO from "../components/SEO/SEO";
 
 export default function ShippingPolicy() {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-8 lg:px-20">
+      <SEO
+        title="Shipping Policy — Delivery Times & Charges"
+        description="Learn about M Wellness Bazaar's shipping policy, delivery timelines across India, processing times, and free shipping thresholds."
+        canonical="/shipping-policy"
+      />
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">Shipping Policy</h1>
         <p className="text-sm text-gray-500 mb-8">

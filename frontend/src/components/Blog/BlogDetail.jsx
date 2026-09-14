@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import axios from "axios";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import SEO from "../SEO/SEO";
 
 export default function BlogDetail() {
   const { slug } = useParams();
@@ -104,8 +105,68 @@ export default function BlogDetail() {
     );
   }
 
+  const blogJsonLd = blog ? [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": blog.title,
+      "description": blog.excerpt,
+      "image": blog.featuredImage ? [blog.featuredImage] : undefined,
+      "datePublished": blog.publishedAt ? new Date(blog.publishedAt).toISOString() : new Date(blog.createdAt).toISOString(),
+      "dateModified": new Date(blog.updatedAt || blog.publishedAt || Date.now()).toISOString(),
+      "author": {
+        "@type": "Person",
+        "name": blog.authorName || blog.author?.name || "M Wellness Team"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "M Wellness Bazaar",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": `https://mwellnessbazaar.com/blog/${blog.slug}`
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://mwellnessbazaar.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": "https://mwellnessbazaar.com/blog"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": blog.title,
+          "item": `https://mwellnessbazaar.com/blog/${blog.slug}`
+        }
+      ]
+    }
+  ] : null;
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title={blog.title}
+        description={blog.excerpt}
+        canonical={`/blog/${blog.slug}`}
+        ogImage={blog.featuredImage}
+        ogType="article"
+        jsonLd={blogJsonLd}
+      />
       <div className="max-w-3xl mx-auto">
         {/* Featured Image */}
         {blog.featuredImage && (

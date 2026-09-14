@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Phone, Mail, Clock, MapPin, Send, CheckCircle } from 'lucide-react';
+import SEO from '../components/SEO/SEO';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -82,6 +83,11 @@ const ContactUs = () => {
 
   return (
     <div className="bg-white">
+      <SEO
+        title="Contact Us — 24/7 Customer Support & Inquiries"
+        description="Get in touch with M Wellness Bazaar. Our expert support team is available 24/7 to answer your product questions, order inquiries, and health advice requests."
+        canonical="/contact"
+      />
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-20 px-6">
         <div className="max-w-7xl mx-auto text-center">

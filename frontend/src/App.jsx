@@ -83,15 +83,26 @@ const App = () => {
             <Route path="vendor/product-requests" element={<ProductRequestsList />} />
             <Route path="profile" element={<Profile />} />
             <Route path="collections/:collection" element={<Collection />} />
+            <Route path="category/:categorySlug" element={<Collection />} />
             <Route path="product/:id" element={<ProductDetails />} />
             <Route path="checkout" element={<Checkout />} />
-            <Route path="contactUs" element={<ContactUs />} />
-            <Route path="aboutUs" element={< AboutUs />} />
-            <Route path="privacyPolicy" element={< PrivacyPolicy />} />
-            <Route path="refundPolicy" element={< RefundPolicy />} />
-            <Route path="shippingPolicy" element={< ShippingPolicy />} />
-            <Route path="termsConditions" element={< TermsConditions />} />
-            <Route path="pricingPolicy" element={< PricingPolicy />} />
+            <Route path="about" element={<AboutUs />} />
+            <Route path="contact" element={<ContactUs />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="refund-policy" element={<RefundPolicy />} />
+            <Route path="shipping-policy" element={<ShippingPolicy />} />
+            <Route path="terms" element={<TermsConditions />} />
+            <Route path="pricing-policy" element={<PricingPolicy />} />
+
+            {/* Legacy URL Redirects for Backward Compatibility */}
+            <Route path="aboutUs" element={<Navigate to="/about" replace />} />
+            <Route path="contactUs" element={<Navigate to="/contact" replace />} />
+            <Route path="privacyPolicy" element={<Navigate to="/privacy-policy" replace />} />
+            <Route path="refundPolicy" element={<Navigate to="/refund-policy" replace />} />
+            <Route path="shippingPolicy" element={<Navigate to="/shipping-policy" replace />} />
+            <Route path="termsConditions" element={<Navigate to="/terms" replace />} />
+            <Route path="pricingPolicy" element={<Navigate to="/pricing-policy" replace />} />
+
             <Route
               path="order-confirmation"
               element={<OrderConfirmationPage />}

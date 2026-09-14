@@ -77,7 +77,7 @@ const ProductGrid = ({ products, loading, error, onProductClick }) => {
               }}
               onMouseLeave={() => setHoveredImage({})}
             >
-              <Link to={`/product/${product._id}`} className="flex flex-col flex-1" onClick={() => onProductClick && onProductClick()}>
+              <Link to={`/product/${product.slug || product._id}`} className="flex flex-col flex-1" onClick={() => onProductClick && onProductClick()}>
                 {/* Image Section */}
                 <div className="bg-[#fcf8f2] rounded-[12px] sm:rounded-[20px] aspect-[4/3] w-full relative overflow-hidden flex items-center justify-center group-hover:bg-[#f6f0e6] transition-colors">
 

@@ -95,12 +95,46 @@ router.get("/referrals/validate", async (req, res) => {
   }
 });
 
+const slugify = (name) => {
+  return String(name || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+};
+
 router.get("/products/:id", async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
-    const product = await ProductReadModel.findById(req.params.id).lean();
+    const mongoose = require("mongoose");
+    const param = req.params.id;
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(param) && String(new mongoose.Types.ObjectId(param)) === param) {
+      product = await ProductReadModel.findById(param).lean();
+    }
+
+    if (!product) {
+      product = await ProductReadModel.findOne({ slug: param.toLowerCase() }).lean();
+    }
+
+    if (!product) {
+      const nameSearch = param.toLowerCase().replace(/-/g, " ");
+      product = await ProductReadModel.findOne({ searchName: nameSearch }).lean();
+    }
+
+    if (!product) {
+      const allProducts = await ProductReadModel.find({}).lean();
+      product = allProducts.find((p) => slugify(p.name) === param.toLowerCase());
+    }
+
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (!product.slug) {
+      product.slug = slugify(product.name);
     }
 
     const { vendorId, assignedProductId, ref } = req.query;
@@ -108,7 +142,7 @@ router.get("/products/:id", async (req, res) => {
 
     if (ref) {
       const validation = await validateReferral({
-        productId: req.params.id,
+        productId: product._id,
         vendorId,
         assignedProductId,
         ref,

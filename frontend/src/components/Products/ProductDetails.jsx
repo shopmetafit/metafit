@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { FaPlayCircle } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
-import { useParams, Link, useLocation } from "react-router-dom";
+import { useParams, Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { ShieldCheck, Truck, RefreshCw, ChevronRight, Minus, Plus, ShoppingCart } from "lucide-react";
@@ -31,6 +32,7 @@ const getVariantPriceRange = (variants = []) => {
 const ProductDetails = ({ productId }) => {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { similarProducts } = useSelector((state) => state.products);
@@ -130,6 +132,12 @@ const ProductDetails = ({ productId }) => {
     }
   }, [selectedProduct]);
 
+  useEffect(() => {
+    if (id && selectedProduct?.slug && id !== selectedProduct.slug) {
+      navigate(`/product/${selectedProduct.slug}${location.search}`, { replace: true });
+    }
+  }, [id, selectedProduct, location.search, navigate]);
+
   const handleQuantityChange = (action) => {
     if (action === "plus") setQuantity((prev) => prev + 1);
     if (action === "minus" && quantity > 1) setQuantity((prev) => prev - 1);
@@ -201,8 +209,89 @@ const ProductDetails = ({ productId }) => {
       ? Math.round(((selectedProduct.price - selectedProduct.discountPrice) / selectedProduct.price) * 100)
       : 0;
 
+  const cleanDescription = selectedProduct?.description
+    ? selectedProduct.description.replace(/<[^>]*>?/gm, "").slice(0, 300)
+    : "";
+
+  const primaryImageUrl = selectedProduct?.images?.[0]?.url || "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png";
+  const productPrice = selectedProduct?.discountPrice || selectedProduct?.price || 0;
+  const productAvailability = selectedProduct?.countInStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock";
+  const productSlugOrId = selectedProduct?.slug || productFetchId;
+
+  const categorySlug = selectedProduct?.category
+    ? selectedProduct.category.toLowerCase().trim().replace(/&/g, "and").replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-")
+    : "all";
+
+  const productJsonLd = selectedProduct ? [
+    {
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": selectedProduct.name,
+      "image": selectedProduct.images?.map(img => img.url).filter(Boolean) || [primaryImageUrl],
+      "description": cleanDescription,
+      "sku": selectedProduct.sku || selectedProduct._id,
+      "mpn": selectedProduct.sku || selectedProduct._id,
+      "brand": {
+        "@type": "Brand",
+        "name": selectedProduct.brand || "M Wellness Bazaar"
+      },
+      "offers": {
+        "@type": "Offer",
+        "url": `https://mwellnessbazaar.com/product/${productSlugOrId}`,
+        "priceCurrency": "INR",
+        "price": productPrice,
+        "priceValidUntil": "2027-12-31",
+        "itemCondition": "https://schema.org/NewCondition",
+        "availability": productAvailability,
+        "seller": {
+          "@type": "Organization",
+          "name": "M Wellness Bazaar"
+        }
+      },
+      ...(selectedProduct.numReviews && selectedProduct.numReviews > 0 ? {
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": selectedProduct.rating || 4.8,
+          "reviewCount": selectedProduct.numReviews
+        }
+      } : {}),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://mwellnessbazaar.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": selectedProduct.category || "Products",
+          "item": `https://mwellnessbazaar.com/category/${categorySlug}`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": selectedProduct.name,
+          "item": `https://mwellnessbazaar.com/product/${productSlugOrId}`
+        }
+      ]
+    }
+  ] : null;
+
   return (
     <div className="min-h-screen bg-[#f0f2f2]">
+      <SEO
+        title={selectedProduct.name}
+        description={cleanDescription}
+        canonical={`/product/${productSlugOrId}`}
+        ogImage={primaryImageUrl}
+        ogType="product"
+        jsonLd={productJsonLd}
+      />
 
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
 

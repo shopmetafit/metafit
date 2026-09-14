@@ -27,6 +27,7 @@ const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
+const sitemapRoutes = require("../routes/sitemapRoutes");
 const compression = require("compression");
 
 const app = express();
@@ -90,6 +91,8 @@ connectDB();
 app.get("/", (req, res) => {
   res.send("Welcome Mwellnessbazar Its API");
 })
+
+app.use("/sitemap.xml", sitemapRoutes);
 
 // API Routes
 app.use("/api/blogs", blogRoutes);

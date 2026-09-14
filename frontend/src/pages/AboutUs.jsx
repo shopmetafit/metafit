@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Eye, TrendingUp, Shield, Globe, Award } from 'lucide-react';
+import SEO from '../components/SEO/SEO';
 
 const AboutUs = () => {
   const [scrollY, setScrollY] = useState(0);
@@ -49,6 +50,11 @@ const AboutUs = () => {
 
   return (
     <div className="bg-white">
+      <SEO
+        title="About Us — Empowering Your Health & Wellness Journey"
+        description="Learn about M Wellness Bazaar, India's trusted marketplace for authentic Ayurvedic devices, health monitoring tools, and organic wellness products."
+        canonical="/about"
+      />
       {/* Hero Section */}
       <section className="relative py-32 flex items-center justify-center bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 overflow-hidden">
         <div 

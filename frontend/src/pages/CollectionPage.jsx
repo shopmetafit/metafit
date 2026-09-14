@@ -10,6 +10,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productSlice";
 import FAQSection from "./FAQ";
 
+import SEO from "../components/SEO/SEO";
+
+const categorySlugToName = {
+  "ayurvedic-devices": "Ayurvedic Devices",
+  "health-monitoring": "Health Monitoring",
+  "snacks-and-protein": "Snacks & Protein",
+  "skin-and-body-care": "Skin & Body Care",
+  "panchakarma-equipment": "Panchakarma Equipment",
+  "accessories": "Accessories",
+};
+
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -17,9 +28,14 @@ const CollectionPage = () => {
   const [allLocations, setAllLocations] = useState([]);
 
   const navigate = useNavigate();
-  const { collection } = useParams();
+  const { collection, categorySlug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParams = Object.fromEntries([...searchParams]);
+
+  // Derive resolved category name from slug or query param
+  const activeCategory = categorySlug
+    ? (categorySlugToName[categorySlug] || categorySlug.replace(/-/g, " "))
+    : queryParams.category;
 
   useEffect(() => {
     if (searchParams.get("sidebar") === "true") {
@@ -41,9 +57,12 @@ const CollectionPage = () => {
 
   useEffect(() => {
     const params = { collection, ...queryParams };
+    if (activeCategory) {
+      params.category = activeCategory;
+    }
     delete params.location;
     dispatch(fetchProductsByFilters(params));
-  }, [dispatch, collection, searchParams]);
+  }, [dispatch, collection, categorySlug, searchParams]);
 
   // Derive all unique locations from the (unfiltered) product list
   useEffect(() => {
@@ -105,13 +124,37 @@ const CollectionPage = () => {
     setSearchParams(params);
   };
 
-  // Derive a page title from the active category or collection
-  const pageTitle = queryParams.category
-    ? queryParams.category.replace(/\b\w/g, (c) => c.toUpperCase())
-    : "";
+  // Dynamic SEO metadata
+  const hasFilterParams = Object.keys(queryParams).some(
+    (k) => ["brand", "minPrice", "maxPrice", "search", "material"].includes(k)
+  );
+
+  const displayCategoryName = activeCategory
+    ? activeCategory.replace(/\b\w/g, (c) => c.toUpperCase())
+    : "All Products";
+
+  const seoTitle = (categorySlug || activeCategory)
+    ? `${displayCategoryName} — Shop Authentic ${displayCategoryName}`
+    : "Wellness & Healthcare Product Catalog";
+
+  const seoDescription = activeCategory
+    ? `Explore our collection of authentic ${displayCategoryName} at M Wellness Bazaar. High-quality healthcare, wellness products & fast shipping across India.`
+    : "Browse the complete collection of authentic wellness products, health monitors, Ayurvedic devices, and supplements at M Wellness Bazaar.";
+
+  const canonicalPath = categorySlug
+    ? `/category/${categorySlug}`
+    : "/collections/all";
+
+  const robotsDirective = hasFilterParams ? "noindex, follow" : "index, follow";
 
   return (
     <div className="min-h-screen bg-[#f0f2f2]">
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        canonical={canonicalPath}
+        robots={robotsDirective}
+      />
 
       <div className="max-w-screen-2xl mx-auto px-4 pt-2.5 pb-4 flex gap-4 items-start">
 

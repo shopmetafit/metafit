@@ -2,6 +2,26 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Heart, MessageCircle, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import SEO from "../SEO/SEO";
+
+const blogListBreadcrumbLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://mwellnessbazaar.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": "https://mwellnessbazaar.com/blog"
+    }
+  ]
+};
 
 export default function BlogList() {
   const [blogs, setBlog] = useState([]);
@@ -38,6 +58,12 @@ export default function BlogList() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Wellness Blog — Articles & Health Guides"
+        description="Discover expert insights, nutrition tips, Ayurvedic health guides, and fitness advice from M Wellness Bazaar."
+        canonical="/blog"
+        jsonLd={blogListBreadcrumbLd}
+      />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

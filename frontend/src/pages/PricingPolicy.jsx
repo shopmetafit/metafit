@@ -1,8 +1,14 @@
 import React from "react";
+import SEO from "../components/SEO/SEO";
 
 const PricingPolicy = () => {
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 text-gray-800">
+      <SEO
+        title="Pricing Policy — Transparency & Fair Pricing"
+        description="Read M Wellness Bazaar's pricing policy. Learn about product pricing transparency, promotional terms, GST, and secure payment processing."
+        canonical="/pricing-policy"
+      />
       {/* Page Header */}
       <h1 className="text-4xl font-bold mb-6 text-center text-teal-700">
         Pricing Policy
