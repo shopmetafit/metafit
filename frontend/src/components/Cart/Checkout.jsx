@@ -9,6 +9,7 @@ import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
+import { trackMetaEvent } from "../../lib/meta-pixel";
 import {
   clearReferralContext,
   getReferralForCartItems,
@@ -381,6 +382,14 @@ const CheckOut = () => {
         `shippingAddress_${currentEmail}`,
         JSON.stringify(shippingAddress)
       );
+
+      trackMetaEvent("AddPaymentInfo", {
+        content_ids: cart.products.map((p) => p.productId || p._id),
+        content_type: "product",
+        num_items: cart.products.reduce((acc, item) => acc + Number(item.quantity || 1), 0),
+        value: finalTotal,
+        currency: "INR",
+      });
 
       // Send to backend - backend will calculate delivery charge
       const res = await dispatch(

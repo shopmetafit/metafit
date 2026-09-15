@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Phone, Mail, Clock, MapPin, Send, CheckCircle } from 'lucide-react';
 import SEO from '../components/SEO/SEO';
+import { trackMetaEvent } from '../lib/meta-pixel';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -65,6 +66,9 @@ const ContactUs = () => {
       }
 
       setIsSubmitted(true);
+      trackMetaEvent("Lead", {
+        content_name: "Contact Us Inquiry",
+      });
       setTimeout(() => {
         setIsSubmitted(false);
         setFormData({ name: '', email: '', subject: '', message: '' });

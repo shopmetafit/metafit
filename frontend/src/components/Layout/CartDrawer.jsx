@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { fetchCart } from "../../redux/slices/cartSlice";
 import { removeFromWishlist } from "../../redux/slices/wishlistSlice";
+import { trackMetaEvent } from "../../lib/meta-pixel";
 
 const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActiveTab }) => {
   const navigate = useNavigate();
@@ -27,9 +28,17 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
   const total = subtotal + deliveryCharge;
 
   const handleCheckout = () => {
+    if (cart?.products?.length > 0) {
+      trackMetaEvent("InitiateCheckout", {
+        content_ids: cart.products.map((p) => p.productId || p._id),
+        content_type: "product",
+        num_items: itemCount,
+        value: subtotal,
+        currency: "INR",
+      });
+    }
     togglerCartOpen();
     navigate("/checkout");
-
   };
 
   const renderWishlist = () => {

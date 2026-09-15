@@ -47,8 +47,9 @@ import ProductRequestsList from "./components/Vendor/ProductRequestsList";
 import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
 import ReferralAssignments from "./components/Admin/ReferralAssignments";
 import SessionExpiredModal from "./components/common/SessionExpiredModal";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { readReferralParams, saveReferralContext } from "./services/referralStorage";
+import { trackMetaEvent } from "./lib/meta-pixel";
 
 const GlobalReferralTracker = () => {
   const location = useLocation();
@@ -61,12 +62,28 @@ const GlobalReferralTracker = () => {
   return null;
 };
 
+const MetaPixelPageViewTracker = () => {
+  const location = useLocation();
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    trackMetaEvent("PageView");
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const App = () => {
   return (
     <Provider store={store}>
       <SessionExpiredModal />
       <BrowserRouter>
         <GlobalReferralTracker />
+        <MetaPixelPageViewTracker />
         <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={<UserLayout />}>

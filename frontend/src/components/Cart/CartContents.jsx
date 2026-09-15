@@ -4,6 +4,7 @@ import { addToWishlist } from "../../redux/slices/wishlistSlice";
 import { toast } from "sonner";
 import { removeFromCart, updateCartItemQuantity } from "../../redux/slices/cartSlice";
 import { Link } from "react-router-dom";
+import { trackMetaEvent } from "../../lib/meta-pixel";
 
 const CartContents = ({ cart, userId, guestId }) => {
   const dispatch = useDispatch();
@@ -20,7 +21,16 @@ const CartContents = ({ cart, userId, guestId }) => {
        price: product.price,
        images: [{ url: product.image }]
     };
-    dispatch(addToWishlist({ product: mappedProduct, user }));
+    dispatch(addToWishlist({ product: mappedProduct, user })).then((res) => {
+      if (!res.error) {
+        trackMetaEvent("AddToWishlist", {
+          content_ids: [product.productId],
+          content_name: product.name,
+          value: Number(product.price || 0),
+          currency: "INR",
+        });
+      }
+    });
     toast.success("Saved to Wishlist");
     handleRemove(product.productId, product.size, product.color);
   };

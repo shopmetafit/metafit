@@ -2,7 +2,8 @@ import { useState } from "react";
 import { HiMagnifyingGlass, HiMiniXMark } from "react-icons/hi2";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import {setFilters, fetchProductsByFilters } from "../../redux/slices/productSlice";
+import { setFilters, fetchProductsByFilters } from "../../redux/slices/productSlice";
+import { trackMetaEvent } from "../../lib/meta-pixel";
 
 const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -17,9 +18,13 @@ const SearchBar = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // console.log("search Term:", searchTerm);
-    dispatch(setFilters({search: searchTerm}));
-    dispatch(fetchProductsByFilters({search: searchTerm}));
+    if (searchTerm.trim()) {
+      trackMetaEvent("Search", {
+        search_string: searchTerm.trim(),
+      });
+    }
+    dispatch(setFilters({ search: searchTerm }));
+    dispatch(fetchProductsByFilters({ search: searchTerm }));
     navigate(`/collections/all/?search=${searchTerm}`);
     setIsOpen(false);
   };

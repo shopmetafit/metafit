@@ -5,6 +5,7 @@ import { CheckCircle, Package, Truck, CreditCard, MapPin, ReceiptText } from "lu
 
 import { clearCart } from "../redux/slices/cartSlice";
 import { clearReferralContext } from "../services/referralStorage";
+import { trackMetaEvent } from "../lib/meta-pixel";
 
 const OrderConfirmationPage = () => {
   const dispatch = useDispatch();
@@ -12,7 +13,7 @@ const OrderConfirmationPage = () => {
   const { checkout, loading } = useSelector((state) => state.checkout);
   const { user } = useSelector((state) => state.auth);
 
-  // Clear the cart when order is confirm
+  // Clear the cart when order is confirmed
   useEffect(() => {
     if (checkout && checkout._id) {
       dispatch(clearCart());
@@ -27,6 +28,40 @@ const OrderConfirmationPage = () => {
       }, 2000);
     }
   }, [checkout, dispatch, navigate, loading, user]);
+
+  // Meta Pixel - Purchase Event (Fires ONLY on confirmed paid orders, deduplicated per order)
+  useEffect(() => {
+    if (!checkout || !checkout._id) return;
+
+    const isConfirmedPaid =
+      checkout.isPaid === true ||
+      checkout.paymentStatus === "paid" ||
+      checkout.paymentStatus === "Paid";
+
+    if (!isConfirmedPaid) return;
+
+    const purchaseKey = `meta_pixel_purchase_${checkout._id}`;
+    const alreadyTracked = localStorage.getItem(purchaseKey);
+
+    if (!alreadyTracked) {
+      localStorage.setItem(purchaseKey, "true");
+
+      const itemsList = checkout.orderItems || checkout.checkoutItems || [];
+      const contentIds = itemsList.map((item) => item.productId || item._id);
+      const numItems = itemsList.reduce(
+        (acc, item) => acc + Number(item.quantity || item.qty || 1),
+        0
+      );
+
+      trackMetaEvent("Purchase", {
+        content_ids: contentIds,
+        content_type: "product",
+        num_items: numItems,
+        value: Number(checkout.totalPrice || 0),
+        currency: "INR",
+      });
+    }
+  }, [checkout]);
 
   const calculateEstimateDelivery = (createdAt) => {
     const orderDate = new Date(createdAt);

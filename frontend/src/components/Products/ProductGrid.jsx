@@ -4,194 +4,635 @@ import { addToCart } from "../../redux/slices/cartSlice";
 import { addToWishlist } from "../../redux/slices/wishlistSlice";
 import { toast } from "sonner";
 import { useState } from "react";
+import { trackMetaEvent } from "../../lib/meta-pixel";
+
 import {
   Heart,
   Star,
   CheckCircle2,
-  Leaf,
-  Eye,
+  ShieldCheck,
   Activity,
   ShoppingCart,
-  Truck,
-  ShieldCheck,
-  Award
 } from "lucide-react";
 
-const ProductGrid = ({ products, loading, error, onProductClick }) => {
+const ProductGrid = ({
+  products,
+  loading,
+  error,
+  onProductClick,
+}) => {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
-  const guestId = useSelector((state) => state.auth.guestId);
-  const [hoveredImage, setHoveredImage] = useState({});
-  const [addingId, setAddingId] = useState(null);
 
-  const handleAddToCart = (e, product, variant = null) => {
-    e.preventDefault();
-    setAddingId(product._id);
-    dispatch(
-      addToCart({
-        productId: product._id,
-        quantity: 1,
-        size: null,
-        color: null,
-        guestId,
-        userId: user?._id,
-        variant: variant ? { label: variant.label, price: variant.price } : null,
-      })
-    )
-      .then(() => toast.success("Product added to cart!", { duration: 1500 }))
-      .catch(() => toast.error("Failed to add product!", { duration: 1500 }))
-      .finally(() => setAddingId(null));
-  };
+  const user = useSelector(
+    (state) => state.auth.user
+  );
 
-  const handleAddToWishlist = (e, product) => {
+  const guestId = useSelector(
+    (state) => state.auth.guestId
+  );
+
+  const [hoveredImage, setHoveredImage] =
+    useState({});
+
+  const [addingId, setAddingId] =
+    useState(null);
+
+  /*
+  ============================================================
+  ADD TO CART
+  ============================================================
+  */
+
+  const handleAddToCart = async (
+    e,
+    product,
+    variant = null
+  ) => {
     e.preventDefault();
-    if (!user) {
-      toast.error("Please log in to save items to your wishlist");
+    e.stopPropagation();
+
+    if (!product?._id) {
+      toast.error(
+        "Product ID not available"
+      );
       return;
     }
-    dispatch(addToWishlist({ product, user }));
-    toast.success("Added to Wishlist");
+
+    setAddingId(product._id);
+
+    try {
+      /*
+      --------------------------------------------------------
+      PRODUCT ID MUST BE MONGODB OBJECT ID
+      --------------------------------------------------------
+      */
+
+      const result = await dispatch(
+        addToCart({
+          productId:
+            product._id,
+
+          quantity: 1,
+
+          size: null,
+
+          color: null,
+
+          guestId,
+
+          userId: user?._id,
+
+          variant: variant
+            ? {
+                label:
+                  variant.label,
+
+                price:
+                  variant.discountPrice ||
+                  variant.price,
+              }
+            : null,
+        })
+      );
+
+      /*
+      --------------------------------------------------------
+      CHECK REDUX ERROR
+      --------------------------------------------------------
+      */
+
+      if (result?.error) {
+        throw new Error(
+          result.error.message ||
+            "Failed to add product to cart"
+        );
+      }
+
+      /*
+      --------------------------------------------------------
+      META PIXEL - ADD TO CART
+      --------------------------------------------------------
+      */
+
+      const itemPrice = Number(
+        (
+          variant
+            ? variant.discountPrice ||
+              variant.price
+            : null
+        ) ||
+          product.discountPrice ||
+          product.price ||
+          0
+      );
+
+      trackMetaEvent(
+        "AddToCart",
+        {
+          content_ids: [
+            product._id,
+          ],
+
+          content_name:
+            product.name,
+
+          content_type:
+            "product",
+
+          value:
+            itemPrice,
+
+          currency:
+            "INR",
+
+          quantity: 1,
+        }
+      );
+
+      /*
+      --------------------------------------------------------
+      SUCCESS
+      --------------------------------------------------------
+      */
+
+      toast.success(
+        "Product added to cart!",
+        {
+          duration: 1500,
+        }
+      );
+    } catch (cartError) {
+      console.error(
+        "ProductGrid AddToCart error:",
+        cartError
+      );
+
+      toast.error(
+        cartError?.message ||
+          "Failed to add product!",
+        {
+          duration: 1500,
+        }
+      );
+    } finally {
+      setAddingId(null);
+    }
   };
 
-  if (loading) return <p className="text-center py-10">Loading...</p>;
-  if (error)
-    return <p className="text-center text-red-600 py-10">Error: {error}</p>;
+  /*
+  ============================================================
+  ADD TO WISHLIST
+  ============================================================
+  */
+
+  const handleAddToWishlist = async (
+    e,
+    product
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      toast.error(
+        "Please log in to save items to your wishlist"
+      );
+
+      return;
+    }
+
+    try {
+      const result = await dispatch(
+        addToWishlist({
+          product,
+          user,
+        })
+      );
+
+      if (result?.error) {
+        throw new Error(
+          result.error.message ||
+            "Failed to add to wishlist"
+        );
+      }
+
+      /*
+      --------------------------------------------------------
+      META PIXEL - ADD TO WISHLIST
+      --------------------------------------------------------
+      */
+
+      trackMetaEvent(
+        "AddToWishlist",
+        {
+          content_ids: [
+            product._id,
+          ],
+
+          content_name:
+            product.name,
+
+          content_type:
+            "product",
+
+          value: Number(
+            product.discountPrice ||
+              product.price ||
+              0
+          ),
+
+          currency:
+            "INR",
+        }
+      );
+
+      toast.success(
+        "Added to Wishlist"
+      );
+    } catch (wishlistError) {
+      console.error(
+        "Wishlist error:",
+        wishlistError
+      );
+
+      toast.error(
+        wishlistError?.message ||
+          "Failed to add to wishlist"
+      );
+    }
+  };
+
+  /*
+  ============================================================
+  LOADING
+  ============================================================
+  */
+
+  if (loading) {
+    return (
+      <p className="text-center py-10">
+        Loading...
+      </p>
+    );
+  }
+
+  /*
+  ============================================================
+  ERROR
+  ============================================================
+  */
+
+  if (error) {
+    return (
+      <p className="text-center text-red-600 py-10">
+        Error: {error}
+      </p>
+    );
+  }
+
+  /*
+  ============================================================
+  UI
+  ============================================================
+  */
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-      {products && products.length > 0 ? (
-        products.map((product) => {
-          const imageSrc = hoveredImage[product._id] ||
-            (product.images && product.images.length > 0 && product.images[0].url
-              ? product.images[0].url
-              : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png");
 
-          return (
-            <div
-              key={product._id}
-              className="bg-white rounded-[16px] sm:rounded-[24px] shadow-sm border border-gray-100 p-2 sm:p-3 flex flex-col h-full relative group transition-shadow hover:shadow-md"
-              onMouseEnter={() => {
-                if (product.images?.length > 1) {
-                  setHoveredImage({ [product._id]: product.images[1].url });
+      {products &&
+      products.length > 0 ? (
+        products.map(
+          (product) => {
+
+            const imageSrc =
+              hoveredImage[
+                product._id
+              ] ||
+              (
+                product.images &&
+                product.images.length >
+                  0 &&
+                product.images[0]
+                  ?.url
+              )
+                ? product.images[0]
+                    .url
+                : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png";
+
+            return (
+              <div
+                key={
+                  product._id
                 }
-              }}
-              onMouseLeave={() => setHoveredImage({})}
-            >
-              <Link to={`/product/${product.slug || product._id}`} className="flex flex-col flex-1" onClick={() => onProductClick && onProductClick()}>
-                {/* Image Section */}
-                <div className="bg-[#fcf8f2] rounded-[12px] sm:rounded-[20px] aspect-[4/3] w-full relative overflow-hidden flex items-center justify-center group-hover:bg-[#f6f0e6] transition-colors">
+                className="bg-white rounded-[16px] sm:rounded-[24px] shadow-sm border border-gray-100 p-2 sm:p-3 flex flex-col h-full relative group transition-shadow hover:shadow-md"
+                onMouseEnter={() => {
+                  if (
+                    product.images
+                      ?.length > 1
+                  ) {
+                    setHoveredImage({
+                      [product._id]:
+                        product
+                          .images[1]
+                          .url,
+                    });
+                  }
+                }}
+                onMouseLeave={() =>
+                  setHoveredImage(
+                    {}
+                  )
+                }
+              >
 
-                  {/* Background Blurred Image */}
-                  <div
-                    className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 scale-110 group-hover:opacity-50 transition-opacity z-0"
-                    style={{ backgroundImage: `url(${imageSrc})` }}
-                  ></div>
+                <Link
+                  to={`/product/${
+                    product.slug ||
+                    product._id
+                  }`}
+                  className="flex flex-col flex-1"
+                  onClick={() =>
+                    onProductClick &&
+                    onProductClick()
+                  }
+                >
 
-                  {/* BESTSELLER Tag */}
-                  {(product.tags?.includes("BESTSELLER") || product.countInStock > 100) && (
-                    <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#1e4620] text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10 shadow-sm">
-                      <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-current" /> <span className="hidden sm:inline">BESTSELLER</span><span className="sm:hidden">HOT</span>
-                    </div>
-                  )}
+                  {/* ==================================================
+                      IMAGE
+                  ================================================== */}
 
-                  {/* Wishlist */}
-                  <button
-                    onClick={(e) => handleAddToWishlist(e, product)}
-                    className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/80 backdrop-blur-sm w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-sm z-10 text-gray-500 hover:text-red-500 transition-colors"
-                  >
-                    <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-                  </button>
+                  <div className="bg-[#fcf8f2] rounded-[12px] sm:rounded-[20px] aspect-[4/3] w-full relative overflow-hidden flex items-center justify-center group-hover:bg-[#f6f0e6] transition-colors">
 
-                  {/* Discount Ribbon */}
-                  {product.price && product.discountPrice && (
+                    {/* BLURRED BACKGROUND */}
+
                     <div
-                      className="absolute top-9 right-2 sm:top-12 sm:right-3 bg-[#e8cd98] text-[#5c4923] font-bold text-center leading-tight px-1.5 py-1 sm:px-2 sm:py-1.5 z-10 shadow-sm"
-                      style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%)' }}
-                    >
-                      <div className="text-[9px] sm:text-[11px] leading-tight">{Math.round(((product.price - product.discountPrice) / product.price) * 100)}%</div>
-                      <div className="text-[7px] sm:text-[8px] leading-tight">OFF</div>
-                    </div>
-                  )}
+                      className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 scale-110 group-hover:opacity-50 transition-opacity z-0"
+                      style={{
+                        backgroundImage: `url(${imageSrc})`,
+                      }}
+                    />
 
-                  <img
-                    src={imageSrc}
-                    alt={product.name}
-                    className="w-full h-full object-contain p-3 sm:p-6 relative z-0 mix-blend-multiply drop-shadow-lg transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
+                    {/* BESTSELLER */}
 
-                {/* Content Section */}
-                <div className="mt-2 sm:mt-4 flex flex-col flex-1 px-1 sm:px-1.5">
+                    {(
+                      product.tags?.includes(
+                        "BESTSELLER"
+                      ) ||
+                      product.countInStock >
+                        100
+                    ) && (
+                      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#1e4620] text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10 shadow-sm">
 
-                  {/* Brand */}
-                  <div className="flex items-center gap-1 mb-0.5 sm:mb-1 text-[#1e4620]">
-                    <span className="text-[9px] sm:text-xs font-semibold truncate max-w-[100px] sm:max-w-none">{product.brand || "Metafit Wellness"}</span>
-                    <CheckCircle2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                  </div>
+                        <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-current" />
 
-                  {/* Title */}
-                  <h3 className="text-sm sm:text-2xl font-serif text-gray-900 leading-tight mb-1 line-clamp-2">{product.name}</h3>
-
-                  {/* Subtitle */}
-                  <p className="text-[10px] sm:text-[13px] text-gray-500 mb-1 sm:mb-2 capitalize truncate">
-                    {product.category || 'Nutrition'} {product.subCategory && <><span className="mx-0.5 sm:mx-1 text-gray-300">|</span> {product.subCategory}</>}
-                  </p>
-
-                  {/* Ratings */}
-                  <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#f5a623] text-[#f5a623]" />
-                    ))}
-                    <span className="text-[10px] sm:text-sm font-bold text-gray-900 ml-0.5 sm:ml-1">4.8</span>
-                    <span className="text-[9px] sm:text-[11px] text-gray-500 font-medium hidden sm:inline">(326)</span>
-                  </div>
-
-                  {/* Tags (Wellness Goals) */}
-                  {(product.wellnessGoal && product.wellnessGoal.length > 0) ? (
-                    <div className="inline-flex items-center gap-1 sm:gap-2 bg-[#eef7f0] text-[#1e4620] px-1.5 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg mb-2 sm:mb-3 text-[9px] sm:text-[11px] font-bold w-fit truncate max-w-full">
-                      <Activity className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                      <span className="truncate">{product.wellnessGoal[0]}</span>
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center gap-1 sm:gap-2 bg-[#eef7f0] text-[#1e4620] px-1.5 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg mb-2 sm:mb-3 text-[9px] sm:text-[11px] font-bold w-fit truncate max-w-full">
-                      <Activity className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" /> <span className="truncate">Wellness</span>
-                    </div>
-                  )}
-
-                  {/* Price & Add to Cart */}
-                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
-                    <div className="flex flex-col">
-                      <span className="text-sm sm:text-lg font-bold text-gray-900 leading-none">
-                        ₹{product.discountPrice || product.price}
-                      </span>
-                      {product.discountPrice && (
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-400 line-through mt-1">
-                          ₹{product.price}
+                        <span className="hidden sm:inline">
+                          BESTSELLER
                         </span>
-                      )}
-                    </div>
+
+                        <span className="sm:hidden">
+                          HOT
+                        </span>
+                      </div>
+                    )}
+
+                    {/* WISHLIST */}
 
                     <button
-                      onClick={(e) => handleAddToCart(e, product, product.hasVariants ? product.variants[0] : null)}
-                      disabled={addingId === product._id}
-                      className="bg-[#1e4620] text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-[12px] font-semibold hover:bg-[#153216] transition-colors shadow-sm disabled:bg-gray-400 flex-shrink-0"
+                      type="button"
+                      onClick={(e) =>
+                        handleAddToWishlist(
+                          e,
+                          product
+                        )
+                      }
+                      className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-white/80 backdrop-blur-sm w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shadow-sm z-10 text-gray-500 hover:text-red-500 transition-colors"
                     >
-                      <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      {addingId === product._id ? "..." : "Add to Cart"}
+                      <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
+
+                    {/* DISCOUNT */}
+
+                    {product.price &&
+                      product.discountPrice && (
+                        <div
+                          className="absolute top-9 right-2 sm:top-12 sm:right-3 bg-[#e8cd98] text-[#5c4923] font-bold text-center leading-tight px-1.5 py-1 sm:px-2 sm:py-1.5 z-10 shadow-sm"
+                          style={{
+                            clipPath:
+                              "polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%)",
+                          }}
+                        >
+                          <div className="text-[9px] sm:text-[11px] leading-tight">
+                            {Math.round(
+                              ((product.price -
+                                product.discountPrice) /
+                                product.price) *
+                                100
+                            )}
+                            %
+                          </div>
+
+                          <div className="text-[7px] sm:text-[8px] leading-tight">
+                            OFF
+                          </div>
+                        </div>
+                      )}
+
+                    {/* PRODUCT IMAGE */}
+
+                    <img
+                      src={
+                        imageSrc
+                      }
+                      alt={
+                        product.name
+                      }
+                      className="w-full h-full object-contain p-3 sm:p-6 relative z-0 mix-blend-multiply drop-shadow-lg transition-transform duration-500 group-hover:scale-105"
+                    />
                   </div>
-                </div>
-              </Link>
-            </div>
-          );
-        })
+
+                  {/* ==================================================
+                      CONTENT
+                  ================================================== */}
+
+                  <div className="mt-2 sm:mt-4 flex flex-col flex-1 px-1 sm:px-1.5">
+
+                    {/* BRAND */}
+
+                    <div className="flex items-center gap-1 mb-0.5 sm:mb-1 text-[#1e4620]">
+
+                      <span className="text-[9px] sm:text-xs font-semibold truncate max-w-[100px] sm:max-w-none">
+                        {
+                          product.brand ||
+                          "Metafit Wellness"
+                        }
+                      </span>
+
+                      <CheckCircle2 className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                    </div>
+
+                    {/* TITLE */}
+
+                    <h3 className="text-sm sm:text-2xl font-serif text-gray-900 leading-tight mb-1 line-clamp-2">
+                      {
+                        product.name
+                      }
+                    </h3>
+
+                    {/* CATEGORY */}
+
+                    <p className="text-[10px] sm:text-[13px] text-gray-500 mb-1 sm:mb-2 capitalize truncate">
+
+                      {
+                        product.category ||
+                        "Nutrition"
+                      }
+
+                      {product.subCategory && (
+                        <>
+                          <span className="mx-0.5 sm:mx-1 text-gray-300">
+                            |
+                          </span>
+
+                          {
+                            product.subCategory
+                          }
+                        </>
+                      )}
+                    </p>
+
+                    {/* RATINGS */}
+
+                    <div className="flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3">
+
+                      {[
+                        ...Array(5),
+                      ].map(
+                        (
+                          _,
+                          i
+                        ) => (
+                          <Star
+                            key={i}
+                            className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-[#f5a623] text-[#f5a623]"
+                          />
+                        )
+                      )}
+
+                      <span className="text-[10px] sm:text-sm font-bold text-gray-900 ml-0.5 sm:ml-1">
+                        4.8
+                      </span>
+
+                      <span className="text-[9px] sm:text-[11px] text-gray-500 font-medium hidden sm:inline">
+                        (326)
+                      </span>
+                    </div>
+
+                    {/* WELLNESS GOAL */}
+
+                    {product.wellnessGoal &&
+                    product.wellnessGoal
+                      .length >
+                      0 ? (
+                      <div className="inline-flex items-center gap-1 sm:gap-2 bg-[#eef7f0] text-[#1e4620] px-1.5 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg mb-2 sm:mb-3 text-[9px] sm:text-[11px] font-bold w-fit truncate max-w-full">
+
+                        <Activity className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+
+                        <span className="truncate">
+                          {
+                            product
+                              .wellnessGoal[0]
+                          }
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="inline-flex items-center gap-1 sm:gap-2 bg-[#eef7f0] text-[#1e4620] px-1.5 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg mb-2 sm:mb-3 text-[9px] sm:text-[11px] font-bold w-fit truncate max-w-full">
+
+                        <Activity className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+
+                        <span className="truncate">
+                          Wellness
+                        </span>
+                      </div>
+                    )}
+
+                    {/* ==================================================
+                        PRICE + CART
+                    ================================================== */}
+
+                    <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+
+                      <div className="flex flex-col">
+
+                        <span className="text-sm sm:text-lg font-bold text-gray-900 leading-none">
+                          ₹
+                          {
+                            product.discountPrice ||
+                            product.price
+                          }
+                        </span>
+
+                        {product.discountPrice && (
+                          <span className="text-[10px] sm:text-xs font-medium text-gray-400 line-through mt-1">
+                            ₹
+                            {
+                              product.price
+                            }
+                          </span>
+                        )}
+                      </div>
+
+                      {/* ADD CART BUTTON */}
+
+                      <button
+                        type="button"
+                        onClick={(e) =>
+                          handleAddToCart(
+                            e,
+                            product,
+                            product.hasVariants
+                              ? product.variants?.[0]
+                              : null
+                          )
+                        }
+                        disabled={
+                          addingId ===
+                          product._id
+                        }
+                        className="bg-[#1e4620] text-white px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-[12px] font-semibold hover:bg-[#153216] transition-colors shadow-sm disabled:bg-gray-400 flex-shrink-0"
+                      >
+
+                        <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+
+                        {addingId ===
+                        product._id
+                          ? "..."
+                          : "Add to Cart"}
+                      </button>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+            );
+          }
+        )
       ) : (
         <div className="col-span-full">
+
           <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-12 text-center max-w-2xl mx-auto">
+
             <ShieldCheck className="w-20 h-20 mx-auto text-gray-300 mb-6" />
-            <h2 className="text-2xl font-serif text-gray-900 mb-2">No Products Found</h2>
-            <p className="text-gray-500 text-sm mb-6">We couldn't find any products matching your criteria. Try adjusting your filters.</p>
-            <Link to="/collections/all" className="inline-block px-6 py-3 bg-[#1e4620] text-white rounded-xl hover:bg-[#153216] transition-colors font-semibold shadow-md">
+
+            <h2 className="text-2xl font-serif text-gray-900 mb-2">
+              No Products Found
+            </h2>
+
+            <p className="text-gray-500 text-sm mb-6">
+              We couldn't find any products matching your criteria. Try adjusting your filters.
+            </p>
+
+            <Link
+              to="/collections/all"
+              className="inline-block px-6 py-3 bg-[#1e4620] text-white rounded-xl hover:bg-[#153216] transition-colors font-semibold shadow-md"
+            >
               Browse All Products
             </Link>
           </div>

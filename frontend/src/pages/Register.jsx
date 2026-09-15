@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { mergeCart } from "../redux/slices/cartSlice";
 import { toast } from "sonner";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { trackMetaEvent } from "../lib/meta-pixel";
 
 const Register = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
@@ -105,7 +106,11 @@ const Register = () => {
       return;
     }
     const result = await dispatch(registerUser(formData));
-    if (registerUser.rejected.match(result)) {
+    if (registerUser.fulfilled.match(result)) {
+      trackMetaEvent("CompleteRegistration", {
+        status: "success",
+      });
+    } else if (registerUser.rejected.match(result)) {
       const error = result.payload;
       if (error?.errors) error.errors.forEach((e) => toast.error(e.message));
       else if (error?.message) toast.error(error.message);
