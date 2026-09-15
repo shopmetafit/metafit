@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { MapPin, Search, SlidersHorizontal, X, ChevronRight } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { SlidersHorizontal, X } from "lucide-react";
 
 import FilterSidebar from "../components/Products/FilterSidebar";
-
+import GoalBar from "../components/Products/GoalBar";
 import ProductGrid from "../components/Products/ProductGrid";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -24,8 +24,7 @@ const categorySlugToName = {
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [allLocations, setAllLocations] = useState([]);
+  const observerRef = useRef(null);
 
   const navigate = useNavigate();
   const { collection, categorySlug } = useParams();
@@ -53,8 +52,18 @@ const CollectionPage = () => {
   };
 
   const dispatch = useDispatch();
-  const { products, loading, error } = useSelector((state) => state.products);
+  const {
+    products,
+    loading,
+    loadingMore,
+    hasMore,
+    totalProducts,
+    currentPage,
+    error,
+    wellnessGoals,
+  } = useSelector((state) => state.products);
 
+  // Initial load or when filters change -> reset to page 1
   useEffect(() => {
     const params = { collection, ...queryParams };
     if (activeCategory) {
@@ -64,13 +73,47 @@ const CollectionPage = () => {
     dispatch(fetchProductsByFilters(params));
   }, [dispatch, collection, categorySlug, searchParams]);
 
-  // Derive all unique locations from the (unfiltered) product list
-  useEffect(() => {
-    if (products && products.length) {
-      const locs = [...new Set(products.map((p) => p.location).filter(Boolean))];
-      setAllLocations(locs);
+  // Load next batch when user scrolls near the bottom
+  const loadNextBatch = useCallback(() => {
+    if (!loading && !loadingMore && hasMore) {
+      const params = {
+        collection,
+        ...queryParams,
+        page: (currentPage || 1) + 1,
+        limit: PAGE_LIMIT,
+      };
+      delete params.location;
+      dispatch(fetchProductsByFilters(params));
     }
-  }, [products]);
+  }, [
+    dispatch,
+    collection,
+    queryParams,
+    currentPage,
+    hasMore,
+    loading,
+    loadingMore,
+  ]);
+
+  // Infinite scroll Intersection Observer
+  useEffect(() => {
+    const node = observerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadNextBatch();
+        }
+      },
+      { rootMargin: "300px" }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [loadNextBatch]);
+
+
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -83,25 +126,22 @@ const CollectionPage = () => {
     navigate(`/collections/all?${params.toString()}`);
   };
 
-  // Active filter chips derived from URL params and selected location
+  // Active filter chips derived from URL params (Sidebar filters like brand, search, price)
   const activeFilters = [];
-  if (queryParams.category) activeFilters.push({ key: "category", label: queryParams.category });
+  if (queryParams.category && !queryParams.goal) {
+    activeFilters.push({ key: "category", label: `Category: ${queryParams.category}` });
+  }
   if (queryParams.brand) activeFilters.push({ key: "brand", label: `Brand: ${queryParams.brand}` });
-  if (queryParams.search) activeFilters.push({ key: "search", label: `"${queryParams.search}"` });
-  if (selectedLocation) activeFilters.push({ key: "location", label: `Location: ${selectedLocation}` });
-  if (queryParams.minPrice || queryParams.maxPrice) {
+  if (queryParams.search) activeFilters.push({ key: "search", label: `Search: "${queryParams.search}"` });
 
+  if (queryParams.minPrice || queryParams.maxPrice) {
     activeFilters.push({
       key: "price",
-      label: `₹${queryParams.minPrice || 0} – ₹${queryParams.maxPrice || "∞"}`,
+      label: `Price: ₹${queryParams.minPrice || 0} – ₹${queryParams.maxPrice || "∞"}`,
     });
   }
 
   const removeFilter = (key) => {
-    if (key === "location") {
-      clearLocation();
-      return;
-    }
     const params = new URLSearchParams(searchParams);
     if (key === "price") {
       params.delete("minPrice");
@@ -113,7 +153,6 @@ const CollectionPage = () => {
   };
 
   const clearAllFilters = () => {
-    setSelectedLocation(null);
     setSearchParams(new URLSearchParams());
   };
 
@@ -156,7 +195,7 @@ const CollectionPage = () => {
         robots={robotsDirective}
       />
 
-      <div className="max-w-screen-2xl mx-auto px-4 pt-2.5 pb-4 flex gap-4 items-start">
+      <div className="max-w-screen-2xl mx-auto px-4 pt-2 pb-4 flex gap-4 items-start">
 
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-[11px] self-start">
@@ -172,50 +211,23 @@ const CollectionPage = () => {
         </aside>
 
         {/* ── Main Content ── */}
-        <div className="flex-1 min-w-0 space-y-3">
-          {/* ── Location Bar ── */}
-          {allLocations.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm px-4 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar relative">
-              <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
-              {/* All locations button to clear selection */}
-              <button
-                key="all"
-                onClick={() => {
-                  setSelectedLocation(null);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === null ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
-              >
-                All
-              </button>
-              {allLocations.map((loc) => (
-                <button
-                  key={loc}
-                  onClick={() => {
-                    setSelectedLocation(selectedLocation === loc ? null : loc);
-                  }}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-md border transition-colors flex-shrink-0 ${selectedLocation === loc ? "bg-[#0FB7A3] text-white border-[#0FB7A3]" : "bg-white text-[#047ca8] border-[#b3d9e8] hover:bg-[#e8f4f8]"}`}
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  {loc}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* ── Health & Wellness Goal Bar ── */}
+          <GoalBar />
 
-
-          {/* ── Active Filter Chips ── */}
+          {/* ── Active Secondary Filter Chips (Only shown when Brand, Price, Search are active) ── */}
           {activeFilters.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm px-4 py-2.5 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium flex-shrink-0">Active filters:</span>
+            <div className="bg-white rounded-lg shadow-xs border border-slate-200/80 px-3 py-1.5 flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-slate-500 font-medium flex-shrink-0">Filters:</span>
               {activeFilters.map((f) => (
                 <span
                   key={f.key}
-                  className="inline-flex items-center gap-1 bg-[#e8f4f8] border border-[#b3d9e8] text-[#047ca8] text-xs font-semibold px-2.5 py-1 rounded-full"
+                  className="inline-flex items-center gap-1 bg-teal-50 border border-teal-200 text-[#0a8274] text-xs font-medium px-2 py-0.5 rounded-md"
                 >
-                  <span className="capitalize">{f.label}</span>
+                  <span>{f.label}</span>
                   <button
                     onClick={() => removeFilter(f.key)}
-                    className="hover:text-red-500 transition-colors ml-0.5"
+                    className="hover:text-red-500 transition-colors ml-0.5 cursor-pointer"
                     aria-label={`Remove ${f.label} filter`}
                   >
                     <X className="h-3 w-3" />
@@ -225,7 +237,7 @@ const CollectionPage = () => {
               {activeFilters.length > 1 && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-xs text-red-500 hover:text-red-700 font-semibold underline ml-1 flex-shrink-0"
+                  className="text-xs text-red-500 hover:text-red-700 font-medium underline ml-1 flex-shrink-0 cursor-pointer"
                 >
                   Clear all
                 </button>
@@ -238,21 +250,21 @@ const CollectionPage = () => {
             <div>
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">SHOP</p>
               <h1 className="text-lg font-bold text-gray-900">
-                All Products <span className="text-gray-500 font-normal text-sm">({selectedLocation ? products.filter(p => p.location === selectedLocation).length : products?.length || 0})</span>
+                All Products <span className="text-gray-500 font-normal text-sm">({totalProducts || products?.length || 0})</span>
               </h1>
             </div>
-            {/* <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="flex items-center gap-1.5 text-gray-700 hover:text-gray-900 font-medium text-sm transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-              Sort
-            </button> */}
           </div>
 
           {/* ── Product Grid ── */}
           <div className="bg-white rounded-lg shadow-sm p-4">
-            <ProductGrid products={selectedLocation ? products.filter(p => p.location === selectedLocation) : products} loading={loading} error={error} onProductClick={clearLocation} />
+            <ProductGrid
+              products={products}
+              loading={loading}
+              loadingMore={loadingMore}
+              error={error}
+            />
+            {/* Infinite Scroll Sentinel for Amazon-style progressive batching */}
+            <div ref={observerRef} className="h-4 w-full" />
           </div>
 
           {/* ── FAQ ── */}
@@ -323,7 +335,7 @@ const CollectionPage = () => {
                 onClick={closeSidebar}
                 className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-bold py-3 rounded-lg transition-colors"
               >
-                Show {products?.length || 0} Results
+                Show {totalProducts || products?.length || 0} Results
               </button>
             </div>
           </div>

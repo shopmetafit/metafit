@@ -23,6 +23,10 @@ export const fetchProductsByFilters = createAsyncThunk(
     location,
     brand,
     limit,
+    page,
+    goal,
+    wellnessGoal,
+    subGoal,
   }) => {
     const query = new URLSearchParams();
     if (collection) query.append("collection", collection);
@@ -38,7 +42,11 @@ export const fetchProductsByFilters = createAsyncThunk(
     if (material) query.append("material", material);
     if (location) query.append("location", location);
     if (brand) query.append("brand", brand);
+    if (goal) query.append("goal", goal);
+    if (wellnessGoal) query.append("wellnessGoal", wellnessGoal);
+    if (subGoal) query.append("subGoal", subGoal);
     if (limit) query.append("limit", limit);
+    if (page) query.append("page", page);
 
     const response = await axios.get(
       `${import.meta.env.VITE_BACKEND_URL}/api/products?${query.toString()}`
@@ -109,6 +117,23 @@ export const fetchSimilarProduct = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch dynamic wellness goals from active products
+export const fetchWellnessGoals = createAsyncThunk(
+  "products/fetchWellnessGoals",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/products/wellness-goals`
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch wellness goals"
+      );
+    }
+  }
+);
+
 const productsSlice = createSlice({
   name: "products",
   initialState: {
@@ -116,7 +141,16 @@ const productsSlice = createSlice({
     allProducts: [],
     selectedProduct: null,
     similarProducts: [],
+    wellnessGoals: [],
+    wellnessGoalsLoading: false,
+    wellnessGoalsError: null,
+    totalAllProductsCount: 0,
     loading: false,
+    loadingMore: false,
+    hasMore: true,
+    totalProducts: 0,
+    currentPage: 1,
+    totalPages: 1,
     error: null,
     filters: {
       category: "",
@@ -159,16 +193,46 @@ const productsSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProductsByFilters.pending, (state) => {
-        state.loading = true;
+      .addCase(fetchProductsByFilters.pending, (state, action) => {
+        const isNextPage = action.meta.arg?.page > 1;
+        if (isNextPage) {
+          state.loadingMore = true;
+        } else {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchProductsByFilters.fulfilled, (state, action) => {
         state.loading = false;
-        state.products = Array.isArray(action.payload) ? action.payload : [];
+        state.loadingMore = false;
+        const payloadData = action.payload;
+        const isPaginated = payloadData && !Array.isArray(payloadData) && Array.isArray(payloadData.products);
+        const newProducts = isPaginated ? payloadData.products : (Array.isArray(payloadData) ? payloadData : []);
+        const reqPage = action.meta.arg?.page || 1;
+
+        if (reqPage > 1) {
+          const existingIds = new Set(state.products.map((p) => p._id));
+          const filtered = newProducts.filter((p) => !existingIds.has(p._id));
+          state.products = [...state.products, ...filtered];
+        } else {
+          state.products = newProducts;
+        }
+
+        if (isPaginated) {
+          state.totalProducts = payloadData.totalProducts;
+          state.totalPages = payloadData.totalPages;
+          state.currentPage = payloadData.page;
+          state.hasMore = payloadData.hasMore;
+        } else {
+          state.totalProducts = state.products.length;
+          state.totalPages = 1;
+          state.currentPage = 1;
+          state.hasMore = false;
+        }
       })
       .addCase(fetchProductsByFilters.rejected, (state, action) => {
         state.loading = false;
+        state.loadingMore = false;
         state.error = action.error.message;
       })
       // handle fetching single product details
@@ -226,6 +290,28 @@ const productsSlice = createSlice({
       .addCase(fetchAllProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      // fetch wellness goals
+      .addCase(fetchWellnessGoals.pending, (state) => {
+        state.wellnessGoalsLoading = true;
+        state.wellnessGoalsError = null;
+      })
+      .addCase(fetchWellnessGoals.fulfilled, (state, action) => {
+        state.wellnessGoalsLoading = false;
+        if (action.payload && typeof action.payload === "object") {
+          state.wellnessGoals = Array.isArray(action.payload.goals)
+            ? action.payload.goals
+            : Array.isArray(action.payload)
+            ? action.payload
+            : [];
+          state.totalAllProductsCount = action.payload.totalAllProducts || 0;
+        } else {
+          state.wellnessGoals = [];
+        }
+      })
+      .addCase(fetchWellnessGoals.rejected, (state, action) => {
+        state.wellnessGoalsLoading = false;
+        state.wellnessGoalsError = action.payload;
       });
   },
 });

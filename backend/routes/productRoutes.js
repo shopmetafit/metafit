@@ -288,6 +288,206 @@ router.get("/categories", async (req, res) => {
   }
 });
 
+// Curated Core Health & Wellness Categories with Subcategories for Top Filter Bar (Strict & 100% Relevant)
+const CORE_WELLNESS_FILTERS = [
+  {
+    id: "hair-care",
+    name: "Hair Care",
+    emoji: "💇‍♀️",
+    buildQuery: () => ({
+      $and: [
+        {
+          $or: [
+            { category: { $regex: /hair/i } },
+            { subCategory: { $regex: /hair/i } },
+            { name: { $regex: /hair|shampoo|scalp|dandruff|shikakai|bhringraj|henna|heena|indigo powder|rosemary|kalonji/i } },
+          ],
+        },
+        { name: { $not: { $regex: /orange peel|beetroot powder|baby soap|baby cream/i } } },
+      ],
+    }),
+    subCategories: [
+      { id: "hair-oils-tonics", name: "Hair Oils & Tonics", emoji: "💧", buildQuery: () => ({ name: { $regex: /oil|tonic|scalp serum|solution|badam|kalonji|methi|rosemary|bhringraj/i } }) },
+      { id: "shampoos-cleansers", name: "Shampoos & Cleansers", emoji: "🧴", buildQuery: () => ({ name: { $regex: /shampoo|cleanser|shikakai|reetha/i } }) },
+      { id: "hair-masks-colors", name: "Hair Packs, Masks & Colors", emoji: "🌿", buildQuery: () => ({ name: { $regex: /mask|henna|heena|indigo|conditioner|hair pack|hair spa/i } }) },
+    ],
+  },
+  {
+    id: "skin-care",
+    name: "Skin Care",
+    emoji: "✨",
+    buildQuery: () => ({
+      $and: [
+        {
+          $or: [
+            { category: { $regex: /skin|face|ubtan|personal care/i } },
+            { subCategory: { $regex: /skin|face|body care|oral care/i } },
+            { name: { $regex: /face|skin|ubtan|cream|serum|gel|rose water|gulab|kajal|lip|scrub|multani|sandalwood|saffron|soap|lotion|body polisher|body wash|d-tan|dtan|kumkumadi/i } },
+          ],
+        },
+        {
+          name: {
+            $not: {
+              $regex: /hair oil|shampoo|hair mask|hair spray|hair solution|hair tonic|hair regrowth|hair protein|ice gel|hair conditioner|hair color|heena|henna|badam methi oil|kalonji oil|coconut oil/i,
+            },
+          },
+        },
+      ],
+    }),
+    subCategories: [
+      { id: "face-wash-cleansers", name: "Face Wash & Cleansers", emoji: "🫧", buildQuery: () => ({ name: { $regex: /face wash|cleanser|scrub|exfoliat/i } }) },
+      { id: "ubtan-face-packs", name: "Ubtan & Face Packs", emoji: "✨", buildQuery: () => ({ name: { $regex: /ubtan|face pack|face mask|multani|sandalwood/i } }) },
+      { id: "creams-serums-gels", name: "Creams, Serums & Gels", emoji: "💧", buildQuery: () => ({ name: { $regex: /cream|serum|gel|rose water|gulab|lotion|kumkumadi/i } }) },
+      { id: "soaps-body-care", name: "Soaps & Body Care", emoji: "🧼", buildQuery: () => ({ name: { $regex: /soap|body wash|body polisher|kajal|lip|d-tan|dtan/i } }) },
+    ],
+  },
+  {
+    id: "health-devices",
+    name: "Health Devices & Gadgets",
+    emoji: "🩺",
+    buildQuery: () => ({
+      $or: [
+        { category: { $regex: /monitoring|device|tools|panchakarma equipment/i } },
+        { name: { $regex: /cooler bag|cooler bottle|cooling wallet|glucometer|steamer|eye cup|yantra|tarangini|respyr|jalneti/i } },
+      ],
+    }),
+    subCategories: [
+      { id: "insulin-coolers", name: "Insulin Coolers & Cases", emoji: "❄️", buildQuery: () => ({ name: { $regex: /cooler|cooling|bottle|wallet/i } }) },
+      { id: "steamers-therapy", name: "Steamers & Therapy Equipment", emoji: "💨", buildQuery: () => ({ name: { $regex: /steamer|yantra|tarangini/i } }) },
+      { id: "diagnostic-wellness", name: "Diagnostic & Wellness Tools", emoji: "🩺", buildQuery: () => ({ name: { $regex: /glucometer|eye cup|respyr|jalneti/i } }) },
+    ],
+  },
+  {
+    id: "nutrition-supplements",
+    name: "Nutrition & Protein",
+    emoji: "🥗",
+    buildQuery: () => ({
+      $and: [
+        {
+          $or: [
+            { category: { $regex: /nutrition|suppliment|supplement|food|snack|protein/i } },
+            { subCategory: { $regex: /protein|snack/i } },
+            { name: { $regex: /protein bite|chips|cookies|sugar|sweetener|jaggery|garlic|millet/i } },
+          ],
+        },
+        { name: { $not: { $regex: /hair protein/i } } },
+      ],
+    }),
+    subCategories: [
+      { id: "protein-energy", name: "Protein Bites & Energy", emoji: "⚡", buildQuery: () => ({ name: { $regex: /protein|bites/i } }) },
+      { id: "millet-snacks", name: "Millet Chips & Healthy Snacks", emoji: "🍪", buildQuery: () => ({ name: { $regex: /chips|cookies|snack|millet/i } }) },
+      { id: "sweeteners-jaggery", name: "Natural Sweeteners & Jaggery", emoji: "🍯", buildQuery: () => ({ name: { $regex: /sugar|sweetener|jaggery/i } }) },
+    ],
+  },
+  {
+    id: "ayurveda-panchakarma",
+    name: "Ayurveda & Panchakarma",
+    emoji: "🌿",
+    buildQuery: () => ({
+      $or: [
+        { category: { $regex: /ayurved|panchakarma|plant|herb|spices/i } },
+        { name: { $regex: /ayurved|shilajit|potli|microgreens|shuddhi|moringa|neem|panchakarma|yantra|jalneti/i } },
+      ],
+    }),
+    subCategories: [
+      { id: "microgreens", name: "Fresh Microgreens & Live Greens", emoji: "🌱", buildQuery: () => ({ name: { $regex: /microgreens/i } }) },
+      { id: "ayurvedic-herbs", name: "Ayurvedic Herbs & Supplements", emoji: "🌿", buildQuery: () => ({ name: { $regex: /shilajit|shuddhi|moringa|neem|powder|herb/i } }) },
+      { id: "panchakarma-therapy", name: "Therapy & Panchakarma Kits", emoji: "🏺", buildQuery: () => ({ name: { $regex: /panchakarma|yantra|jalneti|potli/i } }) },
+    ],
+  },
+  {
+    id: "pain-relief",
+    name: "Pain Relief & Therapy",
+    emoji: "💆",
+    buildQuery: () => ({
+      $or: [
+        { category: { $regex: /pain|therapy/i } },
+        { name: { $regex: /pidanashak|potli|ice gel/i } },
+      ],
+    }),
+    subCategories: [],
+  },
+  {
+    id: "baby-kids",
+    name: "Baby & Kids Care",
+    emoji: "👶",
+    buildQuery: () => ({
+      $or: [
+        { category: { $regex: /baby|kids/i } },
+        { subCategory: { $regex: /baby/i } },
+        { name: { $regex: /baby|bal sparsh|vatsalya/i } },
+      ],
+    }),
+    subCategories: [],
+  },
+  {
+    id: "womens-care",
+    name: "Women's Wellness",
+    emoji: "🌸",
+    buildQuery: () => ({
+      $or: [
+        { category: { $regex: /women/i } },
+        { subCategory: { $regex: /menstrual/i } },
+        { name: { $regex: /bio pads|menstrual/i } },
+      ],
+    }),
+    subCategories: [],
+  },
+];
+
+// @route GET /api/products/wellness-goals
+// @desc Get clean, curated core wellness categories with subcategories and real active product counts
+// @access Public
+router.get("/wellness-goals", async (req, res) => {
+  try {
+    const ProductReadModel = await getProductReadModel();
+    const totalPublished = await ProductReadModel.countDocuments({ isPublished: { $ne: false } });
+
+    const formatted = [];
+    for (const f of CORE_WELLNESS_FILTERS) {
+      const parentQuery = f.buildQuery();
+      const count = await ProductReadModel.countDocuments({
+        isPublished: { $ne: false },
+        ...parentQuery,
+      });
+      if (count > 0) {
+        const subCategories = [];
+        for (const sub of (f.subCategories || [])) {
+          const subQuery = sub.buildQuery();
+          const subCount = await ProductReadModel.countDocuments({
+            isPublished: { $ne: false },
+            $and: [parentQuery, subQuery],
+          });
+          if (subCount > 0) {
+            subCategories.push({
+              id: sub.id,
+              name: sub.name,
+              emoji: sub.emoji,
+              count: subCount,
+            });
+          }
+        }
+
+        formatted.push({
+          id: f.id,
+          name: f.name,
+          emoji: f.emoji,
+          count: count,
+          subCategories,
+        });
+      }
+    }
+
+    res.json({
+      totalAllProducts: totalPublished,
+      goals: formatted,
+    });
+  } catch (error) {
+    console.error("Error fetching wellness goals:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 // @route GET /api/products/categories-full
 // @desc Get all categories with subcategories that have published products
 // @access Public
@@ -640,7 +840,10 @@ router.get("/", async (req, res) => {
       location,
       brand,
       limit,
-      videoUrl
+      videoUrl,
+      goal,
+      wellnessGoal,
+      subGoal,
     } = req.query;
 
     let query = { isPublished: true };
@@ -651,6 +854,32 @@ router.get("/", async (req, res) => {
     if (brand) query.brand = { $in: brand.split(",").map(b => new RegExp(b, "i")) };
     if (material) query.material = { $in: material.split(",") };
     if (location) query.location = { $regex: location, $options: "i" };
+    const targetGoal = goal || wellnessGoal;
+    if (targetGoal && targetGoal.toLowerCase() !== "all") {
+      const matchedFilter = CORE_WELLNESS_FILTERS.find(
+        (f) =>
+          f.id.toLowerCase() === targetGoal.toLowerCase() ||
+          f.name.toLowerCase() === targetGoal.toLowerCase()
+      );
+      if (matchedFilter) {
+        const filterQuery = matchedFilter.buildQuery();
+        query.$and = query.$and || [];
+        query.$and.push(filterQuery);
+
+        if (subGoal && subGoal.toLowerCase() !== "all") {
+          const matchedSub = matchedFilter.subCategories?.find(
+            (s) =>
+              s.id.toLowerCase() === subGoal.toLowerCase() ||
+              s.name.toLowerCase() === subGoal.toLowerCase()
+          );
+          if (matchedSub) {
+            query.$and.push(matchedSub.buildQuery());
+          }
+        }
+      } else {
+        query.wellnessGoal = { $in: [new RegExp(`^${targetGoal}$`, "i")] };
+      }
+    }
     if (size) query.sizes = { $in: size.split(",") };
     if (color) query.colors = { $in: [color] };
     if (gender) query.gender = gender;
@@ -690,6 +919,27 @@ router.get("/", async (req, res) => {
 
     // Fetch products, apply sorting & limit
     const ProductReadModel = await getProductReadModel();
+    const pageNum = parseInt(req.query.page, 10);
+    const limitNum = parseInt(req.query.limit, 10);
+
+    if (pageNum && limitNum > 0) {
+      const skip = (pageNum - 1) * limitNum;
+      const totalProducts = await ProductReadModel.countDocuments(query);
+      const products = await ProductReadModel.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+      return res.json({
+        products,
+        page: pageNum,
+        totalPages: Math.ceil(totalProducts / limitNum) || 1,
+        totalProducts,
+        hasMore: skip + products.length < totalProducts,
+      });
+    }
+
     let products = await ProductReadModel.find(query)
       .sort(sort)
       .limit(Number(limit) || 0)

@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { addToCart } from "../../redux/slices/cartSlice";
-import { addToWishlist } from "../../redux/slices/wishlistSlice";
+import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { toast } from "sonner";
 import { useState } from "react";
 import { trackMetaEvent } from "../../lib/meta-pixel";
@@ -84,13 +84,13 @@ const ProductGrid = ({
 
           variant: variant
             ? {
-                label:
-                  variant.label,
+              label:
+                variant.label,
 
-                price:
-                  variant.discountPrice ||
-                  variant.price,
-              }
+              price:
+                variant.discountPrice ||
+                variant.price,
+            }
             : null,
         })
       );
@@ -104,7 +104,7 @@ const ProductGrid = ({
       if (result?.error) {
         throw new Error(
           result.error.message ||
-            "Failed to add product to cart"
+          "Failed to add product to cart"
         );
       }
 
@@ -118,12 +118,12 @@ const ProductGrid = ({
         (
           variant
             ? variant.discountPrice ||
-              variant.price
+            variant.price
             : null
         ) ||
-          product.discountPrice ||
-          product.price ||
-          0
+        product.discountPrice ||
+        product.price ||
+        0
       );
 
       trackMetaEvent(
@@ -169,7 +169,7 @@ const ProductGrid = ({
 
       toast.error(
         cartError?.message ||
-          "Failed to add product!",
+        "Failed to add product!",
         {
           duration: 1500,
         }
@@ -211,7 +211,7 @@ const ProductGrid = ({
       if (result?.error) {
         throw new Error(
           result.error.message ||
-            "Failed to add to wishlist"
+          "Failed to add to wishlist"
         );
       }
 
@@ -236,8 +236,8 @@ const ProductGrid = ({
 
           value: Number(
             product.discountPrice ||
-              product.price ||
-              0
+            product.price ||
+            0
           ),
 
           currency:
@@ -256,7 +256,7 @@ const ProductGrid = ({
 
       toast.error(
         wishlistError?.message ||
-          "Failed to add to wishlist"
+        "Failed to add to wishlist"
       );
     }
   };
@@ -299,7 +299,7 @@ const ProductGrid = ({
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
 
       {products &&
-      products.length > 0 ? (
+        products.length > 0 ? (
         products.map(
           (product) => {
 
@@ -307,15 +307,15 @@ const ProductGrid = ({
               hoveredImage[
                 product._id
               ] ||
-              (
-                product.images &&
-                product.images.length >
+                (
+                  product.images &&
+                  product.images.length >
                   0 &&
-                product.images[0]
-                  ?.url
-              )
+                  product.images[0]
+                    ?.url
+                )
                 ? product.images[0]
-                    .url
+                  .url
                 : "https://cdn-icons-png.flaticon.com/512/4076/4076504.png";
 
             return (
@@ -345,10 +345,9 @@ const ProductGrid = ({
               >
 
                 <Link
-                  to={`/product/${
-                    product.slug ||
+                  to={`/product/${product.slug ||
                     product._id
-                  }`}
+                    }`}
                   className="flex flex-col flex-1"
                   onClick={() =>
                     onProductClick &&
@@ -378,21 +377,21 @@ const ProductGrid = ({
                         "BESTSELLER"
                       ) ||
                       product.countInStock >
-                        100
+                      100
                     ) && (
-                      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#1e4620] text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10 shadow-sm">
+                        <div className="absolute top-2 left-2 sm:top-3 sm:left-3 bg-[#1e4620] text-white text-[8px] sm:text-[10px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full flex items-center gap-1 z-10 shadow-sm">
 
-                        <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-current" />
+                          <Star className="w-2 h-2 sm:w-3 sm:h-3 fill-current" />
 
-                        <span className="hidden sm:inline">
-                          BESTSELLER
-                        </span>
+                          <span className="hidden sm:inline">
+                            BESTSELLER
+                          </span>
 
-                        <span className="sm:hidden">
-                          HOT
-                        </span>
-                      </div>
-                    )}
+                          <span className="sm:hidden">
+                            HOT
+                          </span>
+                        </div>
+                      )}
 
                     {/* WISHLIST */}
 
@@ -425,7 +424,7 @@ const ProductGrid = ({
                               ((product.price -
                                 product.discountPrice) /
                                 product.price) *
-                                100
+                              100
                             )}
                             %
                           </div>
@@ -529,8 +528,8 @@ const ProductGrid = ({
                     {/* WELLNESS GOAL */}
 
                     {product.wellnessGoal &&
-                    product.wellnessGoal
-                      .length >
+                      product.wellnessGoal
+                        .length >
                       0 ? (
                       <div className="inline-flex items-center gap-1 sm:gap-2 bg-[#eef7f0] text-[#1e4620] px-1.5 py-1 sm:px-3 sm:py-1.5 rounded sm:rounded-lg mb-2 sm:mb-3 text-[9px] sm:text-[11px] font-bold w-fit truncate max-w-full">
 
@@ -603,7 +602,7 @@ const ProductGrid = ({
                         <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
 
                         {addingId ===
-                        product._id
+                          product._id
                           ? "..."
                           : "Add to Cart"}
                       </button>

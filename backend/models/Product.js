@@ -195,6 +195,7 @@ productSchema.index({ tags: 1 });
 productSchema.index({ isPublished: 1, priority: -1 });
 productSchema.index({ isPublished: 1, category: 1, priority: -1 });
 productSchema.index({ isPublished: 1, name: 1 });
+productSchema.index({ isPublished: 1, wellnessGoal: 1 });
 
 productSchema.index(
   {
