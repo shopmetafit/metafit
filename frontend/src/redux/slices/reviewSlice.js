@@ -146,6 +146,7 @@ export const createSampleReviews = createAsyncThunk(
 const reviewSlice = createSlice({
   name: "reviews",
   initialState: {
+    productId: null,
     reviews: [],
     userReview: null,
     stats: {
@@ -178,6 +179,7 @@ const reviewSlice = createSlice({
       })
       .addCase(fetchProductReviews.fulfilled, (state, action) => {
         state.loading = false;
+        state.productId = action.meta.arg;
         state.reviews = action.payload.reviews || [];
         state.userReview = action.payload.userReview || null;
         if (action.payload.stats) {

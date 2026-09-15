@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaPlayCircle } from "react-icons/fa";
+import { FaPlayCircle, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
 import ProductReviews from "./ProductReviews";
@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";
 import { addToCart } from "../../redux/slices/cartSlice";
+import { fetchProductReviews } from "../../redux/slices/reviewSlice";
 import {
   Minus,
   Plus,
@@ -56,6 +57,10 @@ const ProductDetails = ({ productId }) => {
     (state) => state.auth
   );
 
+  const { reviews, stats, productId: reviewProductId } = useSelector(
+    (state) => state.reviews
+  );
+
   const [selectedProduct, setSelectedProduct] =
     useState(null);
 
@@ -85,6 +90,55 @@ const ProductDetails = ({ productId }) => {
   */
 
   const productFetchId = productId || id;
+  const actualProductId = selectedProduct?._id || productFetchId;
+
+  /*
+  ============================================================
+  REAL MONGODB REVIEW DATA CALCULATIONS
+  ============================================================
+  */
+
+  const isCurrentProductReviews =
+    reviewProductId === actualProductId ||
+    reviewProductId === selectedProduct?._id ||
+    reviewProductId === selectedProduct?.slug;
+
+  const totalReviews = isCurrentProductReviews && stats
+    ? stats.totalReviews
+    : (isCurrentProductReviews && reviews ? reviews.length : 0);
+
+  const rawAverage = isCurrentProductReviews && stats
+    ? stats.averageRating
+    : (totalReviews > 0 && reviews ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / totalReviews) : 0);
+
+  const averageRating = Math.round(rawAverage * 10) / 10;
+  const formattedAverage = averageRating.toFixed(1);
+
+  const renderRatingStars = (ratingVal) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (ratingVal >= i) {
+        stars.push(<FaStar key={i} className="text-yellow-400 text-sm" />);
+      } else if (ratingVal >= i - 0.5) {
+        stars.push(<FaStarHalfAlt key={i} className="text-yellow-400 text-sm" />);
+      } else {
+        stars.push(<FaRegStar key={i} className="text-gray-300 text-sm" />);
+      }
+    }
+    return stars;
+  };
+
+  /*
+  ============================================================
+  FETCH REAL PRODUCT REVIEWS FROM MONGODB
+  ============================================================
+  */
+
+  useEffect(() => {
+    if (actualProductId) {
+      dispatch(fetchProductReviews(actualProductId));
+    }
+  }, [dispatch, actualProductId]);
 
   /*
   ============================================================
@@ -731,9 +785,7 @@ const ProductDetails = ({ productId }) => {
               },
             },
 
-            ...(selectedProduct.numReviews &&
-            selectedProduct.numReviews >
-              0
+            ...(totalReviews > 0
               ? {
                   aggregateRating:
                     {
@@ -741,11 +793,10 @@ const ProductDetails = ({ productId }) => {
                         "AggregateRating",
 
                       ratingValue:
-                        selectedProduct.rating ||
-                        4.8,
+                        averageRating,
 
                       reviewCount:
-                        selectedProduct.numReviews,
+                        totalReviews,
                     },
                 }
               : {}),
@@ -1216,14 +1267,21 @@ const ProductDetails = ({ productId }) => {
               {/* RATING */}
 
               <div className="flex items-center gap-2 mb-3">
+                {totalReviews > 0 ? (
+                  <>
+                    <div className="flex items-center gap-0.5">
+                      {renderRatingStars(averageRating)}
+                    </div>
 
-                <span className="text-yellow-400 text-sm">
-                  ★★★★★
-                </span>
-
-                <span className="text-xs text-[#047ca8]">
-                  4.9 out of 5
-                </span>
+                    <span className="text-xs text-[#047ca8] font-semibold">
+                      {formattedAverage} out of 5 ({totalReviews} {totalReviews === 1 ? "review" : "reviews"})
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs text-gray-500 font-medium">
+                    No reviews yet
+                  </span>
+                )}
 
                 <span className="text-xs text-gray-400">
                   |
