@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { FaPlayCircle } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
+import ProductReviews from "./ProductReviews";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import SEO from "../SEO/SEO";
@@ -1829,6 +1830,13 @@ const ProductDetails = ({ productId }) => {
               />
             </div>
           )}
+
+          {/* ======================================================
+              PRODUCT REVIEWS
+          ====================================================== */}
+          <div className="bg-white rounded-lg shadow-sm p-5 md:p-6 my-6">
+            <ProductReviews productId={selectedProduct?._id || productFetchId} />
+          </div>
         </div>
 
         {/* ======================================================

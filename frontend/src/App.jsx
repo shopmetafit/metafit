@@ -46,6 +46,7 @@ import ProductRequestForm from "./components/Vendor/ProductRequestForm";
 import ProductRequestsList from "./components/Vendor/ProductRequestsList";
 import ProductRequestsAdmin from "./components/Admin/ProductRequestsAdmin";
 import ReferralAssignments from "./components/Admin/ReferralAssignments";
+import ReviewManagement from "./components/Admin/ReviewManagement";
 import SessionExpiredModal from "./components/common/SessionExpiredModal";
 import { useEffect, useRef } from "react";
 import { readReferralParams, saveReferralContext } from "./services/referralStorage";
@@ -152,6 +153,7 @@ const App = () => {
             <Route path="blogs" element={<BlogDashboard />} />
             <Route path="blogs/create" element={<BlogEditor />} />
             <Route path="blogs/:id" element={<BlogEditor />} />
+            <Route path="reviews" element={<ReviewManagement />} />
 
           </Route>
 

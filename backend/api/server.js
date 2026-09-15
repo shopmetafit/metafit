@@ -28,6 +28,7 @@ const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
 const sitemapRoutes = require("../routes/sitemapRoutes");
+const reviewRoutes = require("../routes/reviewRoutes");
 const compression = require("compression");
 
 const app = express();
@@ -109,6 +110,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/store", referralStoreRoutes);
 app.use("/api/referrals", referralRoutes);
+app.use("/api", reviewRoutes);
 
 
 //Admin
