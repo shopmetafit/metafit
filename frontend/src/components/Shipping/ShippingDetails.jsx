@@ -133,7 +133,7 @@ export default function ShippingDetails({ orderId, token }) {
 
           {shippingAddress.postalCode && (
             <div className="info-row">
-              <label>Postal Code</label>
+              <label>{(!shippingAddress.country || shippingAddress.country?.trim().toLowerCase() === "india") ? "PIN Code" : "Postal Code"}</label>
               <span>{shippingAddress.postalCode}</span>
             </div>
           )}

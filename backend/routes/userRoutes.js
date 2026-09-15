@@ -49,6 +49,7 @@ router.post("/register",validate(registerSchema), async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            phone: user.phone || "",
           },
           token,
         });
@@ -91,6 +92,7 @@ router.post("/login",validate(loginSchema), async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            phone: user.phone || "",
           },
           token,
         });

@@ -177,6 +177,7 @@ exports.createOrder = async (req, res) => {
 
     const finalAddress = shippingAddress?.address || address || "Not provided";
     const finalCity = targetCity || "Not provided";
+    const finalState = shippingAddress?.state || state || "";
     const finalPostalCode = shippingAddress?.postalCode || postalCode || "Not provided";
     const finalCountry = shippingAddress?.country || country || "India";
 
@@ -187,6 +188,7 @@ exports.createOrder = async (req, res) => {
       shippingAddress: {
         address: finalAddress,
         city: finalCity,
+        state: finalState,
         postalCode: finalPostalCode,
         country: finalCountry,
       },

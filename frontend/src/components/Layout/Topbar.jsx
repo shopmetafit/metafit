@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ChevronDown, ShoppingCart, MessageCircle, Heart } from 'lucide-react';
+import { Search, MapPin, ChevronDown, ShoppingCart, Heart } from 'lucide-react';
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
 import { fetchWishlist } from '../../redux/slices/wishlistSlice';
@@ -526,16 +526,6 @@ const Topbar = () => {
               <Search className="h-6 w-6" />
             </button>
 
-            {/* WhatsApp - Desktop */}
-            <a
-              href="https://wa.me/918302270668?text=Hello!%20I%20would%20like%20to%20know%20more%20about%20your%20wellness%20products."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden xl:flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
-            >
-              <MessageCircle className="h-5 w-5 text-green-400" />
-              <span className="text-xs font-medium">WhatsApp</span>
-            </a>
 
             {/* Account & Lists */}
             <Link

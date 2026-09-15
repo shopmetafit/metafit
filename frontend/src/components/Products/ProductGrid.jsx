@@ -1,6 +1,10 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { addToCart } from "../../redux/slices/cartSlice";
+import {
+  addToCart,
+  removeFromCart,
+  updateCartItemQuantity,
+} from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -13,6 +17,8 @@ import {
   ShoppingCart,
   ShieldCheck,
   Loader2,
+  Minus,
+  Plus,
 } from "lucide-react";
 
 // Amazon/Nykaa-style Shimmer Skeleton Card
@@ -55,9 +61,19 @@ const ProductCard = ({ product, onProductClick }) => {
   const user = useSelector((state) => state.auth.user);
   const guestId = useSelector((state) => state.auth.guestId);
   const wishlistItems = useSelector((state) => state.wishlist?.items || []);
+  const cart = useSelector((state) => state.cart?.cart || state.cart);
+  const cartProducts = cart?.products || [];
+
   const [hoveredImage, setHoveredImage] = useState(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Find if product is already in cart
+  const cartItem = cartProducts.find((item) => {
+    const itemId = item.productId?._id || item.productId || item._id;
+    return itemId === product._id;
+  });
+  const cartQuantity = cartItem?.quantity || 0;
 
   const isWishlisted = wishlistItems.some(
     (item) => (item._id || item.productId || item) === product._id
@@ -72,7 +88,7 @@ const ProductCard = ({ product, onProductClick }) => {
       return;
     }
 
-    setIsAdding(true);
+    setIsUpdating(true);
 
     try {
       const result = await dispatch(
@@ -124,7 +140,87 @@ const ProductCard = ({ product, onProductClick }) => {
         duration: 1500,
       });
     } finally {
-      setIsAdding(false);
+      setIsUpdating(false);
+    }
+  };
+
+  const handleIncrement = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isUpdating) return;
+    setIsUpdating(true);
+
+    try {
+      const nextQty = (cartItem?.quantity || 1) + 1;
+      const result = await dispatch(
+        updateCartItemQuantity({
+          productId: product._id,
+          quantity: nextQty,
+          guestId,
+          userId: user?._id,
+          size: cartItem?.size || null,
+          color: cartItem?.color || null,
+        })
+      );
+
+      if (result?.error) {
+        throw new Error(result.error.message || "Failed to update quantity");
+      }
+    } catch (err) {
+      console.error("Increment error:", err);
+      toast.error(err?.message || "Failed to update quantity");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDecrement = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isUpdating) return;
+    setIsUpdating(true);
+
+    try {
+      const currentQty = cartItem?.quantity || 1;
+      if (currentQty <= 1) {
+        const result = await dispatch(
+          removeFromCart({
+            productId: product._id,
+            guestId,
+            userId: user?._id,
+            size: cartItem?.size || null,
+            color: cartItem?.color || null,
+          })
+        );
+
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to remove item");
+        }
+        toast.info("Removed from cart", { duration: 1200 });
+      } else {
+        const nextQty = currentQty - 1;
+        const result = await dispatch(
+          updateCartItemQuantity({
+            productId: product._id,
+            quantity: nextQty,
+            guestId,
+            userId: user?._id,
+            size: cartItem?.size || null,
+            color: cartItem?.color || null,
+          })
+        );
+
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to update quantity");
+        }
+      }
+    } catch (err) {
+      console.error("Decrement error:", err);
+      toast.error(err?.message || "Failed to update quantity");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -329,28 +425,64 @@ const ProductCard = ({ product, onProductClick }) => {
             )}
           </div>
 
-          {/* Add to Cart Button */}
-          <button
-            type="button"
-            onClick={(e) =>
-              handleAddToCart(
-                e,
-                product,
-                product.hasVariants ? product.variants?.[0] : null
-              )
-            }
-            disabled={isAdding}
-            className="bg-[#1e4620] hover:bg-[#153216] active:scale-95 text-white px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-semibold shadow-xs hover:shadow transition-all disabled:opacity-50 flex-shrink-0 cursor-pointer"
-          >
-            {isAdding ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
-            ) : (
-              <>
-                <ShoppingCart className="w-3 h-3" />
-                <span>Add</span>
-              </>
-            )}
-          </button>
+          {/* Add to Cart / Quantity Controller Button */}
+          {cartQuantity > 0 ? (
+            <div
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex items-center bg-[#1e4620] text-white rounded-lg shadow-xs overflow-hidden flex-shrink-0"
+            >
+              <button
+                type="button"
+                onClick={handleDecrement}
+                disabled={isUpdating}
+                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center hover:bg-[#153216] active:bg-[#0f2410] transition-colors cursor-pointer disabled:opacity-50"
+                aria-label="Decrease quantity"
+              >
+                <Minus className="w-3 h-3 stroke-[2.5]" />
+              </button>
+              <span className="min-w-[20px] sm:min-w-[24px] text-center font-bold text-[11px] sm:text-xs select-none">
+                {isUpdating ? (
+                  <Loader2 className="w-3 h-3 animate-spin mx-auto" />
+                ) : (
+                  cartQuantity
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={handleIncrement}
+                disabled={isUpdating}
+                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center hover:bg-[#153216] active:bg-[#0f2410] transition-colors cursor-pointer disabled:opacity-50"
+                aria-label="Increase quantity"
+              >
+                <Plus className="w-3 h-3 stroke-[2.5]" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={(e) =>
+                handleAddToCart(
+                  e,
+                  product,
+                  product.hasVariants ? product.variants?.[0] : null
+                )
+              }
+              disabled={isUpdating}
+              className="bg-[#1e4620] hover:bg-[#153216] active:scale-95 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-semibold shadow-xs hover:shadow transition-all disabled:opacity-50 flex-shrink-0 cursor-pointer"
+            >
+              {isUpdating ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <>
+                  <ShoppingCart className="w-3 h-3" />
+                  <span>Add</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
     </div>

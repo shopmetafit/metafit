@@ -7,8 +7,9 @@ const checkoutSchema = z.object({
     lastName: z.string().min(3, "Last name is required at least 3 words"),
     address: z.string().min(9, "Address is required at least 9 words"),
     city: z.string().min(3, "City is required at least 3 words"),
+    state: z.string().min(2, "State is required"),
     postalCode: z.string().regex(/^\d{6}$/, {
-      message: "Postal Code must be exactly 6 digits and must be Number",
+      message: "PIN Code / Postal Code must be exactly 6 digits and must be Number",
     }),
     country: z.string().min(1, "Country is required"),
     phone: z.string().regex(/^\d{10}$/, {

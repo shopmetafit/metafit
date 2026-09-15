@@ -16,19 +16,19 @@ const WhatsAppChat = () => {
   };
 
   return (
-    <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40 font-sans">
+    <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 right-4 md:right-6 z-40 font-sans">
       {/* Chat Popup */}
       {isOpen && (
-        <div className="absolute bottom-20 right-0 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp border border-teal-200 max-w-[calc(100vw-48px)]">
+        <div className="absolute bottom-16 sm:bottom-20 right-0 w-72 sm:w-80 bg-white rounded-2xl shadow-2xl overflow-hidden animate-slideUp border border-teal-200 max-w-[calc(100vw-32px)] sm:max-w-[calc(100vw-48px)]">
           {/* Header */}
-           <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 flex justify-between items-center">
-             <div>
-               <div className="font-bold text-lg">Chat Support</div>
-               <div className="text-xs text-green-100 flex items-center gap-1">
-                 <div className="w-2 h-2 bg-green-200 rounded-full animate-pulse"></div>
-                 Usually replies instantly
-               </div>
-             </div>
+          <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 flex justify-between items-center">
+            <div>
+              <div className="font-bold text-base sm:text-lg">Chat Support</div>
+              <div className="text-xs text-green-100 flex items-center gap-1">
+                <div className="w-2 h-2 bg-green-200 rounded-full animate-pulse"></div>
+                Usually replies instantly
+              </div>
+            </div>
             <button
               onClick={toggleChat}
               className="hover:bg-green-700 p-1 rounded-full transition-colors"
@@ -39,11 +39,11 @@ const WhatsAppChat = () => {
           </div>
 
           {/* Chat Body */}
-          <div className="p-4 bg-gray-50 min-h-64 flex flex-col">
+          <div className="p-4 bg-gray-50 min-h-60 sm:min-h-64 flex flex-col">
             {/* Welcome Message */}
             <div className="mb-4">
-              <div className="bg-green-100 text-green-800 p-3 rounded-lg text-sm max-w-xs">
-                <p className="font-semibold mb-2">Hi there!</p>
+              <div className="bg-green-100 text-green-800 p-3 rounded-lg text-xs sm:text-sm max-w-xs">
+                <p className="font-semibold mb-1 sm:mb-2">Hi there!</p>
                 <p>We're here to help. Get quick answers about our wellness products and services.</p>
               </div>
             </div>
@@ -54,19 +54,19 @@ const WhatsAppChat = () => {
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                 </div>
-                <span className="text-sm text-gray-700">Fast & Instant Replies</span>
+                <span className="text-xs sm:text-sm text-gray-700">Fast & Instant Replies</span>
               </div>
               <div className="flex items-start gap-2">
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                 </div>
-                <span className="text-sm text-gray-700">Product Information</span>
+                <span className="text-xs sm:text-sm text-gray-700">Product Information</span>
               </div>
               <div className="flex items-start gap-2">
                 <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                 </div>
-                <span className="text-sm text-gray-700">Support & Guidance</span>
+                <span className="text-xs sm:text-sm text-gray-700">Support & Guidance</span>
               </div>
             </div>
           </div>
@@ -75,11 +75,11 @@ const WhatsAppChat = () => {
           <div className="bg-white border-t border-gray-200 p-3">
             <button
               onClick={handleWhatsAppClick}
-              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
+              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-2.5 sm:py-3 rounded-xl font-semibold text-sm sm:text-base flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
               <Send className="h-4 w-4" />
               Start Chat
-              </button>
+            </button>
           </div>
         </div>
       )}
@@ -87,7 +87,7 @@ const WhatsAppChat = () => {
       {/* Floating Button */}
       <button
         onClick={toggleChat}
-        className={`group relative w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center overflow-hidden ${
+        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center overflow-hidden ${
           isOpen
             ? 'bg-green-600 hover:bg-green-700'
             : 'bg-gradient-to-br from-green-500 via-green-600 to-teal-600 hover:shadow-3xl'
@@ -105,12 +105,12 @@ const WhatsAppChat = () => {
         {/* Icon */}
         <div className="relative z-10 flex items-center justify-center">
           {isOpen ? (
-            <X className="h-7 w-7 text-white" />
+            <X className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
           ) : (
             <>
-              <MessageCircle className="h-7 w-7 text-white" />
+              <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
               {/* Badge */}
-              <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-bounce">
+              <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 bg-red-500 text-white text-[11px] sm:text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-bounce">
                 1
               </span>
             </>

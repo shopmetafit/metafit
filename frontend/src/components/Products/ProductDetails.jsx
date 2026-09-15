@@ -13,6 +13,10 @@ import {
   Minus,
   Plus,
   ShoppingCart,
+  Zap,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -71,6 +75,8 @@ const ProductDetails = ({ productId }) => {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isButtonDisabled, setIsButtonDisabled] =
+    useState(false);
+  const [isBuyNowLoading, setIsBuyNowLoading] =
     useState(false);
   const [selectedVariant, setSelectedVariant] =
     useState(null);
@@ -216,7 +222,7 @@ const ProductDetails = ({ productId }) => {
             toast.error(
               validationError?.response?.data
                 ?.message ||
-                "Referral link invalid or expired"
+              "Referral link invalid or expired"
             );
           }
         }
@@ -232,12 +238,12 @@ const ProductDetails = ({ productId }) => {
           {
             params: referralFromQuery
               ? {
-                  vendorId:
-                    referralFromQuery.vendorId,
-                  assignedProductId:
-                    referralFromQuery.assignedProductId,
-                  ref: referralFromQuery.shareCode,
-                }
+                vendorId:
+                  referralFromQuery.vendorId,
+                assignedProductId:
+                  referralFromQuery.assignedProductId,
+                ref: referralFromQuery.shareCode,
+              }
               : undefined,
           }
         );
@@ -251,7 +257,7 @@ const ProductDetails = ({ productId }) => {
       } catch (fetchError) {
         setError(
           fetchError?.response?.data?.message ||
-            "Failed to load product"
+          "Failed to load product"
         );
 
         if (referralFromQuery) {
@@ -280,11 +286,33 @@ const ProductDetails = ({ productId }) => {
     ) {
       const firstImage =
         typeof selectedProduct.images[0] ===
-        "string"
+          "string"
           ? selectedProduct.images[0]
           : selectedProduct.images[0].url;
 
       setMainImage(firstImage || "");
+    }
+
+    if (
+      selectedProduct?.sizes?.length > 0 &&
+      !selectedSize
+    ) {
+      setSelectedSize(selectedProduct.sizes[0]);
+    }
+
+    if (
+      selectedProduct?.hasVariants &&
+      selectedProduct?.variants?.length > 0 &&
+      !selectedVariant
+    ) {
+      setSelectedVariant(selectedProduct.variants[0]);
+    }
+
+    if (
+      selectedProduct?.colors?.length > 0 &&
+      !selectedColor
+    ) {
+      setSelectedColor(selectedProduct.colors[0]);
     }
   }, [selectedProduct]);
 
@@ -302,8 +330,8 @@ const ProductDetails = ({ productId }) => {
 
     const productPrice = Number(
       selectedProduct.discountPrice ||
-        selectedProduct.price ||
-        0
+      selectedProduct.price ||
+      0
     );
 
     trackMetaEvent("ViewContent", {
@@ -462,15 +490,15 @@ const ProductDetails = ({ productId }) => {
 
       const itemPrice = selectedVariant
         ? Number(
-            selectedVariant.discountPrice ||
-              selectedVariant.price ||
-              0
-          )
+          selectedVariant.discountPrice ||
+          selectedVariant.price ||
+          0
+        )
         : Number(
-            selectedProduct.discountPrice ||
-              selectedProduct.price ||
-              0
-          );
+          selectedProduct.discountPrice ||
+          selectedProduct.price ||
+          0
+        );
 
       /*
       --------------------------------------------------------
@@ -501,29 +529,29 @@ const ProductDetails = ({ productId }) => {
 
           variant: selectedVariant
             ? {
-                label:
-                  selectedVariant.label,
+              label:
+                selectedVariant.label,
 
-                price:
-                  selectedVariant.discountPrice ||
-                  selectedVariant.price,
-              }
+              price:
+                selectedVariant.discountPrice ||
+                selectedVariant.price,
+            }
             : null,
 
           referral: activeReferral
             ? {
-                productId:
-                  actualProductId,
+              productId:
+                actualProductId,
 
-                vendorId:
-                  activeReferral.vendorId,
+              vendorId:
+                activeReferral.vendorId,
 
-                assignedProductId:
-                  activeReferral.assignedProductId,
+              assignedProductId:
+                activeReferral.assignedProductId,
 
-                shareCode:
-                  activeReferral.shareCode,
-              }
+              shareCode:
+                activeReferral.shareCode,
+            }
             : null,
         })
       );
@@ -537,7 +565,7 @@ const ProductDetails = ({ productId }) => {
       if (result?.error) {
         throw new Error(
           result.error.message ||
-            "Failed to add product to cart"
+          "Failed to add product to cart"
         );
       }
 
@@ -585,13 +613,136 @@ const ProductDetails = ({ productId }) => {
 
       toast.error(
         cartError?.message ||
-          "Failed to add product to cart",
+        "Failed to add product to cart",
         {
           duration: 2000,
         }
       );
     } finally {
       setIsButtonDisabled(false);
+    }
+  };
+
+  /*
+  ============================================================
+  BUY NOW (SELECTED PRODUCT IMMEDIATE CHECKOUT)
+  ============================================================
+  */
+
+  const handleBuyNow = async () => {
+    if (!selectedProduct?._id) {
+      toast.error(
+        "Product ID not available"
+      );
+      return;
+    }
+
+    if (
+      selectedProduct.hasVariants &&
+      !selectedVariant
+    ) {
+      toast.error(
+        "Please select a variant",
+        {
+          duration: 1500,
+        }
+      );
+      return;
+    }
+
+    setIsBuyNowLoading(true);
+
+    try {
+      const actualProductId =
+        selectedProduct._id;
+
+      const itemPrice = selectedVariant
+        ? Number(
+          selectedVariant.discountPrice ||
+          selectedVariant.price ||
+          0
+        )
+        : Number(
+          selectedProduct.discountPrice ||
+          selectedProduct.price ||
+          0
+        );
+
+      const result = await dispatch(
+        addToCart({
+          productId: actualProductId,
+          quantity,
+          size:
+            selectedSize || null,
+          color:
+            selectedColor || null,
+          guestId,
+          userId: user?._id,
+          variant: selectedVariant
+            ? {
+              label:
+                selectedVariant.label,
+              price:
+                selectedVariant.discountPrice ||
+                selectedVariant.price,
+            }
+            : null,
+          referral: activeReferral
+            ? {
+              productId:
+                actualProductId,
+              vendorId:
+                activeReferral.vendorId,
+              assignedProductId:
+                activeReferral.assignedProductId,
+              shareCode:
+                activeReferral.shareCode,
+            }
+            : null,
+        })
+      );
+
+      if (result?.error) {
+        throw new Error(
+          result.error.message ||
+          "Failed to proceed to checkout"
+        );
+      }
+
+      trackMetaEvent("AddToCart", {
+        content_ids: [actualProductId],
+        content_name: selectedProduct.name,
+        content_type: "product",
+        value: itemPrice * quantity,
+        currency: "INR",
+        quantity,
+      });
+
+      trackMetaEvent("InitiateCheckout", {
+        content_ids: [actualProductId],
+        content_name: selectedProduct.name,
+        content_type: "product",
+        value: itemPrice * quantity,
+        currency: "INR",
+        num_items: quantity,
+      });
+
+      navigate("/checkout");
+    } catch (buyError) {
+      console.error(
+        "Buy now error:",
+        buyError
+      );
+
+      toast.error(
+        buyError?.message ||
+        "Failed to proceed to checkout",
+        {
+          duration: 2000,
+        }
+      );
+    } finally {
+      setIsBuyNowLoading(false);
     }
   };
 
@@ -643,23 +794,23 @@ const ProductDetails = ({ productId }) => {
 
   const discountPct =
     selectedProduct.price &&
-    selectedProduct.discountPrice
+      selectedProduct.discountPrice
       ? Math.round(
-          ((selectedProduct.price -
-            selectedProduct.discountPrice) /
-            selectedProduct.price) *
-            100
-        )
+        ((selectedProduct.price -
+          selectedProduct.discountPrice) /
+          selectedProduct.price) *
+        100
+      )
       : 0;
 
   const cleanDescription =
     selectedProduct?.description
       ? selectedProduct.description
-          .replace(
-            /<[^>]*>?/gm,
-            ""
-          )
-          .slice(0, 300)
+        .replace(
+          /<[^>]*>?/gm,
+          ""
+        )
+        .slice(0, 300)
       : "";
 
   const primaryImageUrl =
@@ -684,24 +835,24 @@ const ProductDetails = ({ productId }) => {
   const categorySlug =
     selectedProduct?.category
       ? selectedProduct.category
-          .toLowerCase()
-          .trim()
-          .replace(
-            /&/g,
-            "and"
-          )
-          .replace(
-            /[^\w\s-]/g,
-            ""
-          )
-          .replace(
-            /\s+/g,
-            "-"
-          )
-          .replace(
-            /-+/g,
-            "-"
-          )
+        .toLowerCase()
+        .trim()
+        .replace(
+          /&/g,
+          "and"
+        )
+        .replace(
+          /[^\w\s-]/g,
+          ""
+        )
+        .replace(
+          /\s+/g,
+          "-"
+        )
+        .replace(
+          /-+/g,
+          "-"
+        )
       : "all";
 
   /*
@@ -713,144 +864,144 @@ const ProductDetails = ({ productId }) => {
   const productJsonLd =
     selectedProduct
       ? [
-          {
-            "@context":
-              "https://schema.org/",
+        {
+          "@context":
+            "https://schema.org/",
+          "@type":
+            "Product",
+
+          name:
+            selectedProduct.name,
+
+          image:
+            selectedProduct.images
+              ?.map(
+                (img) =>
+                  typeof img ===
+                    "string"
+                    ? img
+                    : img.url
+              )
+              .filter(Boolean) || [
+              primaryImageUrl,
+            ],
+
+          description:
+            cleanDescription,
+
+          sku:
+            selectedProduct.sku ||
+            selectedProduct._id,
+
+          mpn:
+            selectedProduct.sku ||
+            selectedProduct._id,
+
+          brand: {
             "@type":
-              "Product",
+              "Brand",
 
             name:
-              selectedProduct.name,
+              selectedProduct.brand ||
+              "M Wellness Bazaar",
+          },
 
-            image:
-              selectedProduct.images
-                ?.map(
-                  (img) =>
-                    typeof img ===
-                    "string"
-                      ? img
-                      : img.url
-                )
-                .filter(Boolean) || [
-                primaryImageUrl,
-              ],
+          offers: {
+            "@type":
+              "Offer",
 
-            description:
-              cleanDescription,
+            url: `https://mwellnessbazaar.com/product/${productSlugOrId}`,
 
-            sku:
-              selectedProduct.sku ||
-              selectedProduct._id,
+            priceCurrency:
+              "INR",
 
-            mpn:
-              selectedProduct.sku ||
-              selectedProduct._id,
+            price:
+              productPrice,
 
-            brand: {
+            priceValidUntil:
+              "2027-12-31",
+
+            itemCondition:
+              "https://schema.org/NewCondition",
+
+            availability:
+              productAvailability,
+
+            seller: {
               "@type":
-                "Brand",
+                "Organization",
 
               name:
-                selectedProduct.brand ||
                 "M Wellness Bazaar",
             },
+          },
 
-            offers: {
-              "@type":
-                "Offer",
-
-              url: `https://mwellnessbazaar.com/product/${productSlugOrId}`,
-
-              priceCurrency:
-                "INR",
-
-              price:
-                productPrice,
-
-              priceValidUntil:
-                "2027-12-31",
-
-              itemCondition:
-                "https://schema.org/NewCondition",
-
-              availability:
-                productAvailability,
-
-              seller: {
+          ...(totalReviews > 0
+            ? {
+              aggregateRating:
+              {
                 "@type":
-                  "Organization",
+                  "AggregateRating",
+
+                ratingValue:
+                  averageRating,
+
+                reviewCount:
+                  totalReviews,
+              },
+            }
+            : {}),
+        },
+
+        {
+          "@context":
+            "https://schema.org",
+
+          "@type":
+            "BreadcrumbList",
+
+          itemListElement:
+            [
+              {
+                "@type":
+                  "ListItem",
+
+                position: 1,
 
                 name:
-                  "M Wellness Bazaar",
+                  "Home",
+
+                item:
+                  "https://mwellnessbazaar.com/",
               },
-            },
 
-            ...(totalReviews > 0
-              ? {
-                  aggregateRating:
-                    {
-                      "@type":
-                        "AggregateRating",
+              {
+                "@type":
+                  "ListItem",
 
-                      ratingValue:
-                        averageRating,
+                position: 2,
 
-                      reviewCount:
-                        totalReviews,
-                    },
-                }
-              : {}),
-          },
+                name:
+                  selectedProduct.category ||
+                  "Products",
 
-          {
-            "@context":
-              "https://schema.org",
+                item: `https://mwellnessbazaar.com/category/${categorySlug}`,
+              },
 
-            "@type":
-              "BreadcrumbList",
+              {
+                "@type":
+                  "ListItem",
 
-            itemListElement:
-              [
-                {
-                  "@type":
-                    "ListItem",
+                position: 3,
 
-                  position: 1,
+                name:
+                  selectedProduct.name,
 
-                  name:
-                    "Home",
-
-                  item:
-                    "https://mwellnessbazaar.com/",
-                },
-
-                {
-                  "@type":
-                    "ListItem",
-
-                  position: 2,
-
-                  name:
-                    selectedProduct.category ||
-                    "Products",
-
-                  item: `https://mwellnessbazaar.com/category/${categorySlug}`,
-                },
-
-                {
-                  "@type":
-                    "ListItem",
-
-                  position: 3,
-
-                  name:
-                    selectedProduct.name,
-
-                  item: `https://mwellnessbazaar.com/product/${productSlugOrId}`,
-                },
-              ],
-          },
-        ]
+                item: `https://mwellnessbazaar.com/product/${productSlugOrId}`,
+              },
+            ],
+        },
+      ]
       : null;
 
   return (
@@ -904,12 +1055,11 @@ const ProductDetails = ({ productId }) => {
                             "video"
                           )
                         }
-                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${
-                          mainImage ===
-                          "video"
+                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
+                            "video"
                             ? "border-[#047ca8]"
                             : "border-gray-200 hover:border-[#047ca8]"
-                        }`}
+                          }`}
                       >
                         <video
                           src={
@@ -934,7 +1084,7 @@ const ProductDetails = ({ productId }) => {
                     (img, i) => {
                       const imgUrl =
                         typeof img ===
-                        "string"
+                          "string"
                           ? img
                           : img.url;
 
@@ -949,19 +1099,17 @@ const ProductDetails = ({ productId }) => {
                               imgUrl
                             )
                           }
-                          className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${
-                            mainImage ===
-                            imgUrl
+                          className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
+                              imgUrl
                               ? "border-[#047ca8]"
                               : "border-gray-200 hover:border-[#047ca8]"
-                          }`}
+                            }`}
                         >
                           <img
                             src={imgUrl}
                             alt={
                               img?.altText ||
-                              `View ${
-                                i + 1
+                              `View ${i + 1
                               }`
                             }
                             className="w-full h-full object-contain"
@@ -976,7 +1124,7 @@ const ProductDetails = ({ productId }) => {
                       (img, i) => {
                         const baseStr =
                           typeof img ===
-                          "string"
+                            "string"
                             ? img
                             : img.url;
 
@@ -1002,12 +1150,11 @@ const ProductDetails = ({ productId }) => {
                                     imgUrl
                                   )
                                 }
-                                className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${
-                                  mainImage ===
-                                  imgUrl
+                                className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
+                                    imgUrl
                                     ? "border-[#047ca8]"
                                     : "border-gray-200 hover:border-[#047ca8]"
-                                }`}
+                                  }`}
                               >
                                 <img
                                   src={
@@ -1015,16 +1162,14 @@ const ProductDetails = ({ productId }) => {
                                   }
                                   alt={
                                     typeof img ===
-                                    "object"
+                                      "object"
                                       ? img?.altText ||
-                                        `Extra ${
-                                          i +
-                                          1
-                                        }`
-                                      : `Extra ${
-                                          i +
-                                          1
-                                        }`
+                                      `Extra ${i +
+                                      1
+                                      }`
+                                      : `Extra ${i +
+                                      1
+                                      }`
                                   }
                                   className="w-full h-full object-contain"
                                 />
@@ -1040,7 +1185,7 @@ const ProductDetails = ({ productId }) => {
                 <div className="relative flex-1 aspect-square rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
 
                   {mainImage ===
-                  "video" ? (
+                    "video" ? (
                     <video
                       src={
                         selectedProduct.videoUrl
@@ -1071,14 +1216,14 @@ const ProductDetails = ({ productId }) => {
 
                   {discountPct >
                     0 && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      -
-                      {
-                        discountPct
-                      }
-                      % OFF
-                    </div>
-                  )}
+                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        -
+                        {
+                          discountPct
+                        }
+                        % OFF
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -1089,7 +1234,7 @@ const ProductDetails = ({ productId }) => {
                 <div className="relative w-full aspect-square rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center">
 
                   {mainImage ===
-                  "video" ? (
+                    "video" ? (
                     <video
                       src={
                         selectedProduct.videoUrl
@@ -1120,14 +1265,14 @@ const ProductDetails = ({ productId }) => {
 
                   {discountPct >
                     0 && (
-                    <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                      -
-                      {
-                        discountPct
-                      }
-                      % OFF
-                    </div>
-                  )}
+                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                        -
+                        {
+                          discountPct
+                        }
+                        % OFF
+                      </div>
+                    )}
                 </div>
 
                 <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
@@ -1141,12 +1286,11 @@ const ProductDetails = ({ productId }) => {
                             "video"
                           )
                         }
-                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${
-                          mainImage ===
-                          "video"
+                        className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
+                            "video"
                             ? "border-[#047ca8]"
                             : "border-gray-200"
-                        }`}
+                          }`}
                       >
                         <video
                           src={
@@ -1171,7 +1315,7 @@ const ProductDetails = ({ productId }) => {
                     (img, i) => {
                       const imgUrl =
                         typeof img ===
-                        "string"
+                          "string"
                           ? img
                           : img.url;
 
@@ -1186,12 +1330,11 @@ const ProductDetails = ({ productId }) => {
                               imgUrl
                             )
                           }
-                          className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${
-                            mainImage ===
-                            imgUrl
+                          className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage ===
+                              imgUrl
                               ? "border-[#047ca8]"
                               : "border-gray-200"
-                          }`}
+                            }`}
                         >
                           <img
                             src={
@@ -1239,15 +1382,16 @@ const ProductDetails = ({ productId }) => {
               {/* BRAND */}
 
               {selectedProduct.brand && (
-                <p className="text-sm text-[#047ca8] font-semibold mb-1">
+                <Link
+                  to={`/collections/all?brand=${encodeURIComponent(selectedProduct.brand.trim())}`}
+                  className="inline-block text-sm text-[#047ca8] hover:text-[#035c7d] font-semibold mb-1 group transition-colors"
+                >
                   Visit the{" "}
-                  <span className="underline cursor-pointer">
-                    {
-                      selectedProduct.brand
-                    }
+                  <span className="underline group-hover:text-[#035c7d]">
+                    {selectedProduct.brand}
                   </span>{" "}
                   Store
-                </p>
+                </Link>
               )}
 
               {/* NAME */}
@@ -1304,7 +1448,7 @@ const ProductDetails = ({ productId }) => {
                   if (
                     selectedSize &&
                     typeof selectedSize ===
-                      "string" &&
+                    "string" &&
                     selectedSize.includes(":")
                   ) {
                     const parts =
@@ -1362,14 +1506,14 @@ const ProductDetails = ({ productId }) => {
 
                   const computedDiscountPct =
                     displayMrp &&
-                    displayMrp >
+                      displayMrp >
                       displayPrice
                       ? Math.round(
-                          ((displayMrp -
-                            displayPrice) /
-                            displayMrp) *
-                            100
-                        )
+                        ((displayMrp -
+                          displayPrice) /
+                          displayMrp) *
+                        100
+                      )
                       : 0;
 
                   return (
@@ -1387,7 +1531,7 @@ const ProductDetails = ({ productId }) => {
 
                         {displayMrp &&
                           displayMrp >
-                            displayPrice && (
+                          displayPrice && (
                             <span className="text-base text-gray-400 line-through">
                               M.R.P:{" "}
                               {
@@ -1400,14 +1544,14 @@ const ProductDetails = ({ productId }) => {
 
                         {computedDiscountPct >
                           0 && (
-                          <span className="text-base font-semibold text-red-500">
-                            (
-                            {
-                              computedDiscountPct
-                            }
-                            % off)
-                          </span>
-                        )}
+                            <span className="text-base font-semibold text-red-500">
+                              (
+                              {
+                                computedDiscountPct
+                              }
+                              % off)
+                            </span>
+                          )}
                       </div>
 
                       <p className="text-xs text-gray-500 mt-1">
@@ -1419,7 +1563,7 @@ const ProductDetails = ({ productId }) => {
                         {
                           formatCurrency(
                             selectedProduct.shippingCharge ||
-                              100
+                            100
                           )
                         }{" "}
                         delivery charge
@@ -1472,12 +1616,11 @@ const ProductDetails = ({ productId }) => {
                                 variant
                               )
                             }
-                            className={`p-3 border-2 rounded-lg text-left transition-all ${
-                              selectedVariant?.label ===
-                              variant.label
+                            className={`p-3 border-2 rounded-lg text-left transition-all ${selectedVariant?.label ===
+                                variant.label
                                 ? "border-[#047ca8] bg-blue-50"
                                 : "border-gray-200 hover:border-[#047ca8]"
-                            }`}
+                              }`}
                           >
                             <p className="text-xs font-bold text-gray-800 mb-0.5">
                               {
@@ -1489,7 +1632,7 @@ const ProductDetails = ({ productId }) => {
                               {
                                 formatCurrency(
                                   variant.discountPrice ||
-                                    variant.price
+                                  variant.price
                                 )
                               }
                             </p>
@@ -1497,7 +1640,7 @@ const ProductDetails = ({ productId }) => {
                             {variant.discountPrice &&
                               variant.price &&
                               variant.discountPrice <
-                                variant.price && (
+                              variant.price && (
                                 <p className="text-xs text-gray-400 line-through">
                                   {
                                     formatCurrency(
@@ -1531,7 +1674,7 @@ const ProductDetails = ({ productId }) => {
                         {
                           formatCurrency(
                             selectedVariant.discountPrice ||
-                              selectedVariant.price
+                            selectedVariant.price
                           )
                         }
                       </div>
@@ -1543,117 +1686,115 @@ const ProductDetails = ({ productId }) => {
 
               {selectedProduct.sizes
                 ?.length > 0 && (
-                <div className="mb-4">
+                  <div className="mb-4">
 
-                  <p className="text-sm font-bold text-gray-800 mb-2">
-                    Size:
-                  </p>
+                    <p className="text-sm font-bold text-gray-800 mb-2">
+                      Size:
+                    </p>
 
-                  <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
 
-                    {selectedProduct.sizes.map(
-                      (
-                        sizeRaw,
-                        i
-                      ) => {
-                        const parts =
-                          sizeRaw.split(
-                            ":"
-                          );
+                      {selectedProduct.sizes.map(
+                        (
+                          sizeRaw,
+                          i
+                        ) => {
+                          const parts =
+                            sizeRaw.split(
+                              ":"
+                            );
 
-                        const sizeName =
-                          parts[0];
+                          const sizeName =
+                            parts[0];
 
-                        const sizePrice =
-                          parts.length ===
-                          3
-                            ? parts[2]
-                            : parts[1];
+                          const sizePrice =
+                            parts.length ===
+                              3
+                              ? parts[2]
+                              : parts[1];
 
-                        return (
-                          <button
-                            key={i}
-                            onClick={() =>
-                              setSelectedSize(
-                                sizeRaw
-                              )
-                            }
-                            className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${
-                              selectedSize ===
-                              sizeRaw
-                                ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
-                                : "border-gray-300 hover:border-[#047ca8] text-gray-800"
-                            }`}
-                          >
-                            <span>
-                              {
-                                sizeName
+                          return (
+                            <button
+                              key={i}
+                              onClick={() =>
+                                setSelectedSize(
+                                  sizeRaw
+                                )
                               }
-                            </span>
-
-                            {sizePrice && (
-                              <span className="text-xs text-gray-500 font-bold mt-0.5">
-                                ₹
+                              className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize ===
+                                  sizeRaw
+                                  ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
+                                  : "border-gray-300 hover:border-[#047ca8] text-gray-800"
+                                }`}
+                            >
+                              <span>
                                 {
-                                  sizePrice
+                                  sizeName
                                 }
                               </span>
-                            )}
-                          </button>
-                        );
-                      }
-                    )}
+
+                              {sizePrice && (
+                                <span className="text-xs text-gray-500 font-bold mt-0.5">
+                                  ₹
+                                  {
+                                    sizePrice
+                                  }
+                                </span>
+                              )}
+                            </button>
+                          );
+                        }
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* COLORS */}
 
               {selectedProduct.colors
                 ?.length > 0 && (
-                <div className="mb-4">
+                  <div className="mb-4">
 
-                  <p className="text-sm font-bold text-gray-800 mb-2">
-                    Color:
-                  </p>
+                    <p className="text-sm font-bold text-gray-800 mb-2">
+                      Color:
+                    </p>
 
-                  <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2">
 
-                    {selectedProduct.colors.map(
-                      (
-                        color,
-                        i
-                      ) => (
-                        <button
-                          key={i}
-                          onClick={() =>
-                            handleColorClick(
-                              color,
+                      {selectedProduct.colors.map(
+                        (
+                          color,
+                          i
+                        ) => (
+                          <button
+                            key={i}
+                            onClick={() =>
+                              handleColorClick(
+                                color,
+                                i
+                              )
+                            }
+                            title={
+                              selectedProduct.colorsName?.[
                               i
-                            )
-                          }
-                          title={
-                            selectedProduct.colorsName?.[
-                              i
-                            ] ||
-                            color
-                          }
-                          className={`w-9 h-9 rounded-full border-2 transition-all ${
-                            selectedColor ===
-                            color
-                              ? "ring-2 ring-[#047ca8] ring-offset-2"
-                              : "border-gray-300 hover:scale-110"
-                          }`}
-                          style={{
-                            backgroundColor:
-                              color,
-                          }}
-                        />
-                      )
-                    )}
+                              ] ||
+                              color
+                            }
+                            className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor ===
+                                color
+                                ? "ring-2 ring-[#047ca8] ring-offset-2"
+                                : "border-gray-300 hover:scale-110"
+                              }`}
+                            style={{
+                              backgroundColor:
+                                color,
+                            }}
+                          />
+                        )
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* QUANTITY */}
 
@@ -1698,28 +1839,66 @@ const ProductDetails = ({ productId }) => {
               )}
 
               {/* ==================================================
-                  ADD TO CART
+                  ACTION BUTTONS (ADD TO CART & BUY NOW)
               ================================================== */}
 
-              <button
-                onClick={
-                  handleAddToCart
-                }
-                disabled={
-                  isButtonDisabled
-                }
-                className={`w-full sm:w-auto min-w-[200px] flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold text-sm transition-all shadow-md ${
-                  isButtonDisabled
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#0FB7A3] hover:bg-[#0DA28E] text-white hover:shadow-lg active:scale-95"
-                }`}
-              >
-                <ShoppingCart className="h-4 w-4" />
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                {/* ADD TO CART */}
+                <button
+                  type="button"
+                  onClick={
+                    handleAddToCart
+                  }
+                  disabled={
+                    isButtonDisabled || isBuyNowLoading
+                  }
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${isButtonDisabled
+                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                      : "border-[#0FB7A3] bg-teal-50/60 text-[#0a7a6c] hover:bg-[#0FB7A3] hover:text-white shadow-xs hover:shadow-md active:scale-[0.98]"
+                    }`}
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {isButtonDisabled
+                    ? "Adding..."
+                    : "Add to Cart"}
+                </button>
 
-                {isButtonDisabled
-                  ? "Adding..."
-                  : "Add to Cart"}
-              </button>
+                {/* BUY NOW */}
+                <button
+                  type="button"
+                  onClick={
+                    handleBuyNow
+                  }
+                  disabled={
+                    isButtonDisabled || isBuyNowLoading
+                  }
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${isBuyNowLoading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-[#047ca8] via-[#036e96] to-[#025877] hover:from-[#036a90] hover:to-[#024963] hover:shadow-lg active:scale-[0.98]"
+                    }`}
+                >
+                  <Zap className="h-4 w-4 fill-white" />
+                  {isBuyNowLoading
+                    ? "Processing..."
+                    : "Buy Now"}
+                </button>
+              </div>
+
+              {/* TRUST BADGES */}
+              <div className="grid grid-cols-3 gap-2 py-3 px-2 mt-1 bg-gray-50/80 rounded-xl border border-gray-100 text-center text-xs text-gray-600">
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Truck className="h-4 w-4 text-[#047ca8]" />
+                  <span className="font-medium text-[11px] text-gray-700">Fast Delivery</span>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-1 border-x border-gray-200 px-1">
+                  <ShieldCheck className="h-4 w-4 text-[#0FB7A3]" />
+                  <span className="font-medium text-[11px] text-gray-700">100% Genuine</span>
+                </div>
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <RotateCcw className="h-4 w-4 text-[#047ca8]" />
+                  <span className="font-medium text-[11px] text-gray-700">Easy Returns</span>
+                </div>
+              </div>
 
               {/* PRODUCT DETAILS */}
 
@@ -1763,37 +1942,37 @@ const ProductDetails = ({ productId }) => {
                     {selectedProduct.wellnessGoal
                       ?.length >
                       0 && (
-                      <tr className="border-b border-gray-100">
+                        <tr className="border-b border-gray-100">
 
-                        <td className="py-2 pr-4 text-gray-500 font-medium w-32 align-top">
-                          Wellness Goals
-                        </td>
+                          <td className="py-2 pr-4 text-gray-500 font-medium w-32 align-top">
+                            Wellness Goals
+                          </td>
 
-                        <td className="py-2 text-gray-900">
+                          <td className="py-2 text-gray-900">
 
-                          <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-1.5">
 
-                            {selectedProduct.wellnessGoal.map(
-                              (
-                                goal,
-                                idx
-                              ) => (
-                                <span
-                                  key={
-                                    idx
-                                  }
-                                  className="inline-block bg-[#e8f4f8] text-[#047ca8] px-2 py-1 rounded text-xs font-medium"
-                                >
-                                  {
-                                    goal
-                                  }
-                                </span>
-                              )
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
+                              {selectedProduct.wellnessGoal.map(
+                                (
+                                  goal,
+                                  idx
+                                ) => (
+                                  <span
+                                    key={
+                                      idx
+                                    }
+                                    className="inline-block bg-[#e8f4f8] text-[#047ca8] px-2 py-1 rounded text-xs font-medium"
+                                  >
+                                    {
+                                      goal
+                                    }
+                                  </span>
+                                )
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                   </tbody>
                 </table>
               </div>
@@ -1802,71 +1981,69 @@ const ProductDetails = ({ productId }) => {
 
               {selectedProduct.extraImages
                 ?.length > 0 && (
-                <div className="mt-5">
+                  <div className="mt-5">
 
-                  <h3 className="text-sm font-bold text-gray-800 mb-2">
-                    More Details
-                  </h3>
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">
+                      More Details
+                    </h3>
 
-                  <div className="flex gap-3 overflow-x-auto pb-2">
+                    <div className="flex gap-3 overflow-x-auto pb-2">
 
-                    {selectedProduct.extraImages.flatMap(
-                      (
-                        img,
-                        i
-                      ) => {
-                        const baseStr =
-                          typeof img ===
-                          "string"
-                            ? img
-                            : img.url;
+                      {selectedProduct.extraImages.flatMap(
+                        (
+                          img,
+                          i
+                        ) => {
+                          const baseStr =
+                            typeof img ===
+                              "string"
+                              ? img
+                              : img.url;
 
-                        if (!baseStr)
-                          return [];
+                          if (!baseStr)
+                            return [];
 
-                        return baseStr
-                          .split(",")
-                          .map(
-                            (
-                              urlStr
-                            ) =>
-                              urlStr.trim()
-                          )
-                          .filter(
-                            Boolean
-                          )
-                          .map(
-                            (
-                              imgUrl,
-                              j
-                            ) => (
-                              <img
-                                key={`extra-info-${i}-${j}`}
-                                src={
-                                  imgUrl
-                                }
-                                alt={
-                                  typeof img ===
-                                  "object"
-                                    ? img?.altText ||
-                                      `Detail ${
-                                        i +
-                                        1
-                                      }`
-                                    : `Detail ${
-                                        i +
-                                        1
-                                      }`
-                                }
-                                className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
-                              />
+                          return baseStr
+                            .split(",")
+                            .map(
+                              (
+                                urlStr
+                              ) =>
+                                urlStr.trim()
                             )
-                          );
-                      }
-                    )}
+                            .filter(
+                              Boolean
+                            )
+                            .map(
+                              (
+                                imgUrl,
+                                j
+                              ) => (
+                                <img
+                                  key={`extra-info-${i}-${j}`}
+                                  src={
+                                    imgUrl
+                                  }
+                                  alt={
+                                    typeof img ===
+                                      "object"
+                                      ? img?.altText ||
+                                      `Detail ${i +
+                                      1
+                                      }`
+                                      : `Detail ${i +
+                                      1
+                                      }`
+                                  }
+                                  className="w-24 h-24 object-contain rounded-lg border border-gray-200 flex-shrink-0 hover:scale-105 transition-transform cursor-zoom-in"
+                                />
+                              )
+                            );
+                        }
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
 
@@ -1903,21 +2080,21 @@ const ProductDetails = ({ productId }) => {
 
         {similarProducts?.length >
           0 && (
-          <div className="bg-white rounded-lg shadow-sm p-5">
+            <div className="bg-white rounded-lg shadow-sm p-5">
 
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
-              Customers also viewed
-            </h2>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
+                Customers also viewed
+              </h2>
 
-            <ProductGrid
-              products={
-                similarProducts
-              }
-              loading={loading}
-              error={error}
-            />
-          </div>
-        )}
+              <ProductGrid
+                products={
+                  similarProducts
+                }
+                loading={loading}
+                error={error}
+              />
+            </div>
+          )}
       </div>
     </div>
   );

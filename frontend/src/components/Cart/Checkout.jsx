@@ -36,15 +36,132 @@ const CheckOut = () => {
   const navigate = useNavigate();
   const [checkoutId, setCheckoutId] = useState(null);
   const [email, setEmail] = useState("");
-  const [shippingAddress, setShippingAddress] = useState({
-    firstName: "",
-    lastName: "",
-    address: "",
-    city: "",
-    postalCode: "",
-    country: "INDIA",
-    phone: "",
+  const [shippingAddress, setShippingAddress] = useState(() => {
+    const nameParts = (user?.name || "").trim().split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+    const currentEmail = user?.email || "";
+    const saved = currentEmail ? localStorage.getItem(`shippingAddress_${currentEmail}`) : null;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          firstName: parsed.firstName || firstName,
+          lastName: parsed.lastName || lastName,
+          address: parsed.address || "",
+          city: parsed.city || "",
+          state: parsed.state || "",
+          postalCode: parsed.postalCode || "",
+          country: parsed.country || "INDIA",
+          phone: parsed.phone || user?.phone || "",
+        };
+      } catch (e) {
+        console.warn("Saved address parse error:", e);
+      }
+    }
+    return {
+      firstName,
+      lastName,
+      address: "",
+      city: "",
+      state: "",
+      postalCode: "",
+      country: "INDIA",
+      phone: user?.phone || "",
+    };
   });
+
+  // Pre-fill user data (phone, name, email) whenever user object loads
+  useEffect(() => {
+    if (user) {
+      const currentEmail = user.email || email;
+      const saved = localStorage.getItem(`shippingAddress_${currentEmail}`);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          setShippingAddress((prev) => ({
+            ...prev,
+            ...parsed,
+            phone: prev.phone || parsed.phone || user.phone || "",
+          }));
+          return;
+        } catch (e) {
+          console.warn("Saved address parse error:", e);
+        }
+      }
+
+      const nameParts = (user.name || "").trim().split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+
+      setShippingAddress((prev) => ({
+        ...prev,
+        firstName: prev.firstName || firstName,
+        lastName: prev.lastName || lastName,
+        phone: prev.phone || user.phone || "",
+      }));
+    }
+  }, [user]);
+
+  const [isPincodeLoading, setIsPincodeLoading] = useState(false);
+
+  const fetchLocationFromPincode = async (pincodeVal) => {
+    const cleanPin = pincodeVal.trim().replace(/\D/g, "");
+    if (cleanPin.length !== 6) return;
+
+    setIsPincodeLoading(true);
+    try {
+      const response = await axios.get(`https://api.postalpincode.in/pincode/${cleanPin}`);
+      if (response.data && response.data[0]?.Status === "Success" && response.data[0]?.PostOffice?.length > 0) {
+        const postOffice = response.data[0].PostOffice[0];
+        const detectedCity = postOffice.District || postOffice.Division || postOffice.Block || postOffice.Name || "";
+        const detectedState = postOffice.State || "";
+
+        setShippingAddress((prev) => ({
+          ...prev,
+          city: detectedCity || prev.city,
+          state: detectedState || prev.state,
+          country: "INDIA",
+        }));
+        toast.success(`📍 ${detectedCity}${detectedState ? `, ${detectedState}` : ""} auto-filled!`);
+        return;
+      }
+      throw new Error("Pincode not found");
+    } catch (err) {
+      // Fallback API if primary is slow or down
+      try {
+        const fallbackRes = await axios.get(`https://api.zippopotam.us/in/${cleanPin}`);
+        if (fallbackRes.data && fallbackRes.data.places?.length > 0) {
+          const place = fallbackRes.data.places[0];
+          const fallbackCity = place["place name"] || "";
+          const fallbackState = place["state"] || "";
+          setShippingAddress((prev) => ({
+            ...prev,
+            city: fallbackCity || prev.city,
+            state: fallbackState || prev.state,
+            country: "INDIA",
+          }));
+          toast.success(`📍 ${fallbackCity}${fallbackState ? `, ${fallbackState}` : ""} auto-filled!`);
+        }
+      } catch (fallbackErr) {
+        console.warn("Location lookup error:", fallbackErr);
+      }
+    } finally {
+      setIsPincodeLoading(false);
+    }
+  };
+
+  const handlePincodeChange = (e) => {
+    const val = e.target.value;
+    setShippingAddress((prev) => ({
+      ...prev,
+      postalCode: val,
+    }));
+    const cleanPin = val.trim().replace(/\D/g, "");
+    if (cleanPin.length === 6) {
+      fetchLocationFromPincode(cleanPin);
+    }
+  };
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
@@ -78,6 +195,17 @@ const CheckOut = () => {
 
   const hasFreeShippingItem = localShippingItems.some(item => Number(item.localShippingCharge ?? 0) === 0);
   const hasLocalShippingItem = localShippingItems.length > 0;
+
+  const countryClean = shippingAddress.country?.trim().toLowerCase() || "";
+  const phoneClean = shippingAddress.phone?.replace(/\D/g, "") || "";
+  const isIndia = Boolean(
+    !countryClean ||
+    countryClean === "india" ||
+    countryClean === "in" ||
+    shippingAddress.phone?.trim().startsWith("+91") ||
+    (countryClean === "india" && /^[6-9]\d{9}$/.test(phoneClean)) ||
+    (phoneClean.length === 10 && /^[6-9]\d{9}$/.test(phoneClean) && countryClean !== "usa" && countryClean !== "us")
+  );
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -299,6 +427,7 @@ const CheckOut = () => {
             lastName: shippingAddress.lastName,
             address: shippingAddress.address,
             city: shippingAddress.city,
+            state: shippingAddress.state,
             postalCode: shippingAddress.postalCode,
             country: shippingAddress.country,
             phone: shippingAddress.phone,
@@ -368,6 +497,7 @@ const CheckOut = () => {
         errors.shippingAddress?.lastName?._errors[0] ||
         errors.shippingAddress?.address?._errors[0] ||
         errors.shippingAddress?.city?._errors[0] ||
+        errors.shippingAddress?.state?._errors[0] ||
         errors.shippingAddress?.postalCode?._errors[0] ||
         errors.shippingAddress?.country?._errors[0] ||
         errors.shippingAddress?.phone?._errors[0];
@@ -531,9 +661,10 @@ const CheckOut = () => {
               </div>
             </div>
             <div className="mb-4">
-              <label className="block text-gray-700">Address *</label>
+              <label className="block text-gray-700 mb-1">Address *</label>
               <input
                 type="text"
+                placeholder="House No, Flat, Building, Street, Area"
                 value={shippingAddress.address}
                 onChange={(e) => {
                   setShippingAddress({
@@ -545,11 +676,46 @@ const CheckOut = () => {
                 required
               />
             </div>
+
             <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700">City *</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-gray-700">
+                    {isIndia ? "PIN Code *" : "Postal Code *"}
+                  </label>
+                  {isPincodeLoading && (
+                    <span className="text-xs text-teal-600 font-medium animate-pulse flex items-center">
+                      <svg className="animate-spin -ml-1 mr-1 h-3 w-3 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Auto-filling...
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder={isIndia ? "Enter 6-digit PIN code" : "Enter postal code"}
+                    value={shippingAddress.postalCode}
+                    onChange={handlePincodeChange}
+                    className={`w-full p-2 border rounded ${isPincodeLoading ? 'bg-teal-50/50 border-teal-400' : ''}`}
+                    required
+                  />
+                  {shippingAddress.postalCode?.replace(/\D/g, '').length === 6 && !isPincodeLoading && shippingAddress.city && (
+                    <span className="absolute right-3 top-2.5 text-xs text-green-600 font-medium">
+                      ✓ Auto-filled
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-1">City *</label>
                 <input
                   type="text"
+                  placeholder="City / District"
                   value={shippingAddress.city}
                   onChange={(e) => {
                     setShippingAddress({
@@ -569,15 +735,35 @@ const CheckOut = () => {
                   </p>
                 )}
               </div>
+            </div>
+
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700">Postal Code *</label>
+                <label className="block text-gray-700 mb-1">State *</label>
                 <input
                   type="text"
-                  value={shippingAddress.postalCode}
+                  placeholder="State (e.g. Rajasthan)"
+                  value={shippingAddress.state}
                   onChange={(e) => {
                     setShippingAddress({
                       ...shippingAddress,
-                      postalCode: e.target.value,
+                      state: e.target.value,
+                    });
+                  }}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-1">Country *</label>
+                <input
+                  type="text"
+                  placeholder="Country"
+                  value={shippingAddress.country}
+                  onChange={(e) => {
+                    setShippingAddress({
+                      ...shippingAddress,
+                      country: e.target.value,
                     });
                   }}
                   className="w-full p-2 border rounded"
@@ -585,25 +771,12 @@ const CheckOut = () => {
                 />
               </div>
             </div>
+
             <div className="mb-4">
-              <label className="block text-gray-700">Country *</label>
-              <input
-                type="text"
-                value={shippingAddress.country}
-                onChange={(e) => {
-                  setShippingAddress({
-                    ...shippingAddress,
-                    country: e.target.value,
-                  });
-                }}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700">Phone *</label>
+              <label className="block text-gray-700 mb-1">Phone *</label>
               <input
                 type="tel"
+                placeholder="10-digit mobile number"
                 value={shippingAddress.phone}
                 onChange={(e) => {
                   setShippingAddress({
