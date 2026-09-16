@@ -126,6 +126,34 @@ const CollectionPage = () => {
     navigate(`/collections/all?${params.toString()}`);
   };
 
+  // Active filter count for badge in GoalBar
+  const activeFilterCount = Object.keys(queryParams).filter(
+    (k) => ["brand", "minPrice", "maxPrice", "search", "category", "subCategory"].includes(k) && queryParams[k]
+  ).length;
+
+  // Prevent body scroll when filter drawer is open
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
+
+  // Close drawer on ESC key press
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isSidebarOpen) {
+        closeSidebar();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSidebarOpen]);
+
   // Active filter chips derived from URL params (Sidebar filters like brand, search, price)
   const activeFilters = [];
   if (queryParams.category && !queryParams.goal) {
@@ -195,25 +223,14 @@ const CollectionPage = () => {
         robots={robotsDirective}
       />
 
-      <div className="max-w-screen-2xl mx-auto px-4 pt-2 pb-4 flex gap-4 items-start">
-
-        {/* ── Desktop Sidebar ── */}
-        <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-[11px] self-start">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-85px)]">
-            <div className="bg-[#232f3e] text-white px-4 py-3">
-              <h2 className="text-sm font-bold flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
-                Refine Results
-              </h2>
-            </div>
-            <FilterSidebar />
-          </div>
-        </aside>
-
-        {/* ── Main Content ── */}
-        <div className="flex-1 min-w-0 space-y-2">
-          {/* ── Health & Wellness Goal Bar ── */}
-          <GoalBar />
+      <div className="max-w-screen-2xl mx-auto px-4 pt-2 pb-4">
+        {/* ── Main Content Container ── */}
+        <div className="w-full space-y-2">
+          {/* ── Health & Wellness Goal Bar + Refine Results Trigger ── */}
+          <GoalBar
+            onOpenFilter={() => setIsSidebarOpen(true)}
+            activeFilterCount={activeFilterCount}
+          />
 
           {/* ── Active Secondary Filter Chips (Only shown when Brand, Price, Search are active) ── */}
           {activeFilters.length > 0 && (
@@ -245,8 +262,8 @@ const CollectionPage = () => {
             </div>
           )}
 
-          {/* Mobile Product Header & Filter */}
-          <div className="lg:hidden flex items-center justify-between bg-white px-4 py-2">
+          {/* Mobile Product Header */}
+          <div className="lg:hidden flex items-center justify-between bg-white px-4 py-2 rounded-lg shadow-xs">
             <div>
               <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">SHOP</p>
               <h1 className="text-lg font-bold text-gray-900">
@@ -255,7 +272,7 @@ const CollectionPage = () => {
             </div>
           </div>
 
-          {/* ── Product Grid ── */}
+          {/* ── Full-Width Product Grid ── */}
           <div className="bg-white rounded-lg shadow-sm p-4">
             <ProductGrid
               products={products}
@@ -310,39 +327,53 @@ const CollectionPage = () => {
         </div>
       </div>
 
-      {/* ── Mobile Sidebar Drawer ── */}
+      {/* ── Refine Results Right-Side Overlay Drawer (Desktop & Mobile) ── */}
       {isSidebarOpen && (
-        <div className="fixed inset-0 z-[100] flex lg:hidden">
-          <div className="w-80 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300"
+            onClick={closeSidebar}
+            aria-hidden="true"
+          />
+
+          {/* Right Drawer Container */}
+          <div
+            className="relative w-full max-w-[400px] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-right duration-300 transform transition-transform"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Refine Results Filter"
+          >
+            {/* Header */}
             <div className="bg-[#232f3e] text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
               <h2 className="text-sm font-bold flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
-                Refine Results
+                <SlidersHorizontal className="h-4 w-4 text-[#0FB7A3]" />
+                <span>Refine Results</span>
               </h2>
               <button
                 onClick={closeSidebar}
-                className="p-1 hover:bg-white/10 rounded transition-colors"
+                className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
                 aria-label="Close filters"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
+
+            {/* Existing Filter Controls */}
             <div className="flex-1 overflow-y-auto">
               <FilterSidebar />
             </div>
-            <div className="p-4 border-t border-gray-200 flex-shrink-0">
+
+            {/* Drawer Footer Action */}
+            <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
               <button
                 onClick={closeSidebar}
-                className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-bold py-3 rounded-lg transition-colors"
+                className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-bold py-3 rounded-lg transition-colors cursor-pointer text-sm"
               >
                 Show {totalProducts || products?.length || 0} Results
               </button>
             </div>
           </div>
-          <div
-            className="flex-1 bg-black/60 backdrop-blur-sm"
-            onClick={closeSidebar}
-          />
         </div>
       )}
     </div>

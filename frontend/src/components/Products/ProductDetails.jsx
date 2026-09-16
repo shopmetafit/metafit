@@ -3,7 +3,7 @@ import { FaPlayCircle, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { toast } from "sonner";
 import ProductGrid from "./ProductGrid";
 import ProductReviews from "./ProductReviews";
-import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";

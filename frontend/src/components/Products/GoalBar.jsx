@@ -8,10 +8,11 @@ import {
   X,
   Sparkles,
   LayoutGrid,
+  SlidersHorizontal,
 } from "lucide-react";
 import { WellnessIcon } from "./WellnessIcons";
 
-const GoalBar = () => {
+const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -96,26 +97,45 @@ const GoalBar = () => {
 
   return (
     <div className="bg-gradient-to-t from-teal-50/60 via-slate-50/20 to-white rounded-xl shadow-xs border border-slate-200/80 p-2.5 transition-all mb-2">
-      {/* ─── Top Bar: Category Label & Clear Action ─── */}
-      <div className="flex items-center justify-between mb-2 px-1">
+      {/* ─── Top Bar: Category Label & Clear Action / Refine Results ─── */}
+      <div className="flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="flex items-center justify-center h-5 w-5 rounded-md bg-[#0FB7A3]/10 text-[#0FB7A3]">
             <LayoutGrid className="h-3.5 w-3.5 stroke-[2.2]" />
           </span>
-          <span className="text-xs font-bold text-slate-800 tracking-tight">
+          <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
             Explore Categories
           </span>
         </div>
 
-        {selectedGoal && (
-          <button
-            onClick={() => handleGoalSelect(null)}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
-          >
-            <span>Clear Filter</span>
-            <X className="h-3 w-3" />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {selectedGoal && (
+            <button
+              onClick={() => handleGoalSelect(null)}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-red-500 hover:bg-red-50 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+            >
+              <span>Clear Filter</span>
+              <X className="h-3 w-3" />
+            </button>
+          )}
+
+          {onOpenFilter && (
+            <button
+              type="button"
+              onClick={onOpenFilter}
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#0FB7A3] bg-teal-50/90 border border-teal-200/90 hover:bg-[#0FB7A3] hover:text-white rounded-lg shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 group"
+              aria-label="Refine Results"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5 stroke-[2.2]" />
+              <span>Refine Results</span>
+              {activeFilterCount > 0 && (
+                <span className="bg-[#0FB7A3] group-hover:bg-white text-white group-hover:text-[#0FB7A3] text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-0.5 shadow-2xs">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ─── Level 1: Primary Category Bar ─── */}
