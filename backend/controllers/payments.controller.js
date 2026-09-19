@@ -175,10 +175,17 @@ exports.createOrder = async (req, res) => {
     if (!resolvedUser && targetEmail) resolvedUser = await User.findOne({ email: targetEmail }).catch(() => null);
     if (!resolvedUser && targetPhone) resolvedUser = await User.findOne({ phone: targetPhone }).catch(() => null);
 
-    const finalAddress = shippingAddress?.address || address || "Not provided";
-    const finalCity = targetCity || "Not provided";
+    const finalFullName = shippingAddress?.fullName || `${shippingAddress?.firstName || ''} ${shippingAddress?.lastName || ''}`.trim() || targetCustomerName || "Customer";
+    const finalPhone = shippingAddress?.phone || targetPhone || "";
+    const finalHouse = shippingAddress?.house || "";
+    const finalArea = shippingAddress?.area || "";
+    const finalLandmark = shippingAddress?.landmark || "";
+    const finalDistrict = shippingAddress?.district || "";
+    const finalAddressType = shippingAddress?.addressType || "Home";
+    const finalAddress = shippingAddress?.address || address || [finalHouse, finalArea, finalLandmark].filter(Boolean).join(", ") || "Not provided";
+    const finalCity = targetCity || shippingAddress?.city || "Not provided";
     const finalState = shippingAddress?.state || state || "";
-    const finalPostalCode = shippingAddress?.postalCode || postalCode || "Not provided";
+    const finalPostalCode = shippingAddress?.postalCode || shippingAddress?.pincode || postalCode || "Not provided";
     const finalCountry = shippingAddress?.country || country || "India";
 
     const pendingOrder = new Order({
@@ -186,11 +193,18 @@ exports.createOrder = async (req, res) => {
       checkoutId: checkoutDoc ? checkoutDoc._id : null,
       orderItems,
       shippingAddress: {
+        fullName: finalFullName,
+        phone: finalPhone,
+        house: finalHouse,
+        area: finalArea,
+        landmark: finalLandmark,
         address: finalAddress,
         city: finalCity,
+        district: finalDistrict,
         state: finalState,
         postalCode: finalPostalCode,
         country: finalCountry,
+        addressType: finalAddressType,
       },
       customerName: targetCustomerName || "Customer",
       customerPhone: targetPhone || "",

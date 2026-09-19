@@ -286,22 +286,7 @@ const Topbar = () => {
       <div className="bg-[#022824] text-white">
         <div className="max-w-screen-2xl mx-auto px-3 py-2.5 flex items-center gap-2 lg:gap-4">
 
-          {/* Delivery Location - Desktop only */}
-          <div
-            onClick={handleLocationRequest}
-            title={isFetchingLocation ? "Detecting location..." : `Deliver to ${userLocation}`}
-            className="hidden lg:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-white rounded px-1.5 py-0.5 cursor-pointer select-none"
-          >
-            <span className="text-xs text-gray-300 leading-tight">Deliver to</span>
-            <div className="flex items-center gap-1">
-              <MapPin className={`h-4 w-4 ${isFetchingLocation ? 'animate-bounce text-teal-400' : ''}`} />
-              <span className="text-sm font-bold truncate max-w-[140px]">
-                {isFetchingLocation ? 'Detecting...' : userLocation}
-              </span>
-            </div>
-          </div>
-
-          {/* Logo */}
+          {/* 1. Logo - FIRST POSITION */}
           <Link
             to="/"
             className="flex items-center gap-2 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 group"
@@ -315,7 +300,23 @@ const Topbar = () => {
             </div>
           </Link>
 
-          {/* Search Bar - Desktop */}
+          {/* 2. Delivery Location - SECOND POSITION (Desktop) */}
+          <div
+            onClick={handleLocationRequest}
+            title={isFetchingLocation ? "Detecting location..." : `Deliver to ${userLocation}`}
+            className="hidden md:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-white rounded px-1.5 py-0.5 cursor-pointer select-none"
+          >
+            <span className="text-xs text-gray-300 leading-tight">Deliver to</span>
+            <div className="flex items-center gap-1">
+              <MapPin className={`h-4 w-4 ${isFetchingLocation ? 'animate-bounce text-teal-400' : ''}`} />
+              <span className="text-sm font-bold truncate max-w-[140px]">
+                {isFetchingLocation ? 'Detecting...' : userLocation}
+              </span>
+              <ChevronDown className="h-3 w-3 text-gray-300" />
+            </div>
+          </div>
+
+          {/* 3. Search Bar - THIRD POSITION (Desktop) */}
           <div ref={searchContainerRef} className="hidden md:flex relative flex-1 min-w-0">
             <form onSubmit={handleSearch} className="flex w-full rounded-md overflow-hidden shadow-sm">
               <input
@@ -426,10 +427,8 @@ const Topbar = () => {
                         onClick={() => {
                           setShowSuggestions(false);
                           setSelectedIndex(-1);
-                          // Items #15 & #16: Save recent search & click analytics
                           saveRecentSearch(searchQuery);
                           recordSuggestionClick(item._id);
-                          // Item #10: Do NOT clear searchQuery when product is selected
                           navigate(`/product/${item._id}`);
                         }}
                         className={`flex items-center gap-3 px-3 py-2.5 hover:bg-teal-50/70 cursor-pointer border-b border-gray-100 transition-colors group ${
@@ -445,7 +444,6 @@ const Topbar = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-teal-700 transition-colors">
-                            {/* Item #13: Highlighted text */}
                             {highlightMatch(item.name, searchQuery)}
                           </p>
                           <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5 flex-wrap">
@@ -487,16 +485,6 @@ const Topbar = () => {
 
           {/* Right Actions */}
           <div className="flex items-center gap-1 md:gap-1.5 ml-auto md:ml-0">
-
-            {/* Mobile Search */}
-            <button
-              onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-              className="md:hidden p-2 hover:ring-1 hover:ring-white rounded transition-all"
-              aria-label="Search"
-            >
-              <Search className="h-6 w-6" />
-            </button>
-
 
             {/* Account & Lists */}
             <Link
@@ -558,149 +546,156 @@ const Topbar = () => {
           </div>
         </div>
 
-        {/* Mobile Search Bar */}
-        {mobileSearchOpen && (
-          <div ref={mobileSearchContainerRef} className="md:hidden px-3 pb-3 relative">
-            <form onSubmit={handleSearch} className="flex rounded-md overflow-hidden">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={() => setShowSuggestions(true)}
-                placeholder="Search wellness products..."
-                className="flex-1 px-3 py-2.5 text-sm text-gray-900 focus:outline-none"
-                autoFocus
-              />
-              <button
-                type="submit"
-                className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-4 flex items-center justify-center transition-colors"
-              >
-                <Search className="h-5 w-5 text-white" />
-              </button>
-            </form>
+        {/* MOBILE ROW 2 — DYNAMIC DELIVER TO LOCATION (ALWAYS VISIBLE ON MOBILE) */}
+        <div
+          onClick={handleLocationRequest}
+          title={isFetchingLocation ? "Detecting location..." : `Deliver to ${userLocation}`}
+          className="md:hidden flex items-center justify-between px-3 py-1.5 bg-[#011e1b] text-xs text-gray-200 border-t border-b border-teal-900/60 cursor-pointer select-none hover:bg-[#012521] transition-colors"
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            <MapPin className={`h-4 w-4 text-teal-400 flex-shrink-0 ${isFetchingLocation ? 'animate-bounce' : ''}`} />
+            <span className="text-gray-300 flex-shrink-0 text-[11px] font-medium">Deliver to</span>
+            <span className="font-bold text-white text-xs truncate max-w-[200px] xs:max-w-[250px] sm:max-w-[350px]">
+              {isFetchingLocation ? 'Detecting location...' : userLocation}
+            </span>
+          </div>
+          <ChevronDown className="h-3.5 w-3.5 text-teal-400 flex-shrink-0 ml-1" />
+        </div>
 
-            {/* Mobile Suggestions & Trending / Recent Overlay */}
-            {showSuggestions && (
-              <div className="absolute top-full left-3 right-3 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto font-sans text-gray-800">
-                {searchQuery.trim().length === 0 ? (
-                  <div className="p-3 space-y-3">
-                    {/* Item #15: Recent Searches */}
-                    {recentSearches.length > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
-                          <span>Recent Searches</span>
-                          <button
-                            onClick={clearRecentSearches}
-                            className="text-[10px] text-rose-500 hover:underline capitalize"
-                          >
-                            Clear
-                          </button>
-                        </div>
-                        <div className="flex flex-wrap gap-1">
-                          {recentSearches.map((term) => (
-                            <button
-                              key={term}
-                              type="button"
-                              onClick={() => {
-                                setSearchQuery(term);
-                                saveRecentSearch(term);
-                                setMobileSearchOpen(false);
-                                navigate(`/collections/all?search=${encodeURIComponent(term)}`);
-                              }}
-                              className="inline-flex items-center gap-1 text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200"
-                            >
-                              <span>🕒</span>
-                              <span>{term}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+        {/* MOBILE ROW 3 — SEARCH BAR (ALWAYS VISIBLE & ACCESSIBLE ON MOBILE) */}
+        <div ref={mobileSearchContainerRef} className="md:hidden px-3 py-2 relative bg-[#022824]">
+          <form onSubmit={handleSearch} className="flex rounded-md overflow-hidden shadow-sm">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="Search products..."
+              className="flex-1 min-w-0 px-3 py-2 text-xs text-gray-900 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-3.5 transition-colors flex items-center justify-center flex-shrink-0"
+            >
+              <Search className="h-4 w-4 text-white" />
+            </button>
+          </form>
 
-                    {/* Item #14: Trending Searches */}
+          {/* Mobile Suggestions & Trending / Recent Overlay */}
+          {showSuggestions && (
+            <div className="absolute top-full left-3 right-3 z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-80 overflow-y-auto font-sans text-gray-800">
+              {searchQuery.trim().length === 0 ? (
+                <div className="p-3 space-y-3">
+                  {recentSearches.length > 0 && (
                     <div>
-                      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
-                        🔥 Trending
+                      <div className="flex items-center justify-between text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
+                        <span>Recent Searches</span>
+                        <button
+                          onClick={clearRecentSearches}
+                          className="text-[10px] text-rose-500 hover:underline capitalize"
+                        >
+                          Clear
+                        </button>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {trendingSearches.map((term) => (
+                        {recentSearches.map((term) => (
                           <button
                             key={term}
                             type="button"
                             onClick={() => {
                               setSearchQuery(term);
                               saveRecentSearch(term);
-                              setMobileSearchOpen(false);
+                              setShowSuggestions(false);
                               navigate(`/collections/all?search=${encodeURIComponent(term)}`);
                             }}
-                            className="inline-flex items-center gap-1 text-[11px] bg-teal-50 text-teal-800 font-medium px-2.5 py-1 rounded-full border border-teal-200/60"
+                            className="inline-flex items-center gap-1 text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full border border-gray-200"
                           >
+                            <span>🕒</span>
                             <span>{term}</span>
                           </button>
                         ))}
                       </div>
                     </div>
-                  </div>
-                ) : isLoadingSuggestions && suggestions.length === 0 ? (
-                  /* Item #8 & #12: Mobile Skeleton Rows */
-                  <div className="p-2 space-y-2">
-                    {[1, 2, 3].map((n) => (
-                      <div key={n} className="flex items-center gap-2.5 px-3 py-2 animate-pulse">
-                        <div className="w-8 h-8 rounded bg-gray-200 flex-shrink-0" />
-                        <div className="flex-1 space-y-1">
-                          <div className="h-3 bg-gray-200 rounded w-2/3" />
-                          <div className="h-2 bg-gray-150 rounded w-1/3" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : suggestions.length === 0 ? (
-                  <div className="p-3 text-center text-xs text-gray-500">No products found</div>
-                ) : (
+                  )}
+
                   <div>
-                    {suggestions.map((item, idx) => (
-                      <div
-                        key={item._id}
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={() => {
-                          setShowSuggestions(false);
-                          setSelectedIndex(-1);
-                          saveRecentSearch(searchQuery);
-                          recordSuggestionClick(item._id);
-                          setMobileSearchOpen(false);
-                          // Item #10: Do NOT clear searchQuery when product is selected
-                          navigate(`/product/${item._id}`);
-                        }}
-                        className={`flex items-center gap-2.5 px-3 py-2 border-b border-gray-100 hover:bg-teal-50 ${
-                          selectedIndex === idx ? "bg-teal-100 font-bold border-l-4 border-l-teal-600 pl-2" : ""
-                        }`}
-                      >
-                        <div className="w-8 h-8 rounded bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center">
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-[10px] text-gray-400 font-bold">M</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-gray-800 truncate">
-                            {/* Item #13: Highlighted matching text */}
-                            {highlightMatch(item.name, searchQuery)}
-                          </p>
-                          <p className="text-[10px] text-teal-600 truncate">
-                            {highlightMatch(item.category, searchQuery)}
-                          </p>
-                        </div>
-                        <span className="text-xs font-bold text-gray-900">₹{item.discountedPrice || item.price}</span>
-                      </div>
-                    ))}
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1.5 px-0.5">
+                      🔥 Trending
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {trendingSearches.map((term) => (
+                        <button
+                          key={term}
+                          type="button"
+                          onClick={() => {
+                            setSearchQuery(term);
+                            saveRecentSearch(term);
+                            setShowSuggestions(false);
+                            navigate(`/collections/all?search=${encodeURIComponent(term)}`);
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] bg-teal-50 text-teal-800 font-medium px-2.5 py-1 rounded-full border border-teal-200/60"
+                        >
+                          <span>{term}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              ) : isLoadingSuggestions && suggestions.length === 0 ? (
+                <div className="p-2 space-y-2">
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="flex items-center gap-2.5 px-3 py-2 animate-pulse">
+                      <div className="w-8 h-8 rounded bg-gray-200 flex-shrink-0" />
+                      <div className="flex-1 space-y-1">
+                        <div className="h-3 bg-gray-200 rounded w-2/3" />
+                        <div className="h-2 bg-gray-150 rounded w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : suggestions.length === 0 ? (
+                <div className="p-3 text-center text-xs text-gray-500">No products found</div>
+              ) : (
+                <div>
+                  {suggestions.map((item, idx) => (
+                    <div
+                      key={item._id}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setShowSuggestions(false);
+                        setSelectedIndex(-1);
+                        saveRecentSearch(searchQuery);
+                        recordSuggestionClick(item._id);
+                        navigate(`/product/${item._id}`);
+                      }}
+                      className={`flex items-center gap-2.5 px-3 py-2 border-b border-gray-100 hover:bg-teal-50 ${
+                        selectedIndex === idx ? "bg-teal-100 font-bold border-l-4 border-l-teal-600 pl-2" : ""
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded bg-gray-100 flex-shrink-0 overflow-hidden border border-gray-200 flex items-center justify-center">
+                        {item.image ? (
+                          <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] text-gray-400 font-bold">M</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800 truncate">
+                          {highlightMatch(item.name, searchQuery)}
+                        </p>
+                        <p className="text-[10px] text-teal-600 truncate">
+                          {highlightMatch(item.category, searchQuery)}
+                        </p>
+                      </div>
+                      <span className="text-xs font-bold text-gray-900">₹{item.discountedPrice || item.price}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} activeTab={activeDrawerTab} setActiveTab={setActiveDrawerTab} />

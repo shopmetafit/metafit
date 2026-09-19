@@ -9,6 +9,7 @@ import adminProductReducer from "./slices/adminProductSlice"
 import adminOrderReducer from "./slices/adminOrderSlice"
 import wishlistReducer from "./slices/wishlistSlice"
 import reviewReducer from "./slices/reviewSlice"
+import addressReducer from "./slices/addressSlice"
 const store = configureStore({
     reducer:{
         auth: authReducer,
@@ -21,6 +22,7 @@ const store = configureStore({
         adminOrders:adminOrderReducer,
         wishlist: wishlistReducer,
         reviews: reviewReducer,
+        address: addressReducer,
     }
 });
 

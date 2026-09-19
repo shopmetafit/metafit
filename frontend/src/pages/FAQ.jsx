@@ -30,50 +30,94 @@ const faqs = [
   },
 ];
 
-const FAQSection = () => {
+const FAQSection = ({ isOpen, onToggle }) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [openIndex, setOpenIndex] = useState(null);
 
-  const toggleFAQ = (index) => {
+  const isMainOpen = isOpen !== undefined ? isOpen : internalOpen;
+
+  const handleMainToggle = () => {
+    if (onToggle) {
+      onToggle();
+    } else {
+      setInternalOpen(!internalOpen);
+    }
+  };
+
+  const toggleFAQ = (index, e) => {
+    e.stopPropagation();
     setOpenIndex(openIndex === index ? null : index);
   };
 
   return (
-    <section className="mt-16 bg-white rounded-xl shadow-sm p-6 sm:p-10">
-      <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
-        Frequently Asked Questions
-      </h2>
-      <p className="text-center text-gray-600 mb-10">
-        Everything you need to know about our products and services.
-      </p>
+    <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300">
+      {/* Level 1 Main Accordion Header */}
+      <button
+        type="button"
+        onClick={handleMainToggle}
+        aria-expanded={isMainOpen}
+        aria-controls="faq-accordion-body"
+        className="w-full p-5 sm:p-6 flex items-center justify-between text-left hover:bg-gray-50/80 transition-colors cursor-pointer select-none group focus:outline-none focus:ring-2 focus:ring-[#0FB7A3]/40"
+      >
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-teal-800 transition-colors">
+          Frequently Asked Questions
+        </h2>
+        <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 ml-3 group-hover:bg-teal-100 transition-colors">
+          {isMainOpen ? (
+            <Minus className="w-5 h-5 text-[#0FB7A3]" />
+          ) : (
+            <Plus className="w-5 h-5 text-[#0FB7A3]" />
+          )}
+        </div>
+      </button>
 
-      <div className="max-w-3xl mx-auto space-y-4">
-        {faqs.map((faq, index) => (
-          <div
-            key={index}
-            className="border border-gray-200 rounded-lg p-4 cursor-pointer"
-            onClick={() => toggleFAQ(index)}
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="font-semibold text-gray-800">
-                {faq.question}
-              </h3>
-              {openIndex === index ? (
-                <Minus className="w-5 h-5 text-[#0FA958]" />
-              ) : (
-                <Plus className="w-5 h-5 text-[#0FA958]" />
-              )}
-            </div>
+      {/* Level 1 Main Accordion Body */}
+      {isMainOpen && (
+        <div
+          id="faq-accordion-body"
+          className="px-5 pb-6 sm:px-8 sm:pb-8 border-t border-gray-100 animate-in fade-in duration-300"
+        >
+          <p className="text-gray-600 text-sm sm:text-base mt-4 mb-6">
+            Everything you need to know about our products and services.
+          </p>
 
-            {openIndex === index && (
-              <p className="mt-3 text-gray-600">
-                {faq.answer}
-              </p>
-            )}
+          {/* Level 2 Individual Question Accordions */}
+          <div className="max-w-3xl space-y-3">
+            {faqs.map((faq, index) => (
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4 transition-colors hover:border-teal-200 bg-white"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => toggleFAQ(index, e)}
+                  aria-expanded={openIndex === index}
+                  aria-controls={`faq-answer-${index}`}
+                  className="w-full flex justify-between items-center text-left focus:outline-none cursor-pointer"
+                >
+                  <h3 className="font-semibold text-gray-800 text-sm sm:text-base pr-2">
+                    {faq.question}
+                  </h3>
+                  {openIndex === index ? (
+                    <Minus className="w-4 h-4 text-[#0FB7A3] flex-shrink-0" />
+                  ) : (
+                    <Plus className="w-4 h-4 text-[#0FB7A3] flex-shrink-0" />
+                  )}
+                </button>
+
+                {openIndex === index && (
+                  <p
+                    id={`faq-answer-${index}`}
+                    className="mt-3 text-xs sm:text-sm text-gray-600 leading-relaxed pt-2 border-t border-gray-100 animate-in fade-in duration-200"
+                  >
+                    {faq.answer}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      
+        </div>
+      )}
     </section>
   );
 };

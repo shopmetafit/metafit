@@ -48,11 +48,18 @@ const orderSchema = new mongoose.Schema(
     },
     orderItems: [orderItemSchema],
     shippingAddress: {
+      fullName: { type: String, default: "" },
+      phone: { type: String, default: "" },
+      house: { type: String, default: "" },
+      area: { type: String, default: "" },
+      landmark: { type: String, default: "" },
       address: { type: String, required: true },
       city: { type: String, required: true },
+      district: { type: String, default: "" },
       state: { type: String, default: "" },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
+      addressType: { type: String, default: "Home" },
     },
     paymentMethod: {
       type: String,

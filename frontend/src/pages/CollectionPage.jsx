@@ -9,6 +9,7 @@ import ProductGrid from "../components/Products/ProductGrid";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productSlice";
 import FAQSection from "./FAQ";
+import WelcomeAccordion from "../components/common/WelcomeAccordion";
 
 import SEO from "../components/SEO/SEO";
 
@@ -24,6 +25,7 @@ const categorySlugToName = {
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [openSection, setOpenSection] = useState(null);
   const observerRef = useRef(null);
 
   const navigate = useNavigate();
@@ -284,45 +286,21 @@ const CollectionPage = () => {
             <div ref={observerRef} className="h-4 w-full" />
           </div>
 
-          {/* ── FAQ ── */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <FAQSection />
+          {/* ── FAQ Main Accordion ── */}
+          <div className="mt-6">
+            <FAQSection
+              isOpen={openSection === "faq"}
+              onToggle={() => setOpenSection(openSection === "faq" ? null : "faq")}
+            />
           </div>
 
-          {/* ── SEO Content ── */}
-          <section className="bg-white rounded-lg shadow-sm p-5">
-            <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
-              Welcome to M Wellness Bazaar — Your Premium Wellness Destination
-            </h2>
-            <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
-              <p>
-                At M Wellness Bazaar, we believe that true wellness is a journey, not a destination. Our carefully curated collection of premium wellness products is designed to support your path to vibrant health, blending ancient healing wisdom with modern scientific innovation.
-              </p>
-              {[
-                {
-                  title: "Why Choose M Wellness Bazaar?",
-                  body: "We source only the highest quality, authentic wellness products from trusted suppliers worldwide. Every product undergoes rigorous quality checks for purity, potency, and effectiveness.",
-                },
-                {
-                  title: "Our Comprehensive Product Range",
-                  body: "From energy-boosting supplements and nutritional powerhouses to skincare products infused with natural ingredients, stress-relief solutions, Ayurvedic remedies, and fitness accessories — we've got you covered.",
-                },
-                {
-                  title: "Quality Assurance & Authenticity Guarantee",
-                  body: "All our wellness products are 100% authentic and sourced directly from manufacturers or authorized distributors. We never compromise on quality or sell counterfeit items.",
-                },
-                {
-                  title: "Fast & Free Shipping",
-                  body: "We offer fast shipping on all orders, with free shipping on qualifying purchases. Our efficient logistics network ensures your products reach you quickly and in pristine condition.",
-                },
-              ].map((item) => (
-                <div key={item.title}>
-                  <h3 className="font-bold text-gray-800 mb-1">{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+          {/* ── Welcome Main Accordion ── */}
+          <div className="mt-4">
+            <WelcomeAccordion
+              isOpen={openSection === "welcome"}
+              onToggle={() => setOpenSection(openSection === "welcome" ? null : "welcome")}
+            />
+          </div>
 
         </div>
       </div>

@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MyOrdersPage from "./MyOrdersPage";
+import MyAddressesPage from "./MyAddressesPage";
 import ProductGrid from "../components/Products/ProductGrid";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { clearCart } from "../redux/slices/cartSlice";
 import { logout } from "../redux/slices/authSlice";
 import { fetchWishlist } from "../redux/slices/wishlistSlice";
-import { Package, LogOut, ChevronRight, ShoppingBag, Heart, Loader2 } from "lucide-react";
+import { Package, LogOut, ChevronRight, ShoppingBag, Heart, MapPin, Loader2 } from "lucide-react";
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -18,7 +19,8 @@ const Profile = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeTab = searchParams.get("tab") === "wishlist" ? "wishlist" : "orders";
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam === "wishlist" ? "wishlist" : tabParam === "addresses" ? "addresses" : "orders";
 
   useEffect(() => {
     if (!user) {
@@ -72,7 +74,7 @@ const Profile = () => {
                     className="w-14 h-14 rounded-full object-cover border-2 border-[#047ca8] flex-shrink-0"
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#047ca8] to-[#06b6d4] flex items-center justify-center flex-shrink-0">
+                  <div className="w-14 h-14 rounded-full bg-[#3be5f5] flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xl font-bold">{initials}</span>
                   </div>
                 )}
@@ -90,11 +92,10 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setSearchParams({ tab: "orders" })}
-                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${
-                    activeTab === "orders"
-                      ? "bg-[#e8f4f8] text-[#047ca8] font-bold"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${activeTab === "orders"
+                    ? "bg-[#e8f4f8] text-[#047ca8] font-bold"
+                    : "text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <Package className="h-4 w-4 text-[#047ca8]" />
@@ -106,11 +107,10 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setSearchParams({ tab: "wishlist" })}
-                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${
-                    activeTab === "wishlist"
-                      ? "bg-rose-50 text-rose-600 font-bold"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
+                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${activeTab === "wishlist"
+                    ? "bg-rose-50 text-rose-600 font-bold"
+                    : "text-gray-700 hover:bg-gray-50"
+                    }`}
                 >
                   <div className="flex items-center gap-2">
                     <Heart className="h-4 w-4 text-rose-500" />
@@ -121,6 +121,21 @@ const Profile = () => {
                       {wishlistProducts.length}
                     </span>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({ tab: "addresses" })}
+                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${activeTab === "addresses"
+                    ? "bg-blue-50 text-[#047ca8] font-bold"
+                    : "text-gray-700 hover:bg-gray-50"
+                    }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-[#047ca8]" />
+                    <span>My Addresses</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
                 </button>
 
                 <Link
@@ -159,6 +174,10 @@ const Profile = () => {
             {activeTab === "orders" ? (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
                 <MyOrdersPage />
+              </div>
+            ) : activeTab === "addresses" ? (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                <MyAddressesPage />
               </div>
             ) : (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">

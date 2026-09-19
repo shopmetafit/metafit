@@ -29,6 +29,7 @@ const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
 const sitemapRoutes = require("../routes/sitemapRoutes");
 const reviewRoutes = require("../routes/reviewRoutes");
+const addressRoutes = require("../routes/addressRoutes");
 const compression = require("compression");
 
 const app = express();
@@ -104,6 +105,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/checkout", checkoutRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/addresses", addressRoutes);
 app.use("/api/shipment", shipmentRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/contact", contactRoutes);

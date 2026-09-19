@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ChevronRight, Truck, ShieldCheck, RefreshCw, Headphones } from "lucide-react";
 import SEO from "../components/SEO/SEO";
+import FAQSection from "./FAQ";
+import WelcomeAccordion from "../components/common/WelcomeAccordion";
 
 const homeJsonLd = [
   {
@@ -84,6 +86,7 @@ const SectionHeader = ({ title, link }) => (
 const Home = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [openSection, setOpenSection] = useState(null);
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector((state) => state.products);
 
@@ -344,23 +347,20 @@ const Home = () => {
             </div>
           </div>
 
-          {/* FAQ */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h3>
-            <div className="space-y-3">
-              {[
-                { q: "Are all products on M Wellness Bazaar authentic?", a: "Yes, absolutely. We source products directly from manufacturers and authorized distributors. Every product undergoes quality verification before being listed on our platform." },
-                { q: "Can I return products if not satisfied?", a: "Yes, M Wellness Bazaar offers a 10-day money-back guarantee. If you're not satisfied with any product, return it within 10 days for a full refund." },
-                { q: "Are supplements safe to consume?", a: "All products on M Wellness Bazaar are from reputable manufacturers following GMP standards. However, consult a healthcare professional before starting any supplement regimen." },
-                { q: "Do you have wellness experts available for consultation?", a: "Yes, our wellness experts are available 24/7 to answer questions and provide personalized recommendations based on your health goals." },
-                { q: "What payment methods does M Wellness Bazaar accept?", a: "We accept all major payment methods including credit cards, debit cards, UPI, net banking, and digital wallets. All transactions are encrypted and secure." },
-              ].map((faq) => (
-                <div key={faq.q} className="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
-                  <p className="text-sm font-bold text-gray-900 mb-1">Q: {faq.q}</p>
-                  <p className="text-xs text-gray-600 leading-relaxed">A: {faq.a}</p>
-                </div>
-              ))}
-            </div>
+          {/* ── FAQ Main Accordion ── */}
+          <div className="mt-4">
+            <FAQSection
+              isOpen={openSection === "faq"}
+              onToggle={() => setOpenSection(openSection === "faq" ? null : "faq")}
+            />
+          </div>
+
+          {/* ── Welcome Main Accordion ── */}
+          <div className="mt-4">
+            <WelcomeAccordion
+              isOpen={openSection === "welcome"}
+              onToggle={() => setOpenSection(openSection === "welcome" ? null : "welcome")}
+            />
           </div>
         </section>
 
