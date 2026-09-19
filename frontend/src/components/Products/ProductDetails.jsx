@@ -7,7 +7,8 @@ import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";
-import { addToCart } from "../../redux/slices/cartSlice";
+import { addToCart, updateCartItemQuantity, removeFromCart } from "../../redux/slices/cartSlice";
+import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { fetchProductReviews } from "../../redux/slices/reviewSlice";
 import {
   Minus,
@@ -17,6 +18,8 @@ import {
   Truck,
   ShieldCheck,
   RotateCcw,
+  Heart,
+  Loader2,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -61,6 +64,12 @@ const ProductDetails = ({ productId }) => {
     (state) => state.auth
   );
 
+  const cart = useSelector((state) => state.cart?.cart || state.cart);
+  const cartProducts = cart?.products || [];
+
+  const wishlistState = useSelector((state) => state.wishlist || { products: [] });
+  const wishlistProducts = wishlistState?.products || [];
+
   const { reviews, stats, productId: reviewProductId } = useSelector(
     (state) => state.reviews
   );
@@ -97,6 +106,16 @@ const ProductDetails = ({ productId }) => {
 
   const productFetchId = productId || id;
   const actualProductId = selectedProduct?._id || productFetchId;
+
+  const cartItem = cartProducts.find((item) => {
+    const itemId = item.productId?._id || item.productId || item._id;
+    return itemId === actualProductId || (selectedProduct?.slug && item.productId?.slug === selectedProduct.slug);
+  });
+  const cartQuantity = cartItem?.quantity || 0;
+
+  const isWishlisted = wishlistProducts.some(
+    (item) => (item._id || item.productId || item) === actualProductId || (selectedProduct?.slug && item.slug === selectedProduct.slug)
+  );
 
   /*
   ============================================================
@@ -623,6 +642,126 @@ const ProductDetails = ({ productId }) => {
     }
   };
 
+  const handleIncrementCart = async (e) => {
+    if (e) e.preventDefault();
+    if (isButtonDisabled) return;
+    setIsButtonDisabled(true);
+
+    try {
+      const nextQty = (cartQuantity || 1) + 1;
+      const result = await dispatch(
+        updateCartItemQuantity({
+          productId: actualProductId,
+          quantity: nextQty,
+          guestId,
+          userId: user?._id,
+          size: selectedSize || cartItem?.size || null,
+          color: selectedColor || cartItem?.color || null,
+        })
+      );
+
+      if (result?.error) {
+        throw new Error(result.error.message || "Failed to update quantity");
+      }
+    } catch (err) {
+      console.error("Increment error:", err);
+      toast.error(err?.message || "Failed to update quantity");
+    } finally {
+      setIsButtonDisabled(false);
+    }
+  };
+
+  const handleDecrementCart = async (e) => {
+    if (e) e.preventDefault();
+    if (isButtonDisabled) return;
+    setIsButtonDisabled(true);
+
+    try {
+      const currentQty = cartQuantity || 1;
+      if (currentQty <= 1) {
+        const result = await dispatch(
+          removeFromCart({
+            productId: actualProductId,
+            guestId,
+            userId: user?._id,
+            size: selectedSize || cartItem?.size || null,
+            color: selectedColor || cartItem?.color || null,
+          })
+        );
+
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to remove item");
+        }
+        toast.info("Removed from cart", { duration: 1500 });
+      } else {
+        const nextQty = currentQty - 1;
+        const result = await dispatch(
+          updateCartItemQuantity({
+            productId: actualProductId,
+            quantity: nextQty,
+            guestId,
+            userId: user?._id,
+            size: selectedSize || cartItem?.size || null,
+            color: selectedColor || cartItem?.color || null,
+          })
+        );
+
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to update quantity");
+        }
+      }
+    } catch (err) {
+      console.error("Decrement error:", err);
+      toast.error(err?.message || "Failed to update quantity");
+    } finally {
+      setIsButtonDisabled(false);
+    }
+  };
+
+  const handleWishlistToggle = async (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    if (!user) {
+      toast.error("Please log in to save items to your wishlist");
+      return;
+    }
+
+    try {
+      if (isWishlisted) {
+        const result = await dispatch(
+          removeFromWishlist({ productId: actualProductId, user })
+        );
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to remove from wishlist");
+        }
+        toast.info("Removed from Wishlist");
+      } else {
+        const result = await dispatch(
+          addToWishlist({ product: selectedProduct, user })
+        );
+        if (result?.error) {
+          throw new Error(result.error.message || "Failed to add to wishlist");
+        }
+
+        trackMetaEvent("AddToWishlist", {
+          content_ids: [actualProductId],
+          content_name: selectedProduct?.name,
+          content_type: "product",
+          value: Number(selectedProduct?.discountPrice || selectedProduct?.price || 0),
+          currency: "INR",
+        });
+
+        toast.success("Added to Wishlist");
+      }
+    } catch (wishlistError) {
+      console.error("Wishlist error:", wishlistError);
+      toast.error(wishlistError?.message || "Wishlist update failed");
+    }
+  };
+
   /*
   ============================================================
   BUY NOW (SELECTED PRODUCT IMMEDIATE CHECKOUT)
@@ -930,9 +1069,65 @@ const ProductDetails = ({ productId }) => {
             seller: {
               "@type":
                 "Organization",
+              "@id":
+                "https://mwellnessbazaar.com/#organization",
 
               name:
                 "M Wellness Bazaar",
+            },
+
+            hasMerchantReturnPolicy: {
+              "@type":
+                "MerchantReturnPolicy",
+              "@id":
+                "https://mwellnessbazaar.com/#merchant-return-policy",
+              applicableCountry:
+                "IN",
+              returnPolicyCategory:
+                "https://schema.org/MerchantReturnNotPermitted",
+              merchantReturnLink:
+                "https://mwellnessbazaar.com/refund-policy",
+            },
+
+            shippingDetails: {
+              "@type":
+                "OfferShippingDetails",
+              shippingRate: {
+                "@type":
+                  "MonetaryAmount",
+                value:
+                  selectedProduct?.shippingCharge !== undefined && selectedProduct?.shippingCharge !== null
+                    ? Number(selectedProduct.shippingCharge)
+                    : 0,
+                currency:
+                  "INR",
+              },
+              shippingDestination: {
+                "@type":
+                  "DefinedRegion",
+                addressCountry:
+                  "IN",
+              },
+              deliveryTime: {
+                "@type":
+                  "ShippingDeliveryTime",
+                handlingTime: {
+                  "@type":
+                    "QuantitativeValue",
+                  minValue: 2,
+                  maxValue: 3,
+                  unitCode:
+                    "DAY",
+                },
+                transitTime: {
+                  "@type":
+                    "QuantitativeValue",
+                  minValue: 10,
+                  maxValue: 20,
+                  unitCode:
+                    "DAY",
+                },
+              },
             },
           },
 
@@ -1796,91 +1991,85 @@ const ProductDetails = ({ productId }) => {
                   </div>
                 )}
 
-              {/* QUANTITY */}
-
-              {!selectedProduct.hasVariants && (
-                <div className="mb-5">
-
-                  <p className="text-sm font-bold text-gray-800 mb-2">
-                    Quantity:
-                  </p>
-
-                  <div className="inline-flex items-center border border-gray-300 rounded-lg overflow-hidden">
-
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(
-                          "minus"
-                        )
-                      }
-                      className="px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors border-r border-gray-300"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-
-                    <span className="px-6 py-2 font-bold text-gray-900 text-base min-w-[3rem] text-center">
-                      {
-                        quantity
-                      }
-                    </span>
-
-                    <button
-                      onClick={() =>
-                        handleQuantityChange(
-                          "plus"
-                        )
-                      }
-                      className="px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors border-l border-gray-300"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* ==================================================
-                  ACTION BUTTONS (ADD TO CART & BUY NOW)
+                  ACTION BUTTONS & QUANTITY CONTROLS (CART-BASED)
               ================================================== */}
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-                {/* ADD TO CART */}
-                <button
-                  type="button"
-                  onClick={
-                    handleAddToCart
-                  }
-                  disabled={
-                    isButtonDisabled || isBuyNowLoading
-                  }
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${isButtonDisabled
-                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                      : "border-[#0FB7A3] bg-teal-50/60 text-[#0a7a6c] hover:bg-[#0FB7A3] hover:text-white shadow-xs hover:shadow-md active:scale-[0.98]"
+                {cartQuantity > 0 ? (
+                  /* CART QUANTITY CONTROL */
+                  <div className="flex-1 flex items-center justify-between sm:justify-center border-2 border-[#047ca8] bg-[#e8f4f8] rounded-xl px-2 py-1.5 shadow-xs">
+                    <button
+                      type="button"
+                      onClick={handleDecrementCart}
+                      disabled={isButtonDisabled}
+                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#047ca8] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
+                      aria-label="Decrease quantity"
+                    >
+                      <Minus className="h-4 w-4 stroke-[2.5]" />
+                    </button>
+
+                    <div className="flex flex-col items-center justify-center px-4">
+                      <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">In Cart</span>
+                      <span className="font-black text-gray-900 text-base leading-none">
+                        {isButtonDisabled ? <Loader2 className="h-4 w-4 animate-spin text-[#047ca8]" /> : cartQuantity}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleIncrementCart}
+                      disabled={isButtonDisabled}
+                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#047ca8] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
+                      aria-label="Increase quantity"
+                    >
+                      <Plus className="h-4 w-4 stroke-[2.5]" />
+                    </button>
+                  </div>
+                ) : (
+                  /* ADD TO CART BUTTON */
+                  <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={isButtonDisabled || isBuyNowLoading}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${
+                      isButtonDisabled
+                        ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                        : "border-[#0FB7A3] bg-teal-50/60 text-[#0a7a6c] hover:bg-[#0FB7A3] hover:text-white shadow-xs hover:shadow-md active:scale-[0.98] cursor-pointer"
                     }`}
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {isButtonDisabled
-                    ? "Adding..."
-                    : "Add to Cart"}
-                </button>
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                    {isButtonDisabled ? "Adding..." : "Add to Cart"}
+                  </button>
+                )}
 
                 {/* BUY NOW */}
                 <button
                   type="button"
-                  onClick={
-                    handleBuyNow
-                  }
-                  disabled={
-                    isButtonDisabled || isBuyNowLoading
-                  }
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${isBuyNowLoading
+                  onClick={handleBuyNow}
+                  disabled={isButtonDisabled || isBuyNowLoading}
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${
+                    isBuyNowLoading
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#047ca8] via-[#036e96] to-[#025877] hover:from-[#036a90] hover:to-[#024963] hover:shadow-lg active:scale-[0.98]"
-                    }`}
+                      : "bg-gradient-to-r from-[#047ca8] via-[#036e96] to-[#025877] hover:from-[#036a90] hover:to-[#024963] hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                  }`}
                 >
                   <Zap className="h-4 w-4 fill-white" />
-                  {isBuyNowLoading
-                    ? "Processing..."
-                    : "Buy Now"}
+                  {isBuyNowLoading ? "Processing..." : "Buy Now"}
+                </button>
+
+                {/* WISHLIST HEART BUTTON */}
+                <button
+                  type="button"
+                  onClick={handleWishlistToggle}
+                  title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                  className={`px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${
+                    isWishlisted
+                      ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : ""}`} />
                 </button>
               </div>
 

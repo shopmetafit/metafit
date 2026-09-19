@@ -11,9 +11,17 @@ const homeJsonLd = [
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://mwellnessbazaar.com/#organization",
     "name": "M Wellness Bazaar",
     "url": "https://mwellnessbazaar.com",
-    "logo": "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png"
+    "logo": "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png",
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "@id": "https://mwellnessbazaar.com/#merchant-return-policy",
+      "applicableCountry": "IN",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+      "merchantReturnLink": "https://mwellnessbazaar.com/refund-policy"
+    }
   },
   {
     "@context": "https://schema.org",

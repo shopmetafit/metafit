@@ -60,7 +60,7 @@ const ProductCard = ({ product, onProductClick }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const guestId = useSelector((state) => state.auth.guestId);
-  const wishlistItems = useSelector((state) => state.wishlist?.items || []);
+  const wishlistItems = useSelector((state) => state.wishlist?.products || []);
   const cart = useSelector((state) => state.cart?.cart || state.cart);
   const cartProducts = cart?.products || [];
 
@@ -556,4 +556,5 @@ const ProductGrid = ({
   );
 };
 
+export { ProductCard };
 export default ProductGrid;

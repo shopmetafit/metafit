@@ -1,19 +1,32 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import MyOrdersPage from "./MyOrdersPage";
-import { useNavigate, Link } from "react-router-dom";
+import ProductGrid from "../components/Products/ProductGrid";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { clearCart } from "../redux/slices/cartSlice";
 import { logout } from "../redux/slices/authSlice";
-import { Package, LogOut, ChevronRight, ShoppingBag, User } from "lucide-react";
+import { fetchWishlist } from "../redux/slices/wishlistSlice";
+import { Package, LogOut, ChevronRight, ShoppingBag, Heart, Loader2 } from "lucide-react";
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
+  const wishlistState = useSelector((state) => state.wishlist || { products: [], loading: false });
+  const wishlistProducts = wishlistState?.products || [];
+  const wishlistLoading = wishlistState?.loading || false;
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTab = searchParams.get("tab") === "wishlist" ? "wishlist" : "orders";
 
   useEffect(() => {
-    if (!user) navigate("/login");
-  }, [user, navigate]);
+    if (!user) {
+      navigate("/login");
+    } else {
+      dispatch(fetchWishlist());
+    }
+  }, [user, navigate, dispatch]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -36,6 +49,8 @@ const Profile = () => {
           <Link to="/" className="hover:text-[#047ca8] hover:underline">Home</Link>
           <ChevronRight className="h-3 w-3" />
           <span className="text-gray-800 font-medium">My Account</span>
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-gray-800 font-medium capitalize">{activeTab}</span>
         </div>
       </div>
 
@@ -70,19 +85,53 @@ const Profile = () => {
                 </div>
               </div>
 
-              {/* Quick links */}
+              {/* Navigation Links */}
               <div className="space-y-1 border-t border-gray-100 pt-3">
-                <div className="flex items-center gap-2 text-sm text-gray-700 px-2 py-2 rounded hover:bg-gray-50 transition-colors cursor-default">
-                  <Package className="h-4 w-4 text-[#047ca8]" />
-                  <span className="font-medium">My Orders</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({ tab: "orders" })}
+                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${
+                    activeTab === "orders"
+                      ? "bg-[#e8f4f8] text-[#047ca8] font-bold"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-[#047ca8]" />
+                    <span>My Orders</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({ tab: "wishlist" })}
+                  className={`w-full flex items-center justify-between text-sm px-3 py-2.5 rounded-lg transition-colors font-medium cursor-pointer ${
+                    activeTab === "wishlist"
+                      ? "bg-rose-50 text-rose-600 font-bold"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-4 w-4 text-rose-500" />
+                    <span>Wishlist</span>
+                  </div>
+                  {wishlistProducts.length > 0 && (
+                    <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                      {wishlistProducts.length}
+                    </span>
+                  )}
+                </button>
+
                 <Link
                   to="/collections/all"
-                  className="flex items-center gap-2 text-sm text-gray-700 px-2 py-2 rounded hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between text-sm text-gray-700 px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors font-medium"
                 >
-                  <ShoppingBag className="h-4 w-4 text-[#047ca8]" />
-                  <span className="font-medium">Continue Shopping</span>
-                  <ChevronRight className="h-4 w-4 ml-auto text-gray-400" />
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-4 w-4 text-[#047ca8]" />
+                    <span>Continue Shopping</span>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
                 </Link>
               </div>
             </div>
@@ -90,7 +139,7 @@ const Profile = () => {
             {/* Logout */}
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 text-gray-700 hover:text-red-600 font-semibold py-2.5 rounded-lg text-sm transition-all shadow-sm"
+              className="w-full flex items-center justify-center gap-2 bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 text-gray-700 hover:text-red-600 font-semibold py-2.5 rounded-lg text-sm transition-all shadow-sm cursor-pointer"
             >
               <LogOut className="h-4 w-4" />
               Sign Out
@@ -105,11 +154,57 @@ const Profile = () => {
             </div>
           </aside>
 
-          {/* ── Right: Orders ── */}
+          {/* ── Right Content Area ── */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-              <MyOrdersPage />
-            </div>
+            {activeTab === "orders" ? (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                <MyOrdersPage />
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-5">
+                  <div className="flex items-center gap-2">
+                    <Heart className="h-6 w-6 text-rose-500 fill-rose-500" />
+                    <h2 className="text-xl font-bold text-gray-900">
+                      My Wishlist
+                    </h2>
+                  </div>
+                  {wishlistProducts.length > 0 && (
+                    <span className="text-xs text-gray-500 font-medium">
+                      {wishlistProducts.length} {wishlistProducts.length === 1 ? "item" : "items"} saved
+                    </span>
+                  )}
+                </div>
+
+                {wishlistLoading && wishlistProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+                    <Loader2 className="h-8 w-8 animate-spin text-[#047ca8] mb-2" />
+                    <p className="text-sm font-medium">Loading your saved items...</p>
+                  </div>
+                ) : wishlistProducts.length === 0 ? (
+                  <div className="text-center py-16 px-4">
+                    <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Heart className="h-8 w-8 text-rose-400" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-1">
+                      Your wishlist is empty
+                    </h3>
+                    <p className="text-gray-500 text-sm max-w-sm mx-auto mb-6">
+                      Explore our products and tap the heart icon on any item to save it to your wishlist.
+                    </p>
+                    <Link
+                      to="/collections/all"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#047ca8] hover:bg-[#036e96] text-white font-semibold rounded-xl text-sm transition-all shadow-sm"
+                    >
+                      <ShoppingBag className="h-4 w-4" />
+                      Browse Products
+                    </Link>
+                  </div>
+                ) : (
+                  <ProductGrid products={wishlistProducts} />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
