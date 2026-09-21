@@ -151,6 +151,31 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// Async Thunk for Updating User Profile
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateUserProfile",
+  async (profileData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("userToken");
+      const response = await axios.put(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/profile`,
+        profileData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      localStorage.setItem("userInfo", JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Failed to update profile" }
+      );
+    }
+  }
+);
+
 // Slice
 const authSlice = createSlice({
   name: "auth",
@@ -253,6 +278,20 @@ const authSlice = createSlice({
       .addCase(googleLoginUserThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || "Google login failed";
+      })
+      // Update Profile cases
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = { ...state.user, ...action.payload };
+        state.error = null;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.message || "Failed to update profile";
       });
   },
 });

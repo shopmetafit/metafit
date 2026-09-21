@@ -172,6 +172,62 @@ router.get("/profile", protect ,  async (req, res) => {
   res.json(req.user);
 });
 
+// @route PUT /api/users/profile
+// @desc Update logged-in user profile
+// @access Private
+router.put("/profile", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { name, email, phone } = req.body;
+
+    if (name !== undefined) {
+      const trimmedName = String(name).trim();
+      if (!trimmedName) {
+        return res.status(400).json({ message: "Name cannot be empty" });
+      }
+      user.name = trimmedName;
+    }
+
+    if (phone !== undefined) {
+      user.phone = String(phone).trim();
+    }
+
+    if (email !== undefined) {
+      const trimmedEmail = String(email).trim().toLowerCase();
+      if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+        return res.status(400).json({ message: "Please enter a valid email address" });
+      }
+
+      if (trimmedEmail !== user.email.toLowerCase()) {
+        const emailExists = await User.findOne({ email: trimmedEmail });
+        if (emailExists && emailExists._id.toString() !== user._id.toString()) {
+          return res.status(400).json({ message: "Email is already in use by another account" });
+        }
+        user.email = trimmedEmail;
+      }
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phone: updatedUser.phone || "",
+      avatar: updatedUser.avatar || "",
+      createdAt: updatedUser.createdAt,
+    });
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Server error updating profile" });
+  }
+});
+
 // @route GET /api/users/wishlist
 // @desc Get user's wishlist
 // @access Private
