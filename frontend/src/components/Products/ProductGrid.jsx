@@ -288,14 +288,31 @@ const ProductCard = ({ product, onProductClick }) => {
   const numReviewsValue = typeof product.numReviews === "number" ? product.numReviews : 0;
   const productUrl = `/product/${product.slug || product._id}`;
 
+  const isBestseller = Boolean(
+    product.isBestSeller ||
+    product.tags?.includes("BESTSELLER") ||
+    Number(product.soldCount || 0) >= 50 ||
+    Number(product.totalSold || 0) >= 50
+  );
+
   return (
     <div
-      className="bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-full overflow-hidden group"
+      className={`bg-white rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col h-full overflow-hidden group ${
+        isBestseller
+          ? "border border-amber-300/80 shadow-[0_2px_10px_rgba(217,119,6,0.08)] hover:shadow-[0_10px_25px_rgba(217,119,6,0.18)] hover:-translate-y-0.5 ring-1 ring-amber-400/25 relative"
+          : "border border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5"
+      }`}
       onMouseEnter={() => secondaryImage && setHoveredImage(secondaryImage)}
       onMouseLeave={() => setHoveredImage(null)}
     >
       {/* Top Image Section */}
-      <div className="relative aspect-square w-full bg-[#f8f8f6] p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b border-gray-100/60">
+      <div
+        className={`relative aspect-square w-full p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b ${
+          isBestseller
+            ? "bg-gradient-to-b from-amber-50/30 via-[#fcfbfa] to-[#f8f8f6] border-amber-100/70"
+            : "bg-[#f8f8f6] border-gray-100/60"
+        }`}
+      >
         <Link
           to={productUrl}
           onClick={() => onProductClick && onProductClick()}
@@ -318,11 +335,13 @@ const ProductCard = ({ product, onProductClick }) => {
           />
         </Link>
 
-        {/* Bestseller Badge */}
-        {(product.tags?.includes("BESTSELLER") || product.countInStock > 100) && (
-          <div className="absolute top-2 left-2 bg-[#1e4620] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-xs z-10 pointer-events-none">
-            <Star className="w-2.5 h-2.5 fill-current" />
-            <span>BESTSELLER</span>
+        {/* ✨ Metallic Diagonal Corner Ribbon for Bestseller */}
+        {isBestseller && (
+          <div className="absolute top-0 left-0 w-24 h-24 overflow-hidden z-20 pointer-events-none rounded-tl-xl sm:rounded-tl-2xl">
+            <div className="absolute top-[15px] -left-[30px] w-[112px] -rotate-45 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-500 text-stone-950 font-extrabold text-[8px] sm:text-[8.5px] tracking-wider uppercase py-0.5 text-center shadow-[0_2px_4px_rgba(0,0,0,0.2)] flex items-center justify-center gap-0.5 border-y border-amber-200/70">
+              <Star className="w-2 h-2 fill-stone-950 text-stone-950" />
+              <span>BESTSELLER</span>
+            </div>
           </div>
         )}
 
@@ -330,7 +349,7 @@ const ProductCard = ({ product, onProductClick }) => {
         {discountPercentage && (
           <div
             className={`absolute ${
-              product.tags?.includes("BESTSELLER") || product.countInStock > 100
+              isBestseller
                 ? "bottom-2 left-2"
                 : "top-2 left-2"
             } bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs z-10 pointer-events-none`}
