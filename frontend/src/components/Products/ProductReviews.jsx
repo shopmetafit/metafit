@@ -28,7 +28,7 @@ const ProductReviews = ({ productId }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => {
-    if (productId) {
+    if (productId && /^[0-9a-fA-F]{24}$/.test(String(productId))) {
       dispatch(fetchProductReviews(productId));
     }
   }, [dispatch, productId]);

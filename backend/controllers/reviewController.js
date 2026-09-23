@@ -55,6 +55,20 @@ exports.getProductReviews = async (req, res) => {
     if (!product) {
       product = await Product.findOne({ slug: productId });
     }
+    if (!product) {
+      try {
+        const { getProductReadModel } = require("../utils/productDataAccess");
+        const ProductReadModel = await getProductReadModel();
+        if (mongoose.Types.ObjectId.isValid(productId)) {
+          product = await ProductReadModel.findById(productId);
+        }
+        if (!product) {
+          product = await ProductReadModel.findOne({ slug: productId });
+        }
+      } catch (readErr) {
+        // Fallback error handling if ProductReadModel is unavailable
+      }
+    }
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });

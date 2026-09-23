@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaPlayCircle, FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { toast } from "sonner";
-import ProductGrid from "./ProductGrid";
+import ProductGrid, { ProductSkeleton } from "./ProductGrid";
 import ProductReviews from "./ProductReviews";
 import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -56,7 +56,7 @@ const ProductDetails = ({ productId }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { similarProducts } = useSelector(
+  const { similarProducts, similarLoading } = useSelector(
     (state) => state.products
   );
 
@@ -105,17 +105,52 @@ const ProductDetails = ({ productId }) => {
   */
 
   const productFetchId = productId || id;
-  const actualProductId = selectedProduct?._id || productFetchId;
+  const actualProductId = selectedProduct?._id || null;
 
   const cartItem = cartProducts.find((item) => {
     const itemId = item.productId?._id || item.productId || item._id;
-    return itemId === actualProductId || (selectedProduct?.slug && item.productId?.slug === selectedProduct.slug);
+    return (actualProductId && itemId === actualProductId) || (selectedProduct?.slug && item.productId?.slug === selectedProduct.slug);
   });
   const cartQuantity = cartItem?.quantity || 0;
 
   const isWishlisted = wishlistProducts.some(
-    (item) => (item._id || item.productId || item) === actualProductId || (selectedProduct?.slug && item.slug === selectedProduct.slug)
+    (item) => (actualProductId && (item._id || item.productId || item) === actualProductId) || (selectedProduct?.slug && item.slug === selectedProduct.slug)
   );
+
+  /*
+  ============================================================
+  RELATED PRODUCTS FILTERING & ROUTE SCROLL RESET
+  ============================================================
+  */
+  const displayedRelatedProducts = (() => {
+    if (!selectedProduct?._id || !Array.isArray(similarProducts)) return [];
+    const currentId = String(selectedProduct._id);
+    const currentSlug = selectedProduct.slug ? String(selectedProduct.slug) : null;
+
+    const seen = new Set([currentId]);
+    if (currentSlug) seen.add(currentSlug);
+
+    const result = [];
+    for (const p of similarProducts) {
+      if (!p || (!p._id && !p.id)) continue;
+      const pId = String(p._id || p.id);
+      const pSlug = p.slug ? String(p.slug) : null;
+
+      if (seen.has(pId)) continue;
+      if (pSlug && seen.has(pSlug)) continue;
+
+      seen.add(pId);
+      if (pSlug) seen.add(pSlug);
+      result.push(p);
+    }
+    return result.slice(0, 4);
+  })();
+
+  useEffect(() => {
+    if (productFetchId) {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
+  }, [productFetchId]);
 
   /*
   ============================================================
@@ -124,9 +159,7 @@ const ProductDetails = ({ productId }) => {
   */
 
   const isCurrentProductReviews =
-    reviewProductId === actualProductId ||
-    reviewProductId === selectedProduct?._id ||
-    reviewProductId === selectedProduct?.slug;
+    selectedProduct?._id && reviewProductId === selectedProduct._id;
 
   const totalReviews = isCurrentProductReviews && stats
     ? stats.totalReviews
@@ -160,10 +193,10 @@ const ProductDetails = ({ productId }) => {
   */
 
   useEffect(() => {
-    if (actualProductId) {
-      dispatch(fetchProductReviews(actualProductId));
+    if (selectedProduct?._id) {
+      dispatch(fetchProductReviews(selectedProduct._id));
     }
-  }, [dispatch, actualProductId]);
+  }, [dispatch, selectedProduct?._id]);
 
   /*
   ============================================================
@@ -172,14 +205,14 @@ const ProductDetails = ({ productId }) => {
   */
 
   useEffect(() => {
-    if (!productFetchId) return;
-
-    dispatch(
-      fetchSimilarProduct({
-        id: productFetchId,
-      })
-    );
-  }, [dispatch, productFetchId]);
+    if (selectedProduct?._id) {
+      dispatch(
+        fetchSimilarProduct({
+          id: selectedProduct._id,
+        })
+      );
+    }
+  }, [dispatch, selectedProduct?._id]);
 
   /*
   ============================================================
@@ -189,6 +222,15 @@ const ProductDetails = ({ productId }) => {
 
   useEffect(() => {
     if (!productFetchId) return;
+
+    setSelectedProduct(null);
+    setMainImage("");
+    setSelectedSize("");
+    setSelectedColor("");
+    setSelectedVariant(null);
+    setQuantity(1);
+    setLoading(true);
+    setError(null);
 
     const referralFromQuery = readReferralParams(
       location.search
@@ -300,6 +342,8 @@ const ProductDetails = ({ productId }) => {
   */
 
   useEffect(() => {
+    if (!selectedProduct) return;
+
     if (
       selectedProduct?.images?.length > 0
     ) {
@@ -310,28 +354,33 @@ const ProductDetails = ({ productId }) => {
           : selectedProduct.images[0].url;
 
       setMainImage(firstImage || "");
+    } else {
+      setMainImage("");
     }
 
     if (
-      selectedProduct?.sizes?.length > 0 &&
-      !selectedSize
+      selectedProduct?.sizes?.length > 0
     ) {
       setSelectedSize(selectedProduct.sizes[0]);
+    } else {
+      setSelectedSize("");
     }
 
     if (
       selectedProduct?.hasVariants &&
-      selectedProduct?.variants?.length > 0 &&
-      !selectedVariant
+      selectedProduct?.variants?.length > 0
     ) {
       setSelectedVariant(selectedProduct.variants[0]);
+    } else {
+      setSelectedVariant(null);
     }
 
     if (
-      selectedProduct?.colors?.length > 0 &&
-      !selectedColor
+      selectedProduct?.colors?.length > 0
     ) {
       setSelectedColor(selectedProduct.colors[0]);
+    } else {
+      setSelectedColor("");
     }
   }, [selectedProduct]);
 
@@ -374,7 +423,9 @@ const ProductDetails = ({ productId }) => {
   useEffect(() => {
     if (
       id &&
-      selectedProduct?.slug &&
+      selectedProduct &&
+      (selectedProduct._id === id || selectedProduct.slug === id) &&
+      selectedProduct.slug &&
       id !== selectedProduct.slug
     ) {
       navigate(
@@ -2259,31 +2310,42 @@ const ProductDetails = ({ productId }) => {
               PRODUCT REVIEWS
           ====================================================== */}
           <div className="bg-white rounded-lg shadow-sm p-5 md:p-6 my-6">
-            <ProductReviews productId={selectedProduct?._id || productFetchId} />
+            {selectedProduct?._id && (
+              <ProductReviews productId={selectedProduct._id} />
+            )}
           </div>
         </div>
 
         {/* ======================================================
-            SIMILAR PRODUCTS
+            RELATED PRODUCTS
         ====================================================== */}
 
-        {similarProducts?.length >
-          0 && (
-            <div className="bg-white rounded-lg shadow-sm p-5">
-
-              <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4">
-                Customers also viewed
+        {(similarLoading || displayedRelatedProducts.length > 0) && (
+          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 my-6 border border-gray-100">
+            <div className="mb-5 border-b border-gray-100 pb-3">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+                Related Products
               </h2>
-
-              <ProductGrid
-                products={
-                  similarProducts
-                }
-                loading={loading}
-                error={error}
-              />
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                Explore more products you may like
+              </p>
             </div>
-          )}
+
+            {similarLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4.5">
+                {[...Array(4)].map((_, i) => (
+                  <ProductSkeleton key={`related-skel-${i}`} />
+                ))}
+              </div>
+            ) : (
+              <ProductGrid
+                products={displayedRelatedProducts}
+                loading={false}
+                gridClassName="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4.5"
+              />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

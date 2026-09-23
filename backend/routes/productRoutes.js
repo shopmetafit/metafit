@@ -1041,11 +1041,9 @@ router.get("/:id", async (req, res) => {
 
 // @route get/api/products/similar/:id
 // @desc Retrieve similar products based on the current products gender and category
-// @access Public
-
 router.get("/similar/:id", async (req, res) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
     const ProductReadModel = await getProductReadModel();
     const mongoose = require("mongoose");
     let product = null;
@@ -1065,21 +1063,125 @@ router.get("/similar/:id", async (req, res) => {
 
     if (!product) {
       const allProducts = await ProductReadModel.find({}).lean();
-      product = allProducts.find((p) => slugify(p.name) === id.toLowerCase());
+      product = allProducts.find((p) => (p.slug || slugify(p.name)) === id.toLowerCase());
     }
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-    const similarProduct = await ProductReadModel.find({
-      _id: { $ne: product._id },
-      gender: product.gender,
-      category: product.category,
-      isPublished: true,
-    }).limit(4).lean();
-    res.json(similarProduct);
+
+    const currentIdStr = product._id.toString();
+    const seenIds = new Set([currentIdStr]);
+    const relatedProducts = [];
+    const MAX_RELATED = 8;
+
+    const getObjectIdArray = () => {
+      return Array.from(seenIds)
+        .filter((i) => mongoose.Types.ObjectId.isValid(i))
+        .map((i) => new mongoose.Types.ObjectId(i));
+    };
+
+    // Priority 1: Same subCategory
+    if (product.subCategory && typeof product.subCategory === "string" && product.subCategory.trim()) {
+      const subCatProducts = await ProductReadModel.find({
+        _id: { $nin: getObjectIdArray() },
+        subCategory: product.subCategory,
+        isPublished: true,
+      })
+        .limit(MAX_RELATED)
+        .lean();
+
+      for (const p of subCatProducts) {
+        const pid = p._id.toString();
+        if (!seenIds.has(pid)) {
+          seenIds.add(pid);
+          relatedProducts.push(p);
+        }
+      }
+    }
+
+    // Priority 2: Same Category
+    if (relatedProducts.length < MAX_RELATED && product.category) {
+      const remainingLimit = MAX_RELATED - relatedProducts.length;
+      const catProducts = await ProductReadModel.find({
+        _id: { $nin: getObjectIdArray() },
+        category: product.category,
+        isPublished: true,
+      })
+        .limit(remainingLimit)
+        .lean();
+
+      for (const p of catProducts) {
+        const pid = p._id.toString();
+        if (!seenIds.has(pid)) {
+          seenIds.add(pid);
+          relatedProducts.push(p);
+        }
+      }
+    }
+
+    // Priority 3: Tags / WellnessGoal / Collection
+    if (relatedProducts.length < MAX_RELATED) {
+      const tagQueryConditions = [];
+      if (Array.isArray(product.tags) && product.tags.length > 0) {
+        tagQueryConditions.push({ tags: { $in: product.tags } });
+      }
+      if (Array.isArray(product.wellnessGoal) && product.wellnessGoal.length > 0) {
+        tagQueryConditions.push({ wellnessGoal: { $in: product.wellnessGoal } });
+      }
+      if (product.collection) {
+        tagQueryConditions.push({ collection: product.collection });
+      }
+
+      if (tagQueryConditions.length > 0) {
+        const remainingLimit = MAX_RELATED - relatedProducts.length;
+        const tagProducts = await ProductReadModel.find({
+          _id: { $nin: getObjectIdArray() },
+          isPublished: true,
+          $or: tagQueryConditions,
+        })
+          .limit(remainingLimit)
+          .lean();
+
+        for (const p of tagProducts) {
+          const pid = p._id.toString();
+          if (!seenIds.has(pid)) {
+            seenIds.add(pid);
+            relatedProducts.push(p);
+          }
+        }
+      }
+    }
+
+    // Priority 4: Fallback - any published products
+    if (relatedProducts.length < 4) {
+      const remainingLimit = 4 - relatedProducts.length;
+      const fallbackProducts = await ProductReadModel.find({
+        _id: { $nin: getObjectIdArray() },
+        isPublished: true,
+      })
+        .limit(remainingLimit)
+        .lean();
+
+      for (const p of fallbackProducts) {
+        const pid = p._id.toString();
+        if (!seenIds.has(pid)) {
+          seenIds.add(pid);
+          relatedProducts.push(p);
+        }
+      }
+    }
+
+    // Ensure slug is present on all returned products for frontend navigation
+    for (const p of relatedProducts) {
+      if (!p.slug && p.name) {
+        p.slug = slugify(p.name);
+      }
+    }
+
+    res.json(relatedProducts);
   } catch (error) {
-    console.error(error);
+    console.error("Error in /api/products/similar/:id:", error);
     res.status(500).send("Server Error");
   }
 });

@@ -495,11 +495,12 @@ const ProductGrid = ({
   loadingMore,
   error,
   onProductClick,
+  gridClassName = "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4.5",
 }) => {
   // Show initial skeletons when loading and no products are rendered yet
   if (loading && (!products || products.length === 0)) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4.5">
+      <div className={gridClassName}>
         {[...Array(12)].map((_, i) => (
           <ProductSkeleton key={i} />
         ))}
@@ -513,7 +514,7 @@ const ProductGrid = ({
 
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4.5">
+      <div className={gridClassName}>
         {products && products.length > 0 ? (
           products.map((product) => (
             <ProductCard

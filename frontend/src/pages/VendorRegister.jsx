@@ -1265,13 +1265,13 @@ export default function VendorRegistration() {
   const stepDetails = getStepDetails();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-6 mt-14 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 pt-5 pb-12 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-white text-2xl sm:text-3xl">👤</span>
-          </div>
+          {/* <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-white text-2xl sm:text-3xl"></span>
+          </div> */}
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
             Vendor Registration
           </h1>
@@ -1345,7 +1345,7 @@ export default function VendorRegistration() {
                   Already have an account?
                 </p>
                 <a
-                  href="https://mwellnessbazaar-admin-frontend.vercel.app/vendor-login"
+                  href="https://partner.mwellnessbazaar.com/login"
                   className="block w-full text-center bg-gradient-to-r from-blue-500 to-blue-800 text-white py-3 px-4 rounded-lg font-semibold hover:from-gray-800 hover:to-black transition-all shadow-md hover:shadow-lg transform hover:scale-105"
                 >
                   Sign In Here

@@ -141,6 +141,8 @@ const productsSlice = createSlice({
     allProducts: [],
     selectedProduct: null,
     similarProducts: [],
+    similarLoading: false,
+    similarError: null,
     wellnessGoals: [],
     wellnessGoalsLoading: false,
     wellnessGoalsError: null,
@@ -267,16 +269,18 @@ const productsSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(fetchSimilarProduct.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.similarLoading = true;
+        state.similarError = null;
+        state.similarProducts = [];
       })
       .addCase(fetchSimilarProduct.fulfilled, (state, action) => {
-        state.loading = false;
-        state.similarProducts = action.payload;
+        state.similarLoading = false;
+        state.similarProducts = action.payload || [];
       })
       .addCase(fetchSimilarProduct.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
+        state.similarLoading = false;
+        state.similarError = action.error.message;
+        state.similarProducts = [];
       })
        // fetch all products
       .addCase(fetchAllProducts.pending, (state) => {
