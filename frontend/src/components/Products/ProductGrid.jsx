@@ -4,6 +4,7 @@ import {
   addToCart,
   removeFromCart,
   updateCartItemQuantity,
+  openCartDrawer,
 } from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { toast } from "sonner";
@@ -134,6 +135,7 @@ const ProductCard = ({ product, onProductClick }) => {
       });
 
       toast.success("Product added to cart!", { duration: 1500 });
+      dispatch(openCartDrawer());
     } catch (cartError) {
       console.error("ProductGrid AddToCart error:", cartError);
       toast.error(cartError?.message || "Failed to add product!", {

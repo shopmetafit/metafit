@@ -6,17 +6,16 @@ import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
 import { fetchWishlist } from '../../redux/slices/wishlistSlice';
 import { logout } from '../../redux/slices/authSlice';
-import { clearCart } from '../../redux/slices/cartSlice';
+import { clearCart, openCartDrawer, closeCartDrawer } from '../../redux/slices/cartSlice';
 import { detectDistrictAndState } from '../../utils/location';
 
 const Topbar = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { cart } = useSelector((state) => state.cart);
+  const { cart, isCartOpen } = useSelector((state) => state.cart);
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeDrawerTab, setActiveDrawerTab] = useState('cart');
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(localStorage.getItem('userLocation') || 'India');
@@ -660,7 +659,7 @@ const Topbar = () => {
             <button
               onClick={() => {
                 setActiveDrawerTab('cart');
-                setDrawerOpen(true);
+                dispatch(openCartDrawer());
               }}
               className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group"
             >
@@ -971,7 +970,7 @@ const Topbar = () => {
         </div>
       )}
 
-      <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} activeTab={activeDrawerTab} setActiveTab={setActiveDrawerTab} />
+      <CartDrawer drawerOpen={isCartOpen} togglerCartOpen={() => dispatch(closeCartDrawer())} activeTab={activeDrawerTab} setActiveTab={setActiveDrawerTab} />
     </>
   );
 };

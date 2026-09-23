@@ -7,7 +7,7 @@ import { Link, useParams, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";
-import { addToCart, updateCartItemQuantity, removeFromCart } from "../../redux/slices/cartSlice";
+import { addToCart, updateCartItemQuantity, removeFromCart, openCartDrawer } from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { fetchProductReviews } from "../../redux/slices/reviewSlice";
 import {
@@ -675,6 +675,13 @@ const ProductDetails = ({ productId }) => {
           duration: 1500,
         }
       );
+
+      /*
+      --------------------------------------------------------
+      AUTO OPEN CART DRAWER
+      --------------------------------------------------------
+      */
+      dispatch(openCartDrawer());
     } catch (cartError) {
       console.error(
         "Add to cart error:",

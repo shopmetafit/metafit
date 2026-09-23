@@ -142,8 +142,18 @@ const cartSlice = createSlice({
     cart: loadCartFromStorage(),
     loading: false,
     error: null,
+    isCartOpen: false,
   },
   reducers: {
+    openCartDrawer: (state) => {
+      state.isCartOpen = true;
+    },
+    closeCartDrawer: (state) => {
+      state.isCartOpen = false;
+    },
+    toggleCartDrawer: (state) => {
+      state.isCartOpen = !state.isCartOpen;
+    },
     clearCart: (state) => {
       state.cart = { products: [] };
       localStorage.removeItem("cart");
@@ -236,6 +246,13 @@ const cartSlice = createSlice({
   },
 });
 
-export const { clearCart, updateLocalCartItemQuantity, removeLocalCartItem } = cartSlice.actions;
+export const {
+  openCartDrawer,
+  closeCartDrawer,
+  toggleCartDrawer,
+  clearCart,
+  updateLocalCartItemQuantity,
+  removeLocalCartItem,
+} = cartSlice.actions;
 
 export default cartSlice.reducer;
