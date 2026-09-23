@@ -344,7 +344,7 @@ async function processPaymentCompletion({
       try {
         await Product.updateOne(
           { _id: item.productId },
-          { $inc: { countInStock: -qtyToDecrement } }
+          { $inc: { countInStock: -qtyToDecrement, soldCount: qtyToDecrement } }
         );
       }
       catch (stockErr) {
