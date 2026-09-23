@@ -413,18 +413,6 @@ const Profile = () => {
                 </Link>
               </nav>
             </div>
-
-            {/* Separate Sign Out Card */}
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-4">
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2.5 bg-gray-50 hover:bg-rose-50 text-gray-700 hover:text-rose-600 border border-gray-200 hover:border-rose-200 font-bold py-3 rounded-xl text-xs sm:text-sm transition-all cursor-pointer shadow-2xs"
-              >
-                <LogOut className="h-4 w-4 text-gray-500 group-hover:text-rose-600 transition-colors" />
-                <span>Sign Out of Account</span>
-              </button>
-            </div>
           </aside>
 
           {/* ── RIGHT MAIN CONTENT AREA ── */}

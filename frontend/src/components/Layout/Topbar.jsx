@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, MapPin, ChevronDown, ShoppingCart, Heart } from 'lucide-react';
+import { Search, MapPin, ChevronDown, ShoppingCart, Heart, User, LogOut, Package, X } from 'lucide-react';
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
 import { fetchWishlist } from '../../redux/slices/wishlistSlice';
+import { logout } from '../../redux/slices/authSlice';
+import { clearCart } from '../../redux/slices/cartSlice';
 import { detectDistrictAndState } from '../../utils/location';
 
 const Topbar = () => {
@@ -19,6 +21,11 @@ const Topbar = () => {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState(localStorage.getItem('userLocation') || 'India');
   const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const [mobileAccountMenuOpen, setMobileAccountMenuOpen] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  const accountMenuRef = useRef(null);
 
   // Live Search State & Cache Refs
   const [suggestions, setSuggestions] = useState([]);
@@ -49,6 +56,51 @@ const Topbar = () => {
       dispatch(fetchWishlist());
     }
   }, [dispatch, user]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+        setAccountMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setShowLogoutModal(false);
+        setAccountMenuOpen(false);
+        setMobileAccountMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  const handleLogoutClick = () => {
+    setAccountMenuOpen(false);
+    setMobileAccountMenuOpen(false);
+    setShowLogoutModal(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
+    dispatch(logout());
+    dispatch(clearCart());
+    navigate('/login');
+  };
+
+  const initials = user?.name
+    ? user.name
+        .split(' ')
+        .filter(Boolean)
+        .map((n) => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'U';
 
   // Save query to Recent Searches (Item #15)
   const saveRecentSearch = (queryStr) => {
@@ -486,19 +538,98 @@ const Topbar = () => {
           {/* Right Actions */}
           <div className="flex items-center gap-1 md:gap-1.5 ml-auto md:ml-0">
 
-            {/* Account & Lists */}
-            <Link
-              to="/profile"
-              className="hidden md:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
-            >
-              <span className="text-xs text-gray-300 leading-tight">
-                Hello, {user ? user.name?.split(' ')[0] : 'Sign in'}
-              </span>
-              <div className="flex items-center gap-0.5">
-                <span className="text-xs font-bold leading-tight">Account & Lists</span>
-                <ChevronDown className="h-3 w-3" />
+            {/* Desktop Account & Lists Dropdown */}
+            {user ? (
+              <div className="hidden md:block relative" ref={accountMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setAccountMenuOpen((prev) => !prev)}
+                  className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all cursor-pointer text-left select-none"
+                >
+                  <div className="w-7 h-7 rounded-full bg-teal-500 text-white font-extrabold text-xs flex items-center justify-center border border-teal-200 shadow-xs shrink-0">
+                    {initials}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-300 leading-tight truncate max-w-[110px]">
+                      Hello, {user.name?.split(' ')[0]}
+                    </span>
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-xs font-bold leading-tight">Account & Lists</span>
+                      <ChevronDown className={`h-3 w-3 transition-transform ${accountMenuOpen ? 'rotate-180 text-teal-300' : ''}`} />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Desktop Account Dropdown */}
+                {accountMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[100] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-3.5 py-2.5 border-b border-gray-100 bg-teal-50/40">
+                      <p className="text-xs font-bold text-gray-900 truncate">{user.name}</p>
+                      <p className="text-[11px] text-gray-500 truncate mt-0.5">{user.email}</p>
+                    </div>
+
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setAccountMenuOpen(false)}
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
+                      >
+                        <User className="h-4 w-4 text-teal-600 shrink-0" />
+                        <span>Profile</span>
+                      </Link>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-1 mt-0.5">
+                      <button
+                        type="button"
+                        onClick={handleLogoutClick}
+                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                      >
+                        <LogOut className="h-4 w-4 text-rose-600 shrink-0" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden md:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+              >
+                <span className="text-xs text-gray-300 leading-tight">
+                  Hello, Sign in
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <span className="text-xs font-bold leading-tight">Account & Lists</span>
+                  <ChevronDown className="h-3 w-3" />
+                </div>
+              </Link>
+            )}
+
+            {/* Mobile User Icon Button */}
+            <div className="md:hidden">
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => setMobileAccountMenuOpen(true)}
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-white rounded-lg transition-all cursor-pointer"
+                  aria-label="Account menu"
+                >
+                  <div className="w-7 h-7 rounded-full bg-teal-500 text-white font-extrabold text-xs flex items-center justify-center border border-teal-200 shadow-xs">
+                    {initials}
+                  </div>
+                </button>
+              ) : (
+                <Link
+                  to="/login"
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-white rounded-lg text-white transition-all"
+                  aria-label="Sign in"
+                >
+                  <User className="h-6 w-6 text-white" strokeWidth={1.75} />
+                </Link>
+              )}
+            </div>
 
             {/* Orders */}
             <Link
@@ -697,6 +828,148 @@ const Topbar = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Account Menu Overlay */}
+      {mobileAccountMenuOpen && user && (
+        <div
+          className="fixed inset-0 z-[120] flex flex-col justify-start pt-16 px-4 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileAccountMenuOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden text-gray-800 w-full max-w-sm mx-auto animate-in zoom-in-95 duration-150"
+          >
+            {/* Mobile Menu Header */}
+            <div className="bg-[#022824] text-white p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white font-extrabold text-sm border-2 border-white/20 shrink-0">
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-sm truncate text-white">{user.name}</p>
+                  <p className="text-xs text-teal-200 truncate">{user.email}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileAccountMenuOpen(false)}
+                className="p-1.5 rounded-full hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                aria-label="Close Account Menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Menu Links */}
+            <div className="p-2 space-y-0.5">
+              <Link
+                to="/profile"
+                onClick={() => setMobileAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 rounded-xl transition-colors"
+              >
+                <User className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>Profile</span>
+              </Link>
+
+              <Link
+                to="/my-orders"
+                onClick={() => setMobileAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 rounded-xl transition-colors"
+              >
+                <Package className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>My Orders</span>
+              </Link>
+
+              <Link
+                to="/profile?tab=wishlist"
+                onClick={() => setMobileAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 rounded-xl transition-colors"
+              >
+                <Heart className="h-4 w-4 text-rose-500 shrink-0" />
+                <span>Wishlist</span>
+              </Link>
+
+              <Link
+                to="/profile?tab=addresses"
+                onClick={() => setMobileAccountMenuOpen(false)}
+                className="flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 rounded-xl transition-colors"
+              >
+                <MapPin className="h-4 w-4 text-teal-600 shrink-0" />
+                <span>My Addresses</span>
+              </Link>
+            </div>
+
+            {/* Logout Row at Bottom */}
+            <div className="p-2 border-t border-gray-100 bg-gray-50/50">
+              <button
+                type="button"
+                onClick={handleLogoutClick}
+                className="w-full flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer text-left"
+              >
+                <LogOut className="h-4 w-4 text-rose-600 shrink-0" />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div
+          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setShowLogoutModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="logout-modal-title"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl shadow-2xl border border-gray-100 max-w-sm w-full p-6 text-center animate-in zoom-in-95 duration-150 relative overflow-hidden text-gray-800"
+          >
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(false)}
+              className="absolute top-3.5 right-3.5 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              aria-label="Close dialog"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Logout Icon Badge */}
+            <div className="w-14 h-14 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-xs">
+              <LogOut className="h-7 w-7" />
+            </div>
+
+            {/* Modal Heading & Text */}
+            <h3 id="logout-modal-title" className="text-lg font-bold text-gray-900 mb-1">
+              Logout Account?
+            </h3>
+            <p className="text-xs text-gray-500 mb-6 leading-relaxed max-w-[260px] mx-auto">
+              Are you sure you want to logout from your account?
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs sm:text-sm rounded-xl border border-gray-200 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmLogout}
+                className="flex-1 py-2.5 px-4 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-colors cursor-pointer"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <CartDrawer drawerOpen={drawerOpen} togglerCartOpen={() => setDrawerOpen(false)} activeTab={activeDrawerTab} setActiveTab={setActiveDrawerTab} />
     </>
