@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-<<<<<<< Updated upstream
-import { Search, MapPin, ChevronDown, ShoppingCart, Heart, User, LogOut, Package, X } from 'lucide-react';
-=======
-import { Search, MapPin, ChevronDown, ShoppingCart, Heart, Sparkles } from 'lucide-react';
->>>>>>> Stashed changes
+import { Search, MapPin, ChevronDown, ShoppingCart, Heart, User, LogOut, Package, X, Sparkles } from 'lucide-react';
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
 import { fetchWishlist } from '../../redux/slices/wishlistSlice';

@@ -236,372 +236,188 @@ const Profile = () => {
         {/* ── Main Full-Screen Personal Information Card ── */}
         <div className="space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-5 sm:p-7">
-            {/* Header with single clean Edit toggle */}
             <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
               <div>
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">
-                  Personal Information
+                <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 flex items-center gap-2">
+                  <span>Profile Information</span>
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">
                   {isEditing
-                    ? "Make changes to your personal details below"
-                    : "Manage your personal profile details"}
+                    ? "Update your personal details below"
+                    : "View and manage your account details"}
                 </p>
               </div>
 
-              {!isEditing ? (
+              {!isEditing && (
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#047ca8] hover:text-[#022824] hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-[#022824] text-xs font-bold transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs"
                 >
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-3.5 h-3.5 text-teal-700" />
                   <span>Edit Profile</span>
                 </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleCancelEdit}
-                  disabled={savingProfile}
-                  className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-gray-500 hover:text-gray-800 cursor-pointer disabled:opacity-50"
-                >
-                  <X className="w-4 h-4" />
-                  <span>Cancel</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSearchParams({ tab: "wishlist" })}
-                  className={`w-full flex items-center justify-between text-xs sm:text-sm px-3.5 py-3 rounded-xl transition-all font-semibold cursor-pointer ${
-                    activeTab === "wishlist"
-                      ? "bg-rose-600 text-white shadow-sm shadow-rose-600/20"
-                      : "text-gray-700 hover:bg-gray-100/80 hover:text-gray-900"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Heart
-                      className={`h-4 w-4 ${
-                        activeTab === "wishlist"
-                          ? "text-white fill-white"
-                          : "text-rose-500"
-                      }`}
-                    />
-                    <span>Wishlist</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {wishlistProducts.length > 0 && (
-                      <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                          activeTab === "wishlist"
-                            ? "bg-white text-rose-600"
-                            : "bg-rose-100 text-rose-700"
-                        }`}
-                      >
-                        {wishlistProducts.length}
-                      </span>
-                    )}
-                    <ChevronRight
-                      className={`h-4 w-4 ${
-                        activeTab === "wishlist"
-                          ? "text-white/80"
-                          : "text-gray-400"
-                      }`}
-                    />
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSearchParams({ tab: "addresses" })}
-                  className={`w-full flex items-center justify-between text-xs sm:text-sm px-3.5 py-3 rounded-xl transition-all font-semibold cursor-pointer ${
-                    activeTab === "addresses"
-                      ? "bg-[#022824] text-white shadow-sm shadow-[#022824]/20"
-                      : "text-gray-700 hover:bg-gray-100/80 hover:text-gray-900"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <MapPin
-                      className={`h-4 w-4 ${
-                        activeTab === "addresses"
-                          ? "text-teal-300"
-                          : "text-teal-600"
-                      }`}
-                    />
-                    <span>My Addresses</span>
-                  </div>
-                  <ChevronRight
-                    className={`h-4 w-4 ${
-                      activeTab === "addresses"
-                        ? "text-teal-200"
-                        : "text-gray-400"
-                    }`}
-                  />
-                </button>
-
-                <Link
-                  to="/collections/all"
-                  className="flex items-center justify-between text-xs sm:text-sm text-gray-700 hover:bg-gray-100/80 hover:text-gray-900 px-3.5 py-3 rounded-xl transition-all font-semibold"
-                >
-                  <div className="flex items-center gap-3">
-                    <ShoppingBag className="h-4 w-4 text-teal-600" />
-                    <span>Continue Shopping</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </Link>
-              </nav>
-          </div>
-        </aside>
-
-        {/* ── RIGHT MAIN CONTENT AREA ── */}
-        <main className="lg:col-span-8">
-          {activeTab === "orders" ? (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-7">
-              <MyOrdersPage />
-            </div>
-          ) : activeTab === "addresses" ? (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-7">
-              <MyAddressesPage />
-            </div>
-          ) : activeTab === "wishlist" ? (
-            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-7">
-              <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center">
-                    <Heart className="h-5 w-5 text-rose-500 fill-rose-500" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                      My Saved Wishlist
-                    </h2>
-                    <p className="text-xs text-gray-500 font-medium">
-                      Products you saved for later
-                    </p>
-                  </div>
-                </div>
-                {wishlistProducts.length > 0 && (
-                  <span className="text-xs bg-rose-50 text-rose-600 font-bold px-3 py-1 rounded-full border border-rose-200/60">
-                    {wishlistProducts.length}{" "}
-                    {wishlistProducts.length === 1 ? "item" : "items"}
-                  </span>
-                )}
-              </div>
-
-              {wishlistLoading && wishlistProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-gray-500">
-                  <Loader2 className="h-8 w-8 animate-spin text-[#047ca8] mb-3" />
-                  <p className="text-sm font-medium">
-                    Loading your saved items...
-                  </p>
-                </div>
-              ) : wishlistProducts.length === 0 ? (
-                <div className="text-center py-16 px-4">
-                  <div className="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-xs">
-                    <Heart className="h-8 w-8 text-rose-400" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">
-                    Your wishlist is empty
-                  </h3>
-                  <p className="text-gray-500 text-xs sm:text-sm max-w-sm mx-auto mb-6">
-                    Explore our products and tap the heart icon on any item to save it here.
-                  </p>
-                  <Link
-                    to="/collections/all"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#022824] hover:bg-[#044a42] text-white font-bold rounded-xl text-xs sm:text-sm transition-all shadow-sm"
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    Browse Collections
-                  </Link>
-                </div>
-              ) : (
-                <ProductGrid products={wishlistProducts} />
               )}
             </div>
-          ) : (
-            /* ── MAIN PROFILE INFORMATION SECTION ── */
-            <div className="space-y-6">
-              <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs p-5 sm:p-7">
-                <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 flex items-center gap-2">
-                      <span>Profile Information</span>
-                    </h2>
-                    <p className="text-xs sm:text-sm text-gray-500 font-medium mt-0.5">
-                      {isEditing
-                        ? "Update your personal details below"
-                        : "View and manage your account details"}
-                    </p>
+
+            {/* EDIT MODE FORM */}
+            {isEditing ? (
+              <form onSubmit={handleSaveChanges} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="e.g. John Doe"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                    />
                   </div>
 
-                  {!isEditing && (
-                    <button
-                      type="button"
-                      onClick={handleStartEdit}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-[#022824] text-xs font-bold transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs"
-                    >
-                      <Edit3 className="w-3.5 h-3.5 text-teal-700" />
-                      <span>Edit Profile</span>
-                    </button>
-                  )}
+                  {/* Email Address */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                      Email Address <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      placeholder="name@example.com"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                    />
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
+                      Mobile Number
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      placeholder="10-digit mobile number"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                    />
+                  </div>
                 </div>
 
-                {/* EDIT MODE FORM */}
-                {isEditing ? (
-                  <form onSubmit={handleSaveChanges} className="space-y-5">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* Full Name */}
-                      <div className="sm:col-span-2">
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                          Full Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                          placeholder="e.g. John Doe"
-                          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
-                        />
-                      </div>
-
-                      {/* Email Address */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                          Email Address <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                          placeholder="name@example.com"
-                          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
-                        />
-                      </div>
-
-                      {/* Mobile Number */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5">
-                          Mobile Number
-                        </label>
-                        <input
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
-                          }
-                          placeholder="10-digit mobile number"
-                          className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
-                      <button
-                        type="submit"
-                        disabled={savingProfile}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-[#022824] hover:bg-[#044a42] text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                      >
-                        {savingProfile ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin text-white" />
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4 text-teal-300" />
-                            <span>SAVE CHANGES</span>
-                          </>
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCancelEdit}
-                        disabled={savingProfile}
-                        className="px-5 py-2.5 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-xs sm:text-sm transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        CANCEL
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  /* VIEW MODE (Clean Marketplace Layout) */
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                      {/* Name Field */}
-                      <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                          Full Name
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block">
-                          {user.name || "—"}
-                        </span>
-                      </div>
-
-                      {/* Email Field */}
-                      <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                          Email Address
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block truncate">
-                          {user.email || "—"}
-                        </span>
-                      </div>
-
-                      {/* Mobile Number */}
-                      <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                          Mobile Number
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block">
-                          {user.phone || "Not specified"}
-                        </span>
-                      </div>
-
-                      {/* Account Type */}
-                      <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
-                          Account Type
-                        </span>
-                        <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block capitalize">
-                          {user.role || "Customer"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Meta Information Footer (Member Since, Security Status) */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span>
-                          Member Since: <strong className="text-gray-700">{memberSince}</strong>
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        <span className="font-semibold text-[11px]">Account Active & Verified</span>
-                      </div>
-                    </div>
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+                  <button
+                    type="submit"
+                    disabled={savingProfile}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-[#022824] hover:bg-[#044a42] text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    {savingProfile ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 text-teal-300" />
+                        <span>SAVE CHANGES</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={savingProfile}
+                    className="px-5 py-2.5 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold text-xs sm:text-sm transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* VIEW MODE (Clean Marketplace Layout) */
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Name Field */}
+                  <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                      Full Name
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block">
+                      {user.name || "—"}
+                    </span>
                   </div>
-                )}
-              </div>
 
-              {/* ── Clean Bottom Logout Button ── */}
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg border border-red-200 hover:border-red-300 bg-white hover:bg-red-50 text-red-600 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-2xs"
-                >
-                  <LogOut className="w-4 h-4 text-red-500" />
-                  <span>Log Out</span>
-                </button>
+                  {/* Email Field */}
+                  <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                      Email Address
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block truncate">
+                      {user.email || "—"}
+                    </span>
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                      Mobile Number
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block">
+                      {user.phone || "Not specified"}
+                    </span>
+                  </div>
+
+                  {/* Account Type */}
+                  <div className="p-4 bg-gray-50/70 rounded-md border border-gray-200/80">
+                    <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block">
+                      Account Type
+                    </span>
+                    <span className="text-sm sm:text-base font-semibold text-gray-900 mt-1 block capitalize">
+                      {user.role || "Customer"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Meta Information Footer (Member Since, Security Status) */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span>
+                      Member Since: <strong className="text-gray-700">{memberSince}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="font-semibold text-[11px]">Account Active & Verified</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* ── Clean Bottom Logout Button ── */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg border border-red-200 hover:border-red-300 bg-white hover:bg-red-50 text-red-600 text-xs sm:text-sm font-semibold transition-all cursor-pointer shadow-2xs"
+            >
+              <LogOut className="w-4 h-4 text-red-500" />
+              <span>Log Out</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
