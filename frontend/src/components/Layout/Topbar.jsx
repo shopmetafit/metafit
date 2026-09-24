@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
+<<<<<<< Updated upstream
 import { Search, MapPin, ChevronDown, ShoppingCart, Heart, User, LogOut, Package, X } from 'lucide-react';
+=======
+import { Search, MapPin, ChevronDown, ShoppingCart, Heart, Sparkles } from 'lucide-react';
+>>>>>>> Stashed changes
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
 import { fetchWishlist } from '../../redux/slices/wishlistSlice';
@@ -363,7 +367,6 @@ const Topbar = () => {
               <span className="text-sm font-bold truncate max-w-[140px]">
                 {isFetchingLocation ? 'Detecting...' : userLocation}
               </span>
-              <ChevronDown className="h-3 w-3 text-gray-300" />
             </div>
           </div>
 
@@ -535,7 +538,17 @@ const Topbar = () => {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-1 md:gap-1.5 ml-auto md:ml-0">
+          <div className="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
+
+            {/* AI Routine Matcher Trigger */}
+            <Link
+              to="/routine-builder"
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-400/40 text-teal-200 hover:text-white transition-all text-xs font-bold group shadow-xs"
+              title="Build your personalized Morning & Evening daily routine"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-teal-300 group-hover:rotate-12 transition-transform animate-pulse" />
+              <span>Routine Matcher</span>
+            </Link>
 
             {/* Desktop Account & Lists Dropdown */}
             {user ? (
@@ -639,10 +652,14 @@ const Topbar = () => {
               <span className="text-xs font-bold leading-tight">& Orders</span>
             </Link>
 
-            {/* Wishlist */}
-            <Link
-              to="/profile?tab=wishlist"
-              className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group"
+            {/* Wishlist Button (Opens Quick Slide Drawer) */}
+            <button
+              type="button"
+              onClick={() => {
+                setActiveDrawerTab('wishlist');
+                setDrawerOpen(true);
+              }}
+              className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
             >
               <div className="relative flex items-center justify-center p-0.5">
                 <Heart className="h-6 w-6 text-white group-hover:scale-105 transition-transform" strokeWidth={1.75} />
@@ -653,7 +670,7 @@ const Topbar = () => {
                 )}
               </div>
               <span className="hidden sm:block text-xs font-bold leading-none text-white">Wishlist</span>
-            </Link>
+            </button>
 
             {/* Cart Button */}
             <button
@@ -680,16 +697,15 @@ const Topbar = () => {
         <div
           onClick={handleLocationRequest}
           title={isFetchingLocation ? "Detecting location..." : `Deliver to ${userLocation}`}
-          className="md:hidden flex items-center justify-between px-3 py-1.5 bg-[#011e1b] text-xs text-gray-200 border-t border-b border-teal-900/60 cursor-pointer select-none hover:bg-[#012521] transition-colors"
+          className="md:hidden flex items-center px-3 py-1.5 bg-[#011e1b] text-xs text-gray-200 border-t border-b border-teal-900/60 cursor-pointer select-none hover:bg-[#012521] transition-colors"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin className={`h-4 w-4 text-teal-400 flex-shrink-0 ${isFetchingLocation ? 'animate-bounce' : ''}`} />
             <span className="text-gray-300 flex-shrink-0 text-[11px] font-medium">Deliver to</span>
-            <span className="font-bold text-white text-xs truncate max-w-[200px] xs:max-w-[250px] sm:max-w-[350px]">
+            <span className="font-bold text-white text-xs truncate max-w-[240px] xs:max-w-[280px] sm:max-w-[350px]">
               {isFetchingLocation ? 'Detecting location...' : userLocation}
             </span>
           </div>
-          <ChevronDown className="h-3.5 w-3.5 text-teal-400 flex-shrink-0 ml-1" />
         </div>
 
         {/* MOBILE ROW 3 — SEARCH BAR (ALWAYS VISIBLE & ACCESSIBLE ON MOBILE) */}

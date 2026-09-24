@@ -13,6 +13,8 @@ import Checkout from "./components/Cart/Checkout";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import OrderDetailsPage from "./pages/OrderDetailsPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
+import MyAddressesPage from "./pages/MyAddressesPage";
+import WishlistPage from "./pages/WishlistPage";
 import AdminLayout from "./components/Admin/AdminLayout";
 import AdminHomePage from "./pages/AdminHomePage";
 import UserManagement from "./components/Admin/UserManagement";
@@ -35,6 +37,7 @@ import BlogList from "./components/Blog/BlogList";
 import BlogDetail from "./components/Blog/BlogDetail";
 import BlogEditor from "./components/Admin/BlogEditor";
 import BlogDashboard from "./components/Admin/BlogDashboard";
+import RoutineBuilderPage from "./pages/RoutineBuilderPage";
 
 import VendorLogin from "./pages/VendorLogin";
 import VendorRegister from "./pages/VendorRegister";
@@ -127,9 +130,12 @@ const App = () => {
             />
             <Route path="order/:id" element={<OrderDetailsPage />} />
             <Route path="my-orders" element={<MyOrdersPage />} />
+            <Route path="my-addresses" element={<MyAddressesPage />} />
+            <Route path="wishlist" element={<WishlistPage />} />
 
             <Route path="blog" element={<BlogList />} />
             <Route path="blog/:slug" element={<BlogDetail />} />
+            <Route path="routine-builder" element={<RoutineBuilderPage />} />
 
           </Route>
           <Route

@@ -255,7 +255,7 @@ const OrderDetailsPage = () => {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Link
-            to="/profile?tab=orders"
+            to="/my-orders"
             className="text-[#047ca8] hover:underline font-medium text-sm mb-2 inline-block"
           >
             ← Back to My Orders

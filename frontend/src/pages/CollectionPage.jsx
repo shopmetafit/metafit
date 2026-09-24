@@ -265,13 +265,10 @@ const CollectionPage = () => {
           )}
 
           {/* Mobile Product Header */}
-          <div className="lg:hidden flex items-center justify-between bg-white px-4 py-2 rounded-lg shadow-xs">
-            <div>
-              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wide">SHOP</p>
-              <h1 className="text-lg font-bold text-gray-900">
-                All Products <span className="text-gray-500 font-normal text-sm">({totalProducts || products?.length || 0})</span>
-              </h1>
-            </div>
+          <div className="lg:hidden flex items-center justify-between bg-white px-3.5 py-1.5 rounded-lg shadow-xs">
+            <h1 className="text-base font-bold text-gray-900">
+              All Products <span className="text-gray-500 font-normal text-xs">({totalProducts || products?.length || 0})</span>
+            </h1>
           </div>
 
           {/* ── Full-Width Product Grid ── */}

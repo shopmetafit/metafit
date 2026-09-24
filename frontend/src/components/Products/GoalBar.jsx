@@ -98,7 +98,7 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
   return (
     <div className="bg-gradient-to-t from-teal-50/60 via-slate-50/20 to-white rounded-xl shadow-xs border border-slate-200/80 p-2.5 transition-all mb-2">
       {/* ─── Top Bar: Category Label & Clear Action / Refine Results ─── */}
-      <div className="flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
+      <div className="hidden sm:flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           <span className="flex items-center justify-center h-5 w-5 rounded-md bg-[#0FB7A3]/10 text-[#0FB7A3]">
             <LayoutGrid className="h-3.5 w-3.5 stroke-[2.2]" />
@@ -109,6 +109,19 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* AI Routine Matcher Shortcut */}
+          <button
+            type="button"
+            onClick={() => navigate("/routine-builder")}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-teal-800 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-300 hover:border-teal-400 hover:shadow-xs rounded-lg transition-all duration-200 cursor-pointer active:scale-95 group"
+            title="Take 30s quiz to get personalized Morning & Evening routine"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-teal-600 group-hover:rotate-12 transition-transform animate-pulse" />
+            <span className="hidden xs:inline font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-800 to-emerald-800">
+              AI Routine Matcher
+            </span>
+          </button>
+
           {selectedGoal && (
             <button
               onClick={() => handleGoalSelect(null)}

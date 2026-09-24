@@ -30,6 +30,7 @@ const adminCompatRoutes = require("../routes/adminCompatRoutes");
 const sitemapRoutes = require("../routes/sitemapRoutes");
 const reviewRoutes = require("../routes/reviewRoutes");
 const addressRoutes = require("../routes/addressRoutes");
+const aiRoutineRoutes = require("../routes/aiRoutineRoutes");
 const compression = require("compression");
 
 const app = express();
@@ -113,6 +114,7 @@ app.use("/api/coupons", couponRoutes);
 app.use("/api/store", referralStoreRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api", reviewRoutes);
+app.use("/api/ai", aiRoutineRoutes);
 
 
 //Admin

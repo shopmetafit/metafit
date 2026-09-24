@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { fetchUserOrders } from "../redux/slices/orderSlice";
 import {
   Package,
@@ -13,6 +13,8 @@ import {
   FileText,
   Loader2,
   Eye,
+  User,
+  Heart,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -118,15 +120,59 @@ const MyOrdersPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-4 px-2 sm:px-4 font-sans">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#f1f3f6] text-gray-800 antialiased py-4 sm:py-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        {/* ── Breadcrumb Navigation ── */}
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-4 overflow-x-auto whitespace-nowrap"
+        >
+          <Link to="/" className="hover:text-[#022824] transition-colors">
+            Home
+          </Link>
+          <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
+          <Link to="/profile" className="hover:text-[#022824] transition-colors">
+            My Account
+          </Link>
+          <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
+          <span className="text-gray-900 font-semibold">My Orders</span>
+        </nav>
+
+        {/* ── Top Account Navigation Tabs ── */}
+        <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-1 sm:p-1.5 mb-4 sm:mb-6 grid grid-cols-3 gap-1 sm:flex sm:items-center sm:gap-1">
+          <Link
+            to="/profile"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
+          >
+            <User className="w-4 h-4 text-gray-500 shrink-0" />
+            <span className="hidden sm:inline">Profile Information</span>
+            <span className="sm:hidden font-medium">Profile</span>
+          </Link>
+          <Link
+            to="/my-orders"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#022824] text-white shadow-xs text-center"
+          >
+            <Package className="w-4 h-4 text-teal-300 shrink-0" />
+            <span className="hidden sm:inline">My Orders ({orders.length})</span>
+            <span className="sm:hidden font-medium">Orders</span>
+          </Link>
+          <Link
+            to="/my-addresses"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
+          >
+            <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="hidden sm:inline">Saved Addresses</span>
+            <span className="sm:hidden font-medium">Addresses</span>
+          </Link>
+        </div>
+
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
               My Orders
-            </h2>
-            <p className="text-gray-500 mt-1 text-xs sm:text-sm">
-              View order details and download invoices
+            </h1>
+            <p className="text-gray-500 mt-0.5 text-xs sm:text-sm">
+              View your order history, track shipments, and download invoices
             </p>
           </div>
         </div>
