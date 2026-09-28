@@ -7,6 +7,7 @@ import {
   openCartDrawer,
 } from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
+import { toggleCompare } from "../../redux/slices/compareSlice";
 import { toast } from "sonner";
 import { useState } from "react";
 import { trackMetaEvent } from "../../lib/meta-pixel";
@@ -20,6 +21,7 @@ import {
   Loader2,
   Minus,
   Plus,
+  ArrowLeftRight,
 } from "lucide-react";
 
 // Amazon/Nykaa-style Shimmer Skeleton Card
@@ -62,6 +64,7 @@ const ProductCard = ({ product, onProductClick }) => {
   const user = useSelector((state) => state.auth.user);
   const guestId = useSelector((state) => state.auth.guestId);
   const wishlistItems = useSelector((state) => state.wishlist?.products || []);
+  const compareItems = useSelector((state) => state.compare?.items || []);
   const cart = useSelector((state) => state.cart?.cart || state.cart);
   const cartProducts = cart?.products || [];
 
@@ -79,6 +82,14 @@ const ProductCard = ({ product, onProductClick }) => {
   const isWishlisted = wishlistItems.some(
     (item) => (item._id || item.productId || item) === product._id
   );
+
+  const isCompared = compareItems.some((item) => item._id === product._id);
+
+  const handleCompareToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dispatch(toggleCompare(product));
+  };
 
   const handleAddToCart = async (e, prod, variant = null) => {
     e.preventDefault();
@@ -376,6 +387,21 @@ const ProductCard = ({ product, onProductClick }) => {
               isWishlisted ? "fill-red-500 text-red-500" : ""
             }`}
           />
+        </button>
+
+        {/* Compare Button */}
+        <button
+          type="button"
+          onClick={handleCompareToggle}
+          aria-label="Compare product"
+          title={isCompared ? "In Comparison (Click to remove)" : "Add to Compare"}
+          className={`absolute top-9 sm:top-10 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full backdrop-blur-xs shadow-xs border flex items-center justify-center transition-all duration-150 z-10 ${
+            isCompared
+              ? "bg-emerald-600 border-emerald-600 text-white shadow-emerald-600/30 scale-105 opacity-100"
+              : "bg-white/95 border-gray-100 text-gray-400 hover:text-emerald-600 hover:border-emerald-200 opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+          }`}
+        >
+          <ArrowLeftRight className="w-3 h-3 stroke-[2.2]" />
         </button>
       </div>
 

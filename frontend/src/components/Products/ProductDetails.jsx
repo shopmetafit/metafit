@@ -9,6 +9,7 @@ import SEO from "../SEO/SEO";
 import { fetchSimilarProduct } from "../../redux/slices/productSlice";
 import { addToCart, updateCartItemQuantity, removeFromCart, openCartDrawer } from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
+import { toggleCompare } from "../../redux/slices/compareSlice";
 import { fetchProductReviews } from "../../redux/slices/reviewSlice";
 import {
   Minus,
@@ -20,6 +21,7 @@ import {
   RotateCcw,
   Heart,
   Loader2,
+  ArrowLeftRight,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -69,6 +71,7 @@ const ProductDetails = ({ productId }) => {
 
   const wishlistState = useSelector((state) => state.wishlist || { products: [] });
   const wishlistProducts = wishlistState?.products || [];
+  const compareItems = useSelector((state) => state.compare?.items || []);
 
   const { reviews, stats, productId: reviewProductId } = useSelector(
     (state) => state.reviews
@@ -115,6 +118,10 @@ const ProductDetails = ({ productId }) => {
 
   const isWishlisted = wishlistProducts.some(
     (item) => (actualProductId && (item._id || item.productId || item) === actualProductId) || (selectedProduct?.slug && item.slug === selectedProduct.slug)
+  );
+
+  const isCompared = compareItems.some(
+    (item) => actualProductId && item._id === actualProductId
   );
 
   /*
@@ -2128,6 +2135,21 @@ const ProductDetails = ({ productId }) => {
                   }`}
                 >
                   <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : ""}`} />
+                </button>
+
+                {/* COMPARE BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => selectedProduct && dispatch(toggleCompare(selectedProduct))}
+                  title={isCompared ? "In Comparison (Click to remove)" : "Compare with Other Products"}
+                  className={`px-3.5 sm:px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0 ${
+                    isCompared
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-emerald-500/10 font-bold text-xs"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700 font-semibold text-xs"
+                  }`}
+                >
+                  <ArrowLeftRight className={`h-4 w-4 ${isCompared ? "stroke-[2.5]" : ""}`} />
+                  <span className="hidden sm:inline">{isCompared ? "In Compare" : "Compare"}</span>
                 </button>
               </div>
 

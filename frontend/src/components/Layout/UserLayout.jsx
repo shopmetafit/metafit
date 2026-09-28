@@ -3,6 +3,8 @@ import Footer from "../common/Footer";
 import Header from "../common/Header";
 import WhatsAppChat from "../common/WhatsAppChat";
 import MobileBottomNav from "../common/MobileBottomNav";
+import CompareFloatingBar from "../Products/CompareFloatingBar";
+import CompareModal from "../Products/CompareModal";
 
 const UserLayout = () => {
   return (
@@ -14,6 +16,8 @@ const UserLayout = () => {
       <Footer />
       <WhatsAppChat />
       <MobileBottomNav />
+      <CompareFloatingBar />
+      <CompareModal />
     </div>
   );
 };
