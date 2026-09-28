@@ -131,7 +131,37 @@ const GOAL_OPTIONS = [
   },
 ];
 
-export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
+// ─── AI Text Formatter: Preserves literal '**' markers while rendering inner text visually bold ───
+const renderFormattedAiText = (text) => {
+  if (!text) return null;
+  const textStr = String(text);
+  const lines = textStr.split("\n");
+
+  return lines.map((line, lineIdx) => {
+    const parts = line.split(/(\*\*.*?\*\*)/g);
+
+    return (
+      <React.Fragment key={lineIdx}>
+        {lineIdx > 0 && <br />}
+        {parts.map((part, partIdx) => {
+          if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
+            const innerText = part.slice(2, -2);
+            return (
+              <React.Fragment key={partIdx}>
+                <span className="opacity-90 font-normal">**</span>
+                <strong className="font-extrabold font-bold text-inherit">{innerText}</strong>
+                <span className="opacity-90 font-normal">**</span>
+              </React.Fragment>
+            );
+          }
+          return <React.Fragment key={partIdx}>{part}</React.Fragment>;
+        })}
+      </React.Fragment>
+    );
+  });
+};
+
+export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, guestId } = useSelector((state) => state.auth || {});
@@ -589,145 +619,180 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
   }, [allCatalogProducts]);
 
   return (
-    <div className="w-full max-w-4xl mx-auto font-sans">
-      {/* Outer Card with Glassmorphic Luxury Finish */}
-      <div className="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl border border-teal-100 overflow-hidden relative">
-        
-        {/* Top Header Bar with Back Navigation */}
-        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#046559] p-6 sm:p-8 text-white relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Top Row: Back to Store button & Close button */}
-          <div className="flex items-center justify-between pb-4 border-b border-teal-800/60 mb-4 relative z-10 text-xs">
+    <div className="w-full max-w-[1060px] mx-auto font-sans">
+      {/* Outer Elevated Card with Glassmorphic Luxury Finish */}
+      <div className="bg-white/95 backdrop-blur-2xl rounded-2xl lg:rounded-[22px] shadow-xl border border-teal-100/90 overflow-hidden relative">
+
+        {/* ─── TOP HEADER BAR WITH STEPPER PROGRESS ─── */}
+        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#046559] p-3.5 sm:p-4 lg:p-5 text-white relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Row: Back to Store & Close Buttons */}
+          <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-teal-800/60 mb-2.5 sm:mb-3 relative z-10 text-xs">
             <button
               type="button"
               onClick={() => navigate("/")}
-              className="inline-flex items-center gap-1.5 text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl transition-colors cursor-pointer border border-white/10 font-bold"
+              className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-3.5 rounded-lg border border-teal-400/30 bg-teal-950/40 hover:bg-teal-900/50 text-teal-100 hover:text-white transition-all cursor-pointer font-semibold text-xs shadow-2xs"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span>← Back to Store</span>
+              <ArrowLeft className="w-2.5 h-3.5" />
+
             </button>
 
             {isModal && (
               <button
+                type="button"
                 onClick={onClose}
-                className="text-gray-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors"
+                className="text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 ✕
               </button>
             )}
           </div>
 
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-2xl bg-teal-500/20 border border-teal-400/30 text-teal-300 shadow-inner">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+          {/* Title & Subtitle Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 relative z-10">
+            <div className="flex items-start gap-2 sm:gap-2.5">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-300 shadow-inner flex-shrink-0 mt-0.5">
+                <Sparkles className="w-4.5 h-4.5 sm:w-5 sm:h-5 animate-pulse text-teal-300" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/70 px-2.5 py-0.5 rounded-full border border-teal-400/30">
-                    Clinical AI Intake Protocol
-                  </span>
-                  <span className="hidden sm:inline-block text-[10px] text-teal-200/70">• Real Database Synchronization</span>
-                </div>
-                <h1 className="text-xl sm:text-2xl font-black text-white mt-1 tracking-tight">
-                  Personalized Wellness Protocol Matcher
+                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-400/30 inline-block mb-0.5">
+                  Personalized Wellness Match
+                </span>
+                <h1 className="text-base sm:text-lg lg:text-xl font-black text-white tracking-tight leading-snug">
+                  Build Your Personalized Wellness Routine
                 </h1>
+                <p className="text-[11px] sm:text-xs text-teal-100/90 mt-0.5 max-w-xl leading-relaxed">
+                  Tell us about yourself and we'll personalize the next steps.
+                </p>
               </div>
+            </div>
+
+            {/* Step Counter Pill */}
+            <div className="self-start sm:self-center flex-shrink-0">
+              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 sm:py-1.5 rounded-xl border border-white/15 text-xs font-black text-teal-200 tracking-wider shadow-inner">
+                <span>Step {currentStep} of 4</span>
+              </span>
             </div>
           </div>
 
-          <p className="text-xs sm:text-sm text-teal-100/90 mt-2 max-w-xl leading-relaxed">
-            Answer 3 clinical biomarker questions. Our system matches circadian timing, active botanical synergies, and certified store inventory.
-          </p>
-
-          {/* Stepper Progress Bar with Interactive Clickable Tabs */}
-          <div className="mt-6">
-            <div className="flex items-center gap-2">
-              {[1, 2, 3, 4].map((step) => (
-                <button
-                  key={step}
-                  type="button"
-                  onClick={() => setCurrentStep(step)}
-                  className={`h-2.5 flex-1 rounded-full transition-all duration-300 cursor-pointer ${
-                    currentStep >= step
-                      ? "bg-gradient-to-r from-teal-400 to-emerald-300 shadow-xs hover:opacity-90"
-                      : "bg-teal-900/60 hover:bg-teal-800/80"
-                  }`}
-                  title={`Jump to step ${step}`}
-                />
-              ))}
+          {/* ─── MODERN PROGRESS STEPPER ─── */}
+          <div className="mt-3 sm:mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
+              {[
+                { num: 1, label: "Profile & Goal", key: "01" },
+                { num: 2, label: "Biomarkers", key: "02" },
+                { num: 3, label: "Formulation Style", key: "03" },
+                { num: 4, label: "Your Routine", key: "04" },
+              ].map((step) => {
+                const isCompleted = currentStep > step.num;
+                const isActive = currentStep === step.num;
+                return (
+                  <button
+                    key={step.num}
+                    type="button"
+                    onClick={() => setCurrentStep(step.num)}
+                    className={`p-1.5 sm:p-2 rounded-xl border transition-all duration-300 text-left flex items-center gap-1.5 sm:gap-2 cursor-pointer ${isActive
+                      ? "bg-gradient-to-r from-teal-400 to-emerald-300 text-slate-950 font-black shadow-md border-transparent scale-[1.01]"
+                      : isCompleted
+                        ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-200 font-semibold"
+                        : "bg-teal-950/40 border-teal-800/50 text-teal-300/60 hover:bg-teal-900/40"
+                      }`}
+                  >
+                    <span
+                      className={`w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-lg flex items-center justify-center text-[10px] sm:text-xs font-black flex-shrink-0 ${isActive
+                        ? "bg-slate-950 text-teal-300"
+                        : isCompleted
+                          ? "bg-emerald-500 text-slate-950"
+                          : "bg-teal-900/80 text-teal-400"
+                        }`}
+                    >
+                      {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : step.key}
+                    </span>
+                    <span className="truncate text-[10px] sm:text-[11px] font-bold">{step.label}</span>
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex justify-between text-[11px] text-teal-200/80 mt-2.5 font-semibold">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(1)}
-                className={`hover:underline cursor-pointer transition-colors ${
-                  currentStep === 1 ? "text-teal-300 font-bold" : "text-teal-100/70"
-                }`}
-              >
-                1. Profile & Goal
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(2)}
-                className={`hover:underline cursor-pointer transition-colors ${
-                  currentStep === 2 ? "text-teal-300 font-bold" : "text-teal-100/70"
-                }`}
-              >
-                2. Biomarkers
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(3)}
-                className={`hover:underline cursor-pointer transition-colors ${
-                  currentStep === 3 ? "text-teal-300 font-bold" : "text-teal-100/70"
-                }`}
-              >
-                3. Formulation Style
-              </button>
-              <button
-                type="button"
-                onClick={() => setCurrentStep(4)}
-                className={`hover:underline cursor-pointer transition-colors ${
-                  currentStep === 4 ? "text-teal-300 font-bold" : "text-teal-100/70"
-                }`}
-              >
-                4. Protocol Result
-              </button>
+
+            {/* Continuous Progress Fill Line */}
+            <div className="h-1 bg-teal-950/80 rounded-full overflow-hidden border border-teal-800/40 mt-2">
+              <div
+                className="h-full bg-gradient-to-r from-teal-400 via-emerald-300 to-teal-200 transition-all duration-500 shadow-sm"
+                style={{ width: `${(currentStep / 4) * 100}%` }}
+              />
             </div>
           </div>
         </div>
 
+        {/* ─── DYNAMIC PROFILE SUMMARY BAR (PERSONALIZATION FEEL) ─── */}
+        <div className="bg-teal-50/80 border-b border-teal-100/90 px-3.5 sm:px-5 min-h-[48px] sm:min-h-[52px] py-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex flex-wrap items-center gap-2 text-slate-700 font-semibold">
+            <span className="text-teal-700 font-bold uppercase tracking-wider text-[10px] sm:text-[11px] flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-teal-600" /> YOUR WELLNESS PROFILE:
+            </span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="bg-white px-2 py-0.5 rounded-lg border border-teal-200/80 font-bold text-teal-900 text-[10px] sm:text-[11px] shadow-2xs">
+                {activeGoalObj.icon} {activeGoalObj.title}
+              </span>
+              <span className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-semibold text-slate-700 text-[10px] sm:text-[11px] shadow-2xs">
+                Age: {userAgeGroup}
+              </span>
+              <span className="bg-white px-2 py-0.5 rounded-lg border border-slate-200 font-semibold text-slate-700 text-[10px] sm:text-[11px] shadow-2xs">
+                Focus: {userGender === "all" ? "Unisex / All" : userGender === "women" ? "Women's Wellness" : "Men's Health"}
+              </span>
+            </div>
+          </div>
+
+          {currentStep > 1 && (
+            <button
+              type="button"
+              onClick={() => setCurrentStep(1)}
+              className="text-[11px] text-teal-700 hover:text-teal-900 font-bold underline cursor-pointer ml-auto"
+            >
+              Edit Profile
+            </button>
+          )}
+        </div>
+
         {/* ─── STEP 1: USER PROFILE & PRIMARY GOAL ─── */}
         {currentStep === 1 && (
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/70 flex flex-col sm:flex-row items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold flex-shrink-0 shadow-sm">
-                <User className="w-5 h-5" />
+          <div className="p-4 sm:p-6 lg:p-7 space-y-4 lg:space-y-5">
+            {/* Intake Profile Title & Controls */}
+            <div className="space-y-3">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+                  Let's personalize your experience
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  A few basic details help us tailor the recommendations.
+                </p>
               </div>
-              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+
+              <div className="bg-slate-50/90 rounded-xl lg:rounded-2xl p-3.5 lg:p-4 border border-slate-200/80 grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-4">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    First Name (Optional)
+                  <label className="block text-[10px] lg:text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <User className="w-3.5 h-3.5 text-teal-600" /> First Name (Optional)
                   </label>
                   <input
                     type="text"
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
                     placeholder="e.g. Rahul / Priya"
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full px-3 py-2 lg:py-2.5 h-10 lg:h-[42px] text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white font-medium shadow-2xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    Age Bracket
+                  <label className="block text-[10px] lg:text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-teal-600" /> Age Bracket
                   </label>
                   <select
                     value={userAgeGroup}
                     onChange={(e) => setUserAgeGroup(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full px-3 py-2 lg:py-2.5 h-10 lg:h-[42px] text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white font-medium shadow-2xs cursor-pointer"
                   >
+                    <option value="10-18">10–18 Years</option>
                     <option value="18-24">18–24 Years</option>
                     <option value="25-34">25–34 Years</option>
                     <option value="35-44">35–44 Years</option>
@@ -736,13 +801,13 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
-                    Gender Focus
+                  <label className="block text-[10px] lg:text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Activity className="w-3.5 h-3.5 text-teal-600" /> Gender Focus
                   </label>
                   <select
                     value={userGender}
                     onChange={(e) => setUserGender(e.target.value)}
-                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
+                    className="w-full px-3 py-2 lg:py-2.5 h-10 lg:h-[42px] text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white font-medium shadow-2xs cursor-pointer"
                   >
                     <option value="all">Unisex / All</option>
                     <option value="women">Women's Wellness</option>
@@ -752,63 +817,65 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
               </div>
             </div>
 
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-1">
-                Select Your Primary Health Transformation Focus
-              </h2>
-              <p className="text-xs text-slate-500">
-                Choose the main physiological area you want targeted for 30–60 days.
-              </p>
-            </div>
+            {/* Goal Selection Cards Grid */}
+            <div className="space-y-2">
+              <div>
+                <h3 className="text-sm sm:text-base lg:text-lg font-bold text-slate-900">
+                  Select Your Primary Health Transformation Focus
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Choose the main physiological area you want targeted for 30–60 days.
+                </p>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {GOAL_OPTIONS.map((g) => {
-                const isSelected = selectedGoal === g.id;
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => setSelectedGoal(g.id)}
-                    className={`relative text-left p-4 rounded-2xl border-2 transition-all duration-200 group flex flex-col justify-between ${
-                      isSelected
-                        ? "border-[#0FB7A3] bg-teal-50/70 shadow-md ring-2 ring-[#0FB7A3]/30 scale-[1.01]"
-                        : "border-slate-200 hover:border-teal-300 hover:bg-slate-50 bg-white"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-2xl p-2 rounded-xl bg-white shadow-xs border border-slate-100">
-                          {g.icon}
-                        </span>
-                        {isSelected && (
-                          <span className="w-5 h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <Check className="w-3 h-3" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-3.5 pt-0.5">
+                {GOAL_OPTIONS.map((g) => {
+                  const isSelected = selectedGoal === g.id;
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => setSelectedGoal(g.id)}
+                      className={`relative text-left p-3.5 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-200 group flex flex-col justify-between cursor-pointer min-h-[105px] lg:min-h-[115px] ${isSelected
+                        ? "border-[#0FB7A3] bg-teal-50/70 shadow-sm ring-1 ring-[#0FB7A3]/30"
+                        : "border-slate-200/90 hover:border-teal-300 hover:bg-slate-50/80 bg-white"
+                        }`}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-lg lg:text-xl p-1 rounded-xl bg-white shadow-2xs border border-slate-100 flex items-center justify-center">
+                            {g.icon}
                           </span>
-                        )}
+                          {isSelected && (
+                            <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-[9px] lg:text-[10px] font-bold shadow-2xs">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="font-bold text-xs lg:text-sm text-slate-900 group-hover:text-teal-900 transition-colors leading-tight">
+                          {g.title}
+                        </h4>
+                        <p className="text-[11px] lg:text-xs text-slate-500 mt-0.5 leading-snug line-clamp-2">
+                          {g.subtitle}
+                        </p>
                       </div>
-                      <h3 className="font-bold text-sm text-slate-900 group-hover:text-teal-900">
-                        {g.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                        {g.subtitle}
-                      </p>
-                    </div>
 
-                    <div className="mt-4 pt-2 border-t border-slate-100 flex items-center text-[11px] font-semibold text-teal-700">
-                      <span>Select Focus</span>
-                      <ChevronRight className="w-3.5 h-3.5 ml-auto text-teal-600 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </button>
-                );
-              })}
+                      <div className="mt-2 pt-2 border-t border-slate-100 flex items-center text-[10px] lg:text-[11px] font-extrabold text-teal-700">
+                        <span>{isSelected ? "Selected Focus ✓" : "Select Focus"}</span>
+                        <ChevronRight className="w-3.5 h-3.5 ml-auto text-teal-600 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Step 1 Footer Navigation */}
-            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+            <div className="flex justify-between items-center pt-4 lg:pt-5 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => navigate("/")}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 lg:py-2.5 h-10 lg:h-[42px] rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Store
               </button>
@@ -816,9 +883,9 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#022824] to-[#047ca8] text-white text-sm font-bold shadow-lg hover:shadow-teal-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#022824] via-[#034d45] to-[#047ca8] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               >
-                <span>Continue to Lifestyle Biomarkers</span>
+                <span>Continue to Biomarkers</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -827,23 +894,23 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
         {/* ─── STEP 2: LIFESTYLE & BIOMARKERS ─── */}
         {currentStep === 2 && (
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="text-center max-w-md mx-auto">
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+          <div className="p-4 sm:p-6 lg:p-7 space-y-4 lg:space-y-5">
+            <div className="text-center max-w-md mx-auto space-y-1">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 Step 2: Circadian & Energy Biomarkers
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500">
                 These factors determine the exact morning vs evening dosage timing.
               </p>
             </div>
 
-            <div className="space-y-5 max-w-xl mx-auto pt-2">
+            <div className="space-y-4 max-w-xl mx-auto pt-1">
               {/* Daily Sleep Duration */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-xs font-bold text-slate-800 mb-2">
+              <div className="p-3.5 lg:p-4 rounded-xl lg:rounded-2xl bg-slate-50/90 border border-slate-200/80 shadow-2xs space-y-2.5">
+                <label className="block text-xs font-bold text-slate-800">
                   🌙 Average Nightly Sleep Duration:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   {[
                     { id: "<6", label: "Under 6 Hrs", sub: "Deficit" },
                     { id: "6-7", label: "6–7 Hours", sub: "Standard" },
@@ -853,25 +920,24 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       key={s.id}
                       type="button"
                       onClick={() => setSleepHours(s.id)}
-                      className={`p-2.5 rounded-xl text-center border-2 transition-all cursor-pointer ${
-                        sleepHours === s.id
-                          ? "border-teal-500 bg-white font-bold text-teal-800 shadow-xs ring-1 ring-teal-300"
-                          : "border-slate-200 bg-white/70 text-slate-600 hover:border-slate-300"
-                      }`}
+                      className={`p-2.5 lg:p-3 rounded-xl text-center border-2 transition-all cursor-pointer ${sleepHours === s.id
+                        ? "border-teal-500 bg-white font-bold text-teal-800 shadow-sm ring-1 ring-teal-300"
+                        : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                        }`}
                     >
-                      <div className="text-xs font-bold">{s.label}</div>
-                      <div className="text-[10px] text-slate-400">{s.sub}</div>
+                      <div className="text-xs font-black">{s.label}</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{s.sub}</div>
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Stress & Workload */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <label className="block text-xs font-bold text-slate-800 mb-2">
+              <div className="p-3.5 lg:p-4 rounded-xl lg:rounded-2xl bg-slate-50/90 border border-slate-200/80 shadow-2xs space-y-2.5">
+                <label className="block text-xs font-bold text-slate-800">
                   ⚡ Daily Stress & Work Intensity:
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   {[
                     { id: "low", label: "Low / Relaxed", icon: "🌱" },
                     { id: "moderate", label: "Moderate", icon: "⚖️" },
@@ -881,25 +947,25 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       key={st.id}
                       type="button"
                       onClick={() => setStressLevel(st.id)}
-                      className={`p-2.5 rounded-xl text-center border-2 transition-all cursor-pointer ${
-                        stressLevel === st.id
-                          ? "border-teal-500 bg-white font-bold text-teal-800 shadow-xs ring-1 ring-teal-300"
-                          : "border-slate-200 bg-white/70 text-slate-600 hover:border-slate-300"
-                      }`}
+                      className={`p-2.5 lg:p-3 rounded-xl text-center border-2 transition-all cursor-pointer ${stressLevel === st.id
+                        ? "border-teal-500 bg-white font-bold text-teal-800 shadow-sm ring-1 ring-teal-300"
+                        : "border-slate-200 bg-white/80 text-slate-600 hover:border-slate-300"
+                        }`}
                     >
                       <div className="text-base mb-0.5">{st.icon}</div>
-                      <div className="text-xs font-bold">{st.label}</div>
+                      <div className="text-xs font-black">{st.label}</div>
                     </button>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+            {/* Step 2 Footer Navigation */}
+            <div className="flex justify-between items-center pt-4 lg:pt-5 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 lg:py-2.5 h-10 lg:h-[42px] rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Profile & Goals
               </button>
@@ -907,7 +973,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#022824] to-[#047ca8] text-white text-sm font-bold shadow-lg hover:shadow-teal-500/20 hover:scale-[1.02] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#022824] via-[#034d45] to-[#047ca8] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               >
                 <span>Continue to Formulations</span>
                 <ArrowRight className="w-4 h-4" />
@@ -918,17 +984,17 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
         {/* ─── STEP 3: FORMULATION & TIMING ─── */}
         {currentStep === 3 && (
-          <div className="p-6 sm:p-8 space-y-6">
-            <div className="text-center max-w-md mx-auto">
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+          <div className="p-4 sm:p-6 lg:p-7 space-y-4 lg:space-y-5">
+            <div className="text-center max-w-md mx-auto space-y-1">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                 Step 3: Formulation & Daily Structure
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500">
                 Choose how you prefer your active botanicals structured.
               </p>
             </div>
 
-            <div className="space-y-3 max-w-xl mx-auto pt-2">
+            <div className="space-y-3 max-w-xl mx-auto pt-1">
               {[
                 {
                   id: "full_day",
@@ -956,43 +1022,43 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                     key={timeOpt.id}
                     type="button"
                     onClick={() => setRoutineTiming(timeOpt.id)}
-                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all duration-200 flex items-center gap-4 cursor-pointer ${
-                      isSelected
-                        ? "border-[#0FB7A3] bg-teal-50/80 shadow-md ring-2 ring-[#0FB7A3]/30 scale-[1.01]"
-                        : "border-slate-200 hover:border-teal-300 hover:bg-slate-50 bg-white"
-                    }`}
+                    className={`w-full text-left p-3.5 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 lg:gap-4 cursor-pointer ${isSelected
+                      ? "border-[#0FB7A3] bg-teal-50/80 shadow-sm ring-1 ring-[#0FB7A3]/30 scale-[1.005]"
+                      : "border-slate-200/90 hover:border-teal-300 hover:bg-slate-50 bg-white"
+                      }`}
                   >
-                    <span className="text-3xl p-2 rounded-xl bg-white shadow-xs border border-slate-100 flex-shrink-0">
+                    <span className="text-2xl p-2 rounded-xl bg-white shadow-xs border border-slate-100 flex-shrink-0">
                       {timeOpt.icon}
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-sm text-slate-900">{timeOpt.title}</h3>
+                          <h4 className="font-black text-xs sm:text-sm text-slate-900">{timeOpt.title}</h4>
                           {timeOpt.badge && (
-                            <span className="bg-amber-100 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">
+                            <span className="bg-amber-100 text-amber-900 text-[9px] lg:text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">
                               {timeOpt.badge}
                             </span>
                           )}
                         </div>
                         {isSelected && (
-                          <span className="w-5 h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-xs font-bold">
-                            <Check className="w-3 h-3" />
+                          <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-[9px] font-bold">
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">{timeOpt.desc}</p>
+                      <p className="text-[11px] lg:text-xs text-slate-500 mt-0.5 truncate">{timeOpt.desc}</p>
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            <div className="flex justify-between items-center pt-4 border-t border-slate-100">
+            {/* Step 3 Footer Navigation */}
+            <div className="flex justify-between items-center pt-4 lg:pt-5 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 lg:py-2.5 h-10 lg:h-[42px] rounded-xl border border-slate-300 text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-3.5 h-3.5" /> Back to Biomarkers
               </button>
@@ -1000,9 +1066,9 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
               <button
                 type="button"
                 onClick={handleStartAnalysis}
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-600 to-[#022824] text-white text-sm font-bold shadow-xl hover:shadow-teal-500/25 hover:scale-[1.02] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-[#022824] text-white text-xs lg:text-sm font-bold shadow-lg hover:shadow-teal-500/25 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
                 <span>Generate Official Protocol</span>
               </button>
             </div>
@@ -1011,22 +1077,22 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
         {/* ─── STEP 4: PROTOCOL SCANNING ANIMATION OR RESULT CARD ─── */}
         {currentStep === 4 && (
-          <div className="p-6 sm:p-8">
+          <div className="p-4 sm:p-6 lg:p-7 space-y-4 lg:space-y-5">
             {isScanning ? (
               /* Realistic Scanning State */
-              <div className="py-16 text-center space-y-5">
-                <div className="relative w-24 h-24 mx-auto">
+              <div className="py-12 lg:py-16 text-center space-y-4">
+                <div className="relative w-20 h-20 lg:w-24 lg:h-24 mx-auto">
                   <div className="absolute inset-0 rounded-full border-4 border-teal-100 animate-ping opacity-40" />
-                  <div className="w-24 h-24 rounded-full border-4 border-t-teal-600 border-r-teal-400 border-b-emerald-300 border-l-slate-200 animate-spin flex items-center justify-center shadow-lg bg-white">
-                    <Sparkles className="w-8 h-8 text-teal-600" />
+                  <div className="w-20 h-20 lg:w-24 lg:h-24 rounded-full border-4 border-t-teal-600 border-r-teal-400 border-b-emerald-300 border-l-slate-200 animate-spin flex items-center justify-center shadow-lg bg-white">
+                    <Sparkles className="w-7 h-7 lg:w-8 lg:h-8 text-teal-600" />
                   </div>
                 </div>
 
                 <div className="max-w-md mx-auto space-y-2">
-                  <h3 className="text-lg font-black text-slate-900">
+                  <h3 className="text-base sm:text-lg font-black text-slate-900">
                     {scanStatusText}
                   </h3>
-                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
                     <div
                       className="bg-gradient-to-r from-teal-500 to-emerald-400 h-full transition-all duration-300"
                       style={{ width: `${scanProgress}%` }}
@@ -1038,14 +1104,14 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                 </div>
               </div>
             ) : (
-              /* OFFICIAL PROTOCOL CARD */
-              <div className="space-y-6">
+              /* OFFICIAL PROTOCOL RESULT EXPERIENCE */
+              <div className="space-y-4 lg:space-y-5">
                 {/* Top Quick Actions Bar */}
-                <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-100 border border-slate-200/80 text-xs">
+                <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs">
                   <button
                     type="button"
                     onClick={() => setCurrentStep(3)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold shadow-xs border border-slate-200 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 h-8.5 sm:h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-800 font-bold shadow-2xs border border-slate-200 transition-colors cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5 text-teal-700" />
                     <span>Back to Step 3</span>
@@ -1055,7 +1121,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                     <button
                       type="button"
                       onClick={handleStartAnalysis}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-xs transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 h-8.5 sm:h-9 px-3.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold shadow-2xs transition-colors cursor-pointer text-[11px] lg:text-xs"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Re-Run AI Protocol</span>
@@ -1064,7 +1130,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                     <button
                       type="button"
                       onClick={() => navigate("/")}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-medium border border-slate-200 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 h-8.5 sm:h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-700 font-medium border border-slate-200 transition-colors cursor-pointer text-[11px] lg:text-xs"
                     >
                       <span>Store Home</span>
                     </button>
@@ -1072,91 +1138,89 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                 </div>
 
                 {/* Prescription / Protocol Certificate Card */}
-                <div className="bg-gradient-to-br from-[#022824] via-[#033f37] to-[#01221e] rounded-3xl p-6 sm:p-8 text-white shadow-2xl relative overflow-hidden border border-teal-500/30">
+                <div className="bg-gradient-to-br from-[#022824] via-[#033f37] to-[#01221e] rounded-2xl p-3.5 sm:p-5 text-white shadow-xl relative overflow-hidden border border-teal-500/30">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Header Row */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-teal-700/50 relative z-10">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-teal-700/50 relative z-10">
                     <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">
                           OFFICIAL PROTOCOL
                         </span>
-                        <span className="text-[11px] text-teal-300 font-mono">{protocolNumber}</span>
+                        <span className="text-[10px] text-teal-300 font-mono">{protocolNumber}</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-white tracking-tight">
                         {userName ? `${userName}'s` : "Personalized"} {activeGoalObj.title} Protocol
                       </h2>
-                      <p className="text-xs text-teal-200/80 mt-1 flex items-center gap-3">
+                      <p className="text-[10px] sm:text-[11px] text-teal-200/80 mt-0.5 flex items-center gap-3">
                         <span>📅 Issued: {protocolDate}</span>
                         <span>• 🛡️ Direct Brand Verified</span>
                       </p>
                     </div>
 
                     {/* Circular Synergy Gauge */}
-                    <div className="flex items-center gap-3 bg-teal-950/60 p-3 rounded-2xl border border-teal-500/30 flex-shrink-0">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 flex items-center justify-center text-slate-950 font-black text-lg shadow-md">
+                    <div className="flex items-center gap-2 bg-teal-950/60 p-2 rounded-xl border border-teal-500/30 flex-shrink-0">
+                      <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-300 flex items-center justify-center text-slate-950 font-black text-sm shadow-md">
                         {synergyScore}%
                       </div>
                       <div>
-                        <div className="text-xs font-black text-white">Synergy Match</div>
-                        <div className="text-[10px] text-teal-300">Circadian Optimized</div>
+                        <div className="text-[11px] font-black text-white">Synergy Match</div>
+                        <div className="text-[9px] text-teal-300">Circadian Optimized</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Scientific Rationale Accordion */}
-                  <div className="mt-5 p-4 rounded-2xl bg-teal-950/50 border border-teal-500/20 text-xs text-teal-100/90 leading-relaxed">
+                  <div className="mt-3 p-3 rounded-xl bg-teal-950/50 border border-teal-500/20 text-[11px] sm:text-xs text-teal-100/90 leading-relaxed">
                     <strong className="text-teal-200 font-bold">💡 Clinical Formulation Rationale:</strong>{" "}
-                    {resolvedRationale}
+                    {renderFormattedAiText(resolvedRationale)}
                   </div>
                 </div>
 
                 {/* 🌅 AM and 🌙 PM Daily Timeline */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
                   {/* ☀️ MORNING PROTOCOL */}
                   {resolvedAmProduct && (
                     <div
-                      className={`rounded-3xl border-2 p-5 sm:p-6 transition-all relative flex flex-col justify-between ${
-                        selectedProductIds.has(resolvedAmProduct._id)
-                          ? "border-amber-400 bg-gradient-to-b from-amber-50/80 to-white shadow-md"
-                          : "border-slate-200 bg-slate-50 opacity-70"
-                      }`}
+                      className={`rounded-2xl border-2 p-3.5 sm:p-4 transition-all relative flex flex-col justify-between ${selectedProductIds.has(resolvedAmProduct._id)
+                        ? "border-amber-400 bg-gradient-to-b from-amber-50/80 to-white shadow-sm"
+                        : "border-slate-200 bg-slate-50 opacity-70"
+                        }`}
                     >
                       <div>
                         {/* Card Header with Time & Checkbox */}
-                        <div className="flex items-center justify-between pb-3 border-b border-amber-200/70 mb-4">
-                          <div className="flex items-center gap-2.5">
-                            <span className="p-2 rounded-xl bg-amber-100 text-amber-900 shadow-xs">
-                              <Sun className="w-5 h-5 text-amber-600" />
+                        <div className="flex items-center justify-between pb-2 border-b border-amber-200/70 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1 rounded-lg bg-amber-100 text-amber-900 shadow-2xs">
+                              <Sun className="w-3.5 h-3.5 text-amber-600" />
                             </span>
                             <div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-amber-800">
                                 08:00 AM • MORNING ACTIVATION
                               </span>
-                              <p className="text-xs text-slate-700 font-medium">{resolvedAmTip}</p>
+                              <p className="text-[11px] text-slate-700 font-medium truncate max-w-[200px] sm:max-w-xs">{resolvedAmTip}</p>
                             </div>
                           </div>
 
                           <button
                             type="button"
                             onClick={() => toggleSelect(resolvedAmProduct._id)}
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                              selectedProductIds.has(resolvedAmProduct._id)
-                                ? "bg-amber-600 text-white shadow-xs"
-                                : "border-2 border-slate-300 text-transparent hover:border-amber-400"
-                            }`}
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${selectedProductIds.has(resolvedAmProduct._id)
+                              ? "bg-amber-600 text-white shadow-2xs"
+                              : "border-2 border-slate-300 text-transparent hover:border-amber-400"
+                              }`}
                             title={selectedProductIds.has(resolvedAmProduct._id) ? "Deselect item" : "Select item for protocol"}
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </button>
                         </div>
 
                         {/* Product Info Row (Clickable to view full details) */}
-                        <div className="flex gap-4 items-start">
+                        <div className="flex gap-3 items-start">
                           <div
                             onClick={() => setActiveDetailProduct(resolvedAmProduct)}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-1.5 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 shadow-2xs cursor-pointer hover:scale-105 transition-transform"
                             title="Click to view product details"
                           >
                             <img
@@ -1172,7 +1236,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded border border-amber-200">
+                              <span className="text-[9px] font-bold text-amber-800 bg-amber-100/90 px-1.5 py-0.5 rounded border border-amber-200">
                                 {resolvedAmProduct.category || "Active Botanical"}
                               </span>
                               <button
@@ -1186,21 +1250,21 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                             <h3
                               onClick={() => setActiveDetailProduct(resolvedAmProduct)}
-                              className="font-bold text-sm text-slate-900 truncate mt-1 cursor-pointer hover:text-teal-700 transition-colors"
+                              className="font-bold text-xs sm:text-sm text-slate-900 truncate mt-0.5 cursor-pointer hover:text-teal-700 transition-colors"
                               title={resolvedAmProduct.name}
                             >
                               {resolvedAmProduct.name}
                             </h3>
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate mt-0.5">
                               By {resolvedAmProduct.brand || "M Wellness"}
                             </p>
 
-                            <div className="flex items-baseline gap-2 mt-2">
-                              <span className="text-base font-black text-slate-900">
+                            <div className="flex items-baseline gap-2 mt-1">
+                              <span className="text-sm sm:text-base font-black text-slate-900">
                                 ₹{resolvedAmProduct.discountPrice || resolvedAmProduct.price}
                               </span>
                               {resolvedAmProduct.discountPrice && resolvedAmProduct.discountPrice < resolvedAmProduct.price && (
-                                <span className="text-xs text-slate-400 line-through">
+                                <span className="text-[10px] text-slate-400 line-through">
                                   ₹{resolvedAmProduct.price}
                                 </span>
                               )}
@@ -1210,11 +1274,11 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       </div>
 
                       {/* Card Action Row: Single Add to Cart & Swap Button */}
-                      <div className="mt-4 pt-3 border-t border-amber-100 flex items-center justify-between gap-2 flex-wrap text-xs">
+                      <div className="mt-3 pt-2 border-t border-amber-100 flex items-center justify-between gap-2 flex-wrap text-xs">
                         <button
                           type="button"
                           onClick={() => handleAddSingleProduct(resolvedAmProduct)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
                         >
                           <ShoppingCart className="w-3.5 h-3.5" />
                           <span>Add Only This Item (₹{resolvedAmProduct.discountPrice || resolvedAmProduct.price})</span>
@@ -1224,7 +1288,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                           <button
                             type="button"
                             onClick={() => setActiveDetailProduct(resolvedAmProduct)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer border border-slate-200"
+                            className="inline-flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer border border-slate-200"
                           >
                             <span>Details</span>
                           </button>
@@ -1235,7 +1299,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                               setSwapSearchQuery("");
                               setSwapCategoryFilter("all");
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold transition-colors cursor-pointer border border-amber-300/80"
+                            className="inline-flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-[11px] font-bold transition-colors cursor-pointer border border-amber-300/80"
                           >
                             <RotateCcw className="w-3 h-3" />
                             <span>Swap</span>
@@ -1248,46 +1312,44 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                   {/* 🌙 EVENING PROTOCOL */}
                   {resolvedPmProduct && resolvedPmProduct._id !== resolvedAmProduct?._id && (
                     <div
-                      className={`rounded-3xl border-2 p-5 sm:p-6 transition-all relative flex flex-col justify-between ${
-                        selectedProductIds.has(resolvedPmProduct._id)
-                          ? "border-indigo-400 bg-gradient-to-b from-indigo-50/80 to-white shadow-md"
-                          : "border-slate-200 bg-slate-50 opacity-70"
-                      }`}
+                      className={`rounded-2xl border-2 p-3.5 sm:p-4 transition-all relative flex flex-col justify-between ${selectedProductIds.has(resolvedPmProduct._id)
+                        ? "border-indigo-400 bg-gradient-to-b from-indigo-50/80 to-white shadow-sm"
+                        : "border-slate-200 bg-slate-50 opacity-70"
+                        }`}
                     >
                       <div>
                         {/* Card Header with Time & Checkbox */}
-                        <div className="flex items-center justify-between pb-3 border-b border-indigo-200/70 mb-4">
-                          <div className="flex items-center gap-2.5">
-                            <span className="p-2 rounded-xl bg-indigo-100 text-indigo-900 shadow-xs">
-                              <Moon className="w-5 h-5 text-indigo-600" />
+                        <div className="flex items-center justify-between pb-2 border-b border-indigo-200/70 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="p-1 rounded-lg bg-indigo-100 text-indigo-900 shadow-2xs">
+                              <Moon className="w-3.5 h-3.5 text-indigo-600" />
                             </span>
                             <div>
-                              <span className="text-[10px] font-black uppercase tracking-wider text-indigo-800">
+                              <span className="text-[9px] font-black uppercase tracking-wider text-indigo-800">
                                 09:30 PM • NIGHT CELLULAR REPAIR
                               </span>
-                              <p className="text-xs text-slate-700 font-medium">{resolvedPmTip}</p>
+                              <p className="text-[11px] text-slate-700 font-medium truncate max-w-[200px] sm:max-w-xs">{resolvedPmTip}</p>
                             </div>
                           </div>
 
                           <button
                             type="button"
                             onClick={() => toggleSelect(resolvedPmProduct._id)}
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                              selectedProductIds.has(resolvedPmProduct._id)
-                                ? "bg-indigo-600 text-white shadow-xs"
-                                : "border-2 border-slate-300 text-transparent hover:border-indigo-400"
-                            }`}
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${selectedProductIds.has(resolvedPmProduct._id)
+                              ? "bg-indigo-600 text-white shadow-2xs"
+                              : "border-2 border-slate-300 text-transparent hover:border-indigo-400"
+                              }`}
                             title={selectedProductIds.has(resolvedPmProduct._id) ? "Deselect item" : "Select item for protocol"}
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-3 h-3 stroke-[3]" />
                           </button>
                         </div>
 
                         {/* Product Info Row (Clickable to view full details) */}
-                        <div className="flex gap-4 items-start">
+                        <div className="flex gap-3 items-start">
                           <div
                             onClick={() => setActiveDetailProduct(resolvedPmProduct)}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-1.5 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                            className="w-14 h-14 sm:w-16 sm:h-16 lg:w-18 lg:h-18 rounded-xl bg-white border border-slate-200 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 shadow-2xs cursor-pointer hover:scale-105 transition-transform"
                             title="Click to view product details"
                           >
                             <img
@@ -1303,7 +1365,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-bold text-indigo-800 bg-indigo-100/90 px-2 py-0.5 rounded border border-indigo-200">
+                              <span className="text-[9px] font-bold text-indigo-800 bg-indigo-100/90 px-1.5 py-0.5 rounded border border-indigo-200">
                                 {resolvedPmProduct.category || "Therapeutic Rest"}
                               </span>
                               <button
@@ -1317,21 +1379,21 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                             <h3
                               onClick={() => setActiveDetailProduct(resolvedPmProduct)}
-                              className="font-bold text-sm text-slate-900 truncate mt-1 cursor-pointer hover:text-teal-700 transition-colors"
+                              className="font-bold text-xs sm:text-sm text-slate-900 truncate mt-0.5 cursor-pointer hover:text-teal-700 transition-colors"
                               title={resolvedPmProduct.name}
                             >
                               {resolvedPmProduct.name}
                             </h3>
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                            <p className="text-[10px] sm:text-[11px] text-slate-500 truncate mt-0.5">
                               By {resolvedPmProduct.brand || "M Wellness"}
                             </p>
 
-                            <div className="flex items-baseline gap-2 mt-2">
-                              <span className="text-base font-black text-slate-900">
+                            <div className="flex items-baseline gap-2 mt-1">
+                              <span className="text-sm sm:text-base font-black text-slate-900">
                                 ₹{resolvedPmProduct.discountPrice || resolvedPmProduct.price}
                               </span>
                               {resolvedPmProduct.discountPrice && resolvedPmProduct.discountPrice < resolvedPmProduct.price && (
-                                <span className="text-xs text-slate-400 line-through">
+                                <span className="text-[10px] text-slate-400 line-through">
                                   ₹{resolvedPmProduct.price}
                                 </span>
                               )}
@@ -1341,11 +1403,11 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       </div>
 
                       {/* Card Action Row: Single Add to Cart & Swap Button */}
-                      <div className="mt-4 pt-3 border-t border-indigo-100 flex items-center justify-between gap-2 flex-wrap text-xs">
+                      <div className="mt-3 pt-2 border-t border-indigo-100 flex items-center justify-between gap-2 flex-wrap text-xs">
                         <button
                           type="button"
                           onClick={() => handleAddSingleProduct(resolvedPmProduct)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
                         >
                           <ShoppingCart className="w-3.5 h-3.5" />
                           <span>Add Only This Item (₹{resolvedPmProduct.discountPrice || resolvedPmProduct.price})</span>
@@ -1355,7 +1417,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                           <button
                             type="button"
                             onClick={() => setActiveDetailProduct(resolvedPmProduct)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer border border-slate-200"
+                            className="inline-flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer border border-slate-200"
                           >
                             <span>Details</span>
                           </button>
@@ -1366,7 +1428,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                               setSwapSearchQuery("");
                               setSwapCategoryFilter("all");
                             }}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold transition-colors cursor-pointer border border-indigo-300/80"
+                            className="inline-flex items-center gap-1 px-2 py-1 h-8 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-[11px] font-bold transition-colors cursor-pointer border border-indigo-300/80"
                           >
                             <RotateCcw className="w-3 h-3" />
                             <span>Swap</span>
@@ -1378,42 +1440,42 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                 </div>
 
                 {/* 🩺 Dr. AyurAI Clinical Biomarker Analysis & Circadian Lifestyle Hacks */}
-                <div className="bg-gradient-to-br from-slate-900 via-[#012723] to-slate-950 rounded-3xl p-6 sm:p-7 text-white border border-teal-500/30 shadow-xl space-y-5">
-                  <div className="flex items-center justify-between pb-4 border-b border-teal-800/60">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
-                        <Activity className="w-5 h-5" />
+                <div className="bg-gradient-to-br from-slate-900 via-[#012723] to-slate-950 rounded-2xl p-4 sm:p-5 text-white border border-teal-500/30 shadow-xl space-y-3.5">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-teal-800/60">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                        <Activity className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-teal-400">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-teal-400">
                           Clinical AI Doctor Evaluation
                         </span>
-                        <h3 className="text-base sm:text-lg font-bold text-white">
+                        <h3 className="text-xs sm:text-sm font-bold text-white">
                           Personalized Biomarker & Circadian Assessment
                         </h3>
                       </div>
                     </div>
-                    <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Direct Store Inventory Match
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+                      <ShieldCheck className="w-3 h-3" /> Direct Store Inventory Match
                     </span>
                   </div>
 
                   {/* Doctor Analysis Text */}
-                  <div className="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/20 text-xs sm:text-sm text-teal-100/90 leading-relaxed">
-                    <div className="flex items-center gap-2 mb-1.5 text-teal-300 font-bold text-xs uppercase tracking-wider">
+                  <div className="p-3 rounded-xl bg-teal-950/40 border border-teal-500/20 text-xs text-teal-100/90 leading-relaxed">
+                    <div className="flex items-center gap-1.5 mb-1 text-teal-300 font-bold text-[11px] uppercase tracking-wider">
                       <Sparkles className="w-3.5 h-3.5" /> Doctor's Clinical Note:
                     </div>
-                    {resolvedDoctorAnalysis}
+                    {renderFormattedAiText(resolvedDoctorAnalysis)}
                   </div>
 
                   {/* 3-Phase Circadian Lifestyle Hacks */}
                   <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-teal-300 mb-2.5 flex items-center gap-1.5">
+                    <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-teal-300 mb-1.5 flex items-center gap-1.5">
                       <Compass className="w-3.5 h-3.5" /> 24-Hour Circadian Biological Bio-Hacks:
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                      <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                        <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-0.5 text-xs">
                           <Sun className="w-3.5 h-3.5" /> 🌅 Morning Awakening
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">
@@ -1421,8 +1483,8 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                         </p>
                       </div>
 
-                      <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-teal-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-teal-300 font-bold mb-1">
+                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/40 transition-colors">
+                        <div className="flex items-center gap-1.5 text-teal-300 font-bold mb-0.5 text-xs">
                           <Zap className="w-3.5 h-3.5" /> ☀️ Afternoon Focus
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">
@@ -1430,8 +1492,8 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                         </p>
                       </div>
 
-                      <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-indigo-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-indigo-300 font-bold mb-1">
+                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 transition-colors">
+                        <div className="flex items-center gap-1.5 text-indigo-300 font-bold mb-0.5 text-xs">
                           <Moon className="w-3.5 h-3.5" /> 🌙 Evening Wind-Down
                         </div>
                         <p className="text-slate-300 text-[11px] leading-relaxed">
@@ -1443,8 +1505,8 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                   {/* Dietary Advice */}
                   {resolvedDietaryAdvice && (
-                    <div className="flex items-start gap-2.5 pt-3 border-t border-teal-800/40 text-xs text-teal-200/90">
-                      <Utensils className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 pt-2 border-t border-teal-800/40 text-[11px] sm:text-xs text-teal-200/90">
+                      <Utensils className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
                       <span>
                         <strong className="text-white">Dietary Synergy:</strong> {resolvedDietaryAdvice}
                       </span>
@@ -1452,39 +1514,39 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                   )}
                 </div>
 
-                {/* 💬 INTERACTIVE 24/7 AI DOCTOR CONSULTATION CHAT (ChatGPT-Style Real AI Experience) */}
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                {/* 💬 INTERACTIVE 24/7 AI DOCTOR CONSULTATION CHAT */}
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   {/* Chat Header */}
-                  <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-[#012723] to-slate-900 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-900 via-[#012723] to-slate-900 text-white flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-2.5">
                       <div className="relative">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-md">
-                          <Bot className="w-5 h-5" />
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-md">
+                          <Bot className="w-4 h-4" />
                         </div>
-                        <span className="w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse" />
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-sm text-white">Dr. AyurAI</h3>
-                          <span className="text-[10px] font-bold bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/30">
+                          <h3 className="font-bold text-xs sm:text-sm text-white">Dr. AyurAI</h3>
+                          <span className="text-[9px] font-bold bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/30">
                             Multilingual AI Health Specialist
                           </span>
                         </div>
-                        <p className="text-[11px] text-teal-200/80">
+                        <p className="text-[10px] text-teal-200/80">
                           Ask anything in Hinglish, Hindi, English, Gujarati, etc.
                         </p>
                       </div>
                     </div>
 
-                    <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
-                      <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                      <span>Live Gemini-Powered Assistant</span>
+                    <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                      <Sparkles className="w-3 h-3 text-teal-400" />
+                      <span>Live Gemini Assistant</span>
                     </div>
                   </div>
 
-                  {/* Suggested Question Pills (Hinglish & English) */}
-                  <div className="p-3 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto no-scrollbar text-xs">
-                    <span className="text-[11px] font-bold text-slate-400 flex-shrink-0 flex items-center gap-1">
+                  {/* Suggested Question Pills */}
+                  <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
+                    <span className="text-[10px] font-bold text-slate-400 flex-shrink-0 flex items-center gap-1">
                       <HelpCircle className="w-3 h-3 text-teal-600" /> Quick Ask:
                     </span>
                     {[
@@ -1499,7 +1561,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                         type="button"
                         onClick={() => handleSendChatMessage(q)}
                         disabled={isChatSending}
-                        className="px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 border border-slate-200 hover:border-teal-300 text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 border border-slate-200 hover:border-teal-300 text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
                       >
                         {q}
                       </button>
@@ -1507,30 +1569,30 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                   </div>
 
                   {/* Chat Messages Container */}
-                  <div className="p-4 sm:p-5 space-y-4 max-h-80 overflow-y-auto bg-slate-50/50">
+                  <div className="p-3 space-y-2.5 max-h-56 sm:max-h-64 overflow-y-auto bg-slate-50/50">
                     {chatMessages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex gap-3 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                        className={`flex gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                       >
                         {msg.sender === "ai" && (
-                          <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-xs">
-                            <Bot className="w-4 h-4" />
+                          <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
+                            <Bot className="w-3.5 h-3.5" />
                           </div>
                         )}
 
                         <div
-                          className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-xs ${
-                            msg.sender === "user"
-                              ? "bg-teal-600 text-white rounded-br-none"
-                              : "bg-white text-slate-800 border border-slate-200 rounded-bl-none"
-                          }`}
-                        >
-                          <div className="whitespace-pre-line">{msg.text}</div>
-                          <div
-                            className={`text-[10px] mt-2 font-mono flex items-center justify-end gap-1 ${
-                              msg.sender === "user" ? "text-teal-100" : "text-slate-400"
+                          className={`max-w-[85%] sm:max-w-[78%] rounded-xl p-2.5 sm:p-3 text-xs leading-relaxed shadow-2xs ${msg.sender === "user"
+                            ? "bg-teal-600 text-white rounded-br-none"
+                            : "bg-white text-slate-800 border border-slate-200/90 rounded-bl-none"
                             }`}
+                        >
+                          <div className="whitespace-pre-line leading-relaxed">
+                            {renderFormattedAiText(msg.text)}
+                          </div>
+                          <div
+                            className={`text-[9px] mt-1 font-mono flex items-center justify-end gap-1 ${msg.sender === "user" ? "text-teal-100" : "text-slate-400"
+                              }`}
                           >
                             <span>{msg.time}</span>
                             {msg.sender === "ai" && <span>• Dr. AyurAI</span>}
@@ -1538,8 +1600,8 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                         </div>
 
                         {msg.sender === "user" && (
-                          <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-xs">
-                            <User className="w-4 h-4" />
+                          <div className="w-6.5 h-6.5 rounded-lg bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
+                            <User className="w-3.5 h-3.5" />
                           </div>
                         )}
                       </div>
@@ -1547,17 +1609,17 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 
                     {/* Typing Animation when AI is generating */}
                     {isChatSending && (
-                      <div className="flex gap-3 justify-start items-center">
-                        <div className="w-8 h-8 rounded-xl bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-xs">
-                          <Bot className="w-4 h-4" />
+                      <div className="flex gap-2 justify-start items-center">
+                        <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs">
+                          <Bot className="w-3.5 h-3.5" />
                         </div>
-                        <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3.5 shadow-xs flex items-center gap-2 text-xs text-slate-500">
+                        <div className="bg-white border border-slate-200 rounded-xl rounded-bl-none p-2.5 shadow-2xs flex items-center gap-2 text-xs text-slate-500">
                           <div className="flex gap-1">
-                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-bounce" />
-                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
-                            <span className="w-2 h-2 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
                           </div>
-                          <span>Dr. AyurAI is formulating clinical advice...</span>
+                          <span className="text-[11px]">Dr. AyurAI is formulating clinical advice...</span>
                         </div>
                       </div>
                     )}
@@ -1571,7 +1633,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       e.preventDefault();
                       handleSendChatMessage();
                     }}
-                    className="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center gap-2"
+                    className="p-2 sm:p-2.5 bg-white border-t border-slate-200 flex items-center gap-2"
                   >
                     <input
                       type="text"
@@ -1579,69 +1641,69 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder={`Poochiye Dr. AyurAI se kuch bhi (Hinglish, Hindi, English, Gujarati, etc.)...`}
                       disabled={isChatSending}
-                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                      className="flex-1 px-3 py-1.5 h-8.5 sm:h-9 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
                     />
 
                     <button
                       type="submit"
                       disabled={!chatInput.trim() || isChatSending}
-                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs sm:text-sm shadow-md transition-all disabled:opacity-40 cursor-pointer flex-shrink-0"
+                      className="inline-flex items-center justify-center gap-1 px-3 py-1.5 h-8.5 sm:h-9 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-40 cursor-pointer flex-shrink-0"
                     >
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">Send</span>
                     </button>
                   </form>
                 </div>
 
                 {/* 30-Day Expected Transformation Milestones */}
-                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
-                  <div className="flex items-center gap-2 mb-3">
-                    <TrendingUp className="w-4 h-4 text-teal-600" />
+                <div className="bg-slate-50/90 rounded-xl p-3 sm:p-3.5 border border-slate-200/80">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
                     <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                       What to Expect with Consistency
                     </h4>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
                       <span className="font-bold text-teal-700">Day 7:</span>
-                      <p className="text-slate-600 mt-0.5">{resolvedMilestones.day7}</p>
+                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day7}</p>
                     </div>
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
                       <span className="font-bold text-teal-700">Day 21:</span>
-                      <p className="text-slate-600 mt-0.5">{resolvedMilestones.day21}</p>
+                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day21}</p>
                     </div>
-                    <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
                       <span className="font-bold text-teal-700">Day 45:</span>
-                      <p className="text-slate-600 mt-0.5">{resolvedMilestones.day45}</p>
+                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day45}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Action Bar / 1-Click Cart Addition */}
-                <div className="bg-gradient-to-r from-slate-900 via-[#012622] to-slate-900 rounded-2xl p-5 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                <div className="bg-gradient-to-r from-slate-900 via-[#012622] to-slate-900 rounded-xl lg:rounded-2xl p-3.5 sm:p-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-slate-300 font-medium">Selected Protocol Total:</span>
-                      <span className="text-2xl font-black text-white">₹{totalDiscount}</span>
+                      <span className="text-xl sm:text-2xl font-black text-white">₹{totalDiscount}</span>
                       {savings > 0 && (
                         <span className="text-xs text-slate-400 line-through">₹{totalOriginal}</span>
                       )}
                       {savings > 0 && (
-                        <span className="bg-emerald-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full">
+                        <span className="bg-emerald-400 text-slate-950 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md">
                           Save ₹{savings}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-teal-200/80 mt-0.5">
+                    <p className="text-[10px] sm:text-[11px] text-teal-200/80 mt-0.5">
                       ✅ Free Express Shipping • Direct Brand Genuine Guarantee
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       type="button"
                       onClick={handleShare}
-                      className="p-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10 flex-shrink-0 cursor-pointer"
+                      className="p-2 sm:p-2.5 h-10 sm:h-11 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10 flex-shrink-0 cursor-pointer"
                       title="Share Protocol"
                     >
                       <Share2 className="w-4 h-4" />
@@ -1651,7 +1713,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                       type="button"
                       disabled={isAddingToCart || selectedProductIds.size === 0}
                       onClick={handleAddProtocolToCart}
-                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-xl bg-gradient-to-r from-teal-400 via-emerald-400 to-[#0FB7A3] text-slate-950 font-black text-sm shadow-xl hover:shadow-teal-400/30 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-60 cursor-pointer"
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 sm:px-6 h-10 sm:h-11 rounded-xl lg:rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-[#0FB7A3] text-slate-950 font-black text-xs sm:text-sm shadow-lg hover:shadow-teal-400/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
                     >
                       <ShoppingCart className="w-4 h-4 text-slate-950" />
                       <span>
@@ -1661,32 +1723,27 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                   </div>
                 </div>
 
-                {/* Back & Edit Answers Navigation */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
+                {/* Back & Edit Answers Navigation (PREMIUM NAV CONTROLS) */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 pb-1 border-t border-slate-200/80 gap-2.5 sm:gap-3">
+                  {/* Left Side: Step Navigation Button */}
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setCurrentStep(3)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-3.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200/90 hover:border-slate-300 text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
                     >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>← Back to Step 3</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(2)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition-colors cursor-pointer"
-                    >
-                      <span>← Back to Step 2</span>
+                      <ArrowLeft className="w-3.5 h-3.5 text-teal-700" />
+                      <span>Back to Step 3</span>
                     </button>
                   </div>
 
+                  {/* Right Side: Secondary Utility Action */}
                   <button
                     type="button"
                     onClick={() => setCurrentStep(1)}
-                    className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-teal-700 font-semibold transition-colors cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 h-9 sm:h-10 px-3.5 rounded-lg bg-transparent hover:bg-slate-100/70 text-slate-500 hover:text-teal-800 border border-transparent hover:border-slate-200 text-xs font-semibold transition-all cursor-pointer"
                   >
-                    <RotateCcw className="w-3.5 h-3.5" />
+                    <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
                     <span>Restart Assessment from Step 1</span>
                   </button>
                 </div>
@@ -1696,7 +1753,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
         )}
       </div>
 
-      {/* ─── PRODUCT QUICK VIEW MODAL (When clicking product details) ─── */}
+      {/* ─── PRODUCT QUICK VIEW MODAL ─── */}
       {activeDetailProduct && (
         <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
@@ -1870,11 +1927,10 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                 <button
                   type="button"
                   onClick={() => setSwapCategoryFilter("all")}
-                  className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium cursor-pointer ${
-                    swapCategoryFilter === "all"
-                      ? "bg-teal-700 text-white font-bold"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
+                  className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium cursor-pointer ${swapCategoryFilter === "all"
+                    ? "bg-teal-700 text-white font-bold"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
                 >
                   All Items
                 </button>
@@ -1883,11 +1939,10 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
                     key={cat}
                     type="button"
                     onClick={() => setSwapCategoryFilter(cat)}
-                    className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium cursor-pointer ${
-                      swapCategoryFilter === cat
-                        ? "bg-teal-700 text-white font-bold"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                    }`}
+                    className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium cursor-pointer ${swapCategoryFilter === cat
+                      ? "bg-teal-700 text-white font-bold"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
                   >
                     {cat}
                   </button>
@@ -1961,3 +2016,4 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => {} }) => {
 };
 
 export default RoutineBuilder;
+

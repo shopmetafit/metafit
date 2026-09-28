@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Sparkles,
   LayoutGrid,
   SlidersHorizontal,
 } from "lucide-react";
@@ -109,19 +108,6 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* AI Routine Matcher Shortcut */}
-          <button
-            type="button"
-            onClick={() => navigate("/routine-builder")}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-teal-800 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-300 hover:border-teal-400 hover:shadow-xs rounded-lg transition-all duration-200 cursor-pointer active:scale-95 group"
-            title="Take 30s quiz to get personalized Morning & Evening routine"
-          >
-            <Sparkles className="h-3.5 w-3.5 text-teal-600 group-hover:rotate-12 transition-transform animate-pulse" />
-            <span className="hidden xs:inline font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-teal-800 to-emerald-800">
-              AI Routine Matcher
-            </span>
-          </button>
-
           {selectedGoal && (
             <button
               onClick={() => handleGoalSelect(null)}
