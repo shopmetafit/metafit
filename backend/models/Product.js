@@ -48,6 +48,14 @@ const productSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    isBestSeller: {
+      type: Boolean,
+      default: false,
+    },
+    soldCount: {
+      type: Number,
+      default: 0,
+    },
     priority: {
       type: Number,
       default: 0,

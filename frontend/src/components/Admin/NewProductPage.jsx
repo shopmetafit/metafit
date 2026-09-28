@@ -19,9 +19,9 @@ const NewProductPage = () => {
     countInStock: "",
     sku: "",
     category: "",
-    brand: "",
     collection: "",
     location: "",
+    isBestSeller: false,
   });
   const [images, setImages] = useState([]);
   const [uploading, setUploading] = useState(false);
@@ -259,9 +259,24 @@ const NewProductPage = () => {
             name="description"
             value={form.description}
             onChange={handleChange}
-            className="w-full px-4 py-2 border rounded"
+            rows={4}
             required
           />
+        </div>
+
+        {/* Bestseller Checkbox */}
+        <div className="mb-4 flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="isBestSellerMetafitNew"
+            name="isBestSeller"
+            checked={form.isBestSeller}
+            onChange={(e) => setForm({ ...form, isBestSeller: e.target.checked })}
+            className="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"
+          />
+          <label htmlFor="isBestSellerMetafitNew" className="text-gray-700 font-semibold cursor-pointer text-sm">
+            Mark as Bestseller Product
+          </label>
         </div>
 
         {/* Price */}

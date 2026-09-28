@@ -32,6 +32,7 @@ const EditProductPage = () => {
     images: [],
     videoUrl: "",
     extraImages: [],
+    isBestSeller: false,
   });
 
   const [uploading, setUploading] = useState(false);
@@ -55,6 +56,7 @@ const EditProductPage = () => {
         colors: selectedProduct.colors || [],
         images: selectedProduct.images || [],
         extraImages: selectedProduct.extraImages || [],
+        isBestSeller: Boolean(selectedProduct.isBestSeller),
       };
 
       if (product.images.length > product.colors.length) {
@@ -270,6 +272,21 @@ const EditProductPage = () => {
             rows={4}
             required
           />
+        </div>
+
+        {/* Bestseller Checkbox */}
+        <div className="mb-6 flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="isBestSellerMetafitEdit"
+            name="isBestSeller"
+            checked={productData.isBestSeller}
+            onChange={(e) => setProductData({ ...productData, isBestSeller: e.target.checked })}
+            className="h-4 w-4 text-green-600 rounded border-gray-300 focus:ring-green-500 cursor-pointer"
+          />
+          <label htmlFor="isBestSellerMetafitEdit" className="text-gray-700 font-semibold cursor-pointer text-sm">
+            Mark as Bestseller Product
+          </label>
         </div>
         {/* price */}
 
