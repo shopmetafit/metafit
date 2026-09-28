@@ -51,7 +51,8 @@ router.post("/", protect, admin, async (req, res) => {
       extraImages,
       videoUrl,
       hasVariants,
-      variants
+      variants,
+      isBestSeller,
     } = req.body;
     const newProducts = await Product.create({
       name,
@@ -75,6 +76,7 @@ router.post("/", protect, admin, async (req, res) => {
       videoUrl,
       hasVariants: hasVariants || false,
       variants: variants || [],
+      isBestSeller: Boolean(isBestSeller),
       user: req.user._id,
     });
 
@@ -112,6 +114,7 @@ router.put("/:id", protect, admin, async (req, res) => {
       hasVariants,
       variants,
       priority,
+      isBestSeller,
     } = req.body;
 
     const product = await Product.findById(req.params.id);
@@ -144,6 +147,9 @@ router.put("/:id", protect, admin, async (req, res) => {
       product.variants = variants !== undefined ? variants : product.variants;
 
       product.priority = priority ?? product.priority; // <-- update priority here
+      if (isBestSeller !== undefined) {
+        product.isBestSeller = Boolean(isBestSeller);
+      }
 
       const updatedProduct = await product.save();
       res.json(updatedProduct);

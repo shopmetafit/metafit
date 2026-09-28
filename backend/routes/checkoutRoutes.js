@@ -271,8 +271,26 @@ router.post("/:id/finalize", protect, async (req, res) => {
           { $inc: { usedCount: 1 } }
         ).catch(() => null);
       }
-      // Delete the cart associated with the user
+      if (Array.isArray(checkout.checkoutItems) && checkout.checkoutItems.length > 0) {
+        for (const item of checkout.checkoutItems) {
+          if (item.productId) {
+            const qty = Number(item.quantity || 1);
+            try {
+              const updatedP = await Product.findByIdAndUpdate(
+                item.productId,
+                { $inc: { countInStock: -qty, soldCount: qty } },
+                { new: true }
+              );
+              if (updatedP && (updatedP.soldCount || 0) >= 10 && !updatedP.isBestSeller) {
+                updatedP.isBestSeller = true;
+                await updatedP.save();
+              }
+            } catch (err) {}
+          }
+        }
+      }
 
+      // Delete the cart associated with the user
       await Cart.findOneAndDelete({ user: checkout.user });
 
       if (checkout.referral?.vendorId) {

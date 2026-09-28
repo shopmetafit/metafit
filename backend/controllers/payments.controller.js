@@ -339,16 +339,26 @@ async function processPaymentCompletion({
     for (const item of products) {
       if (!item.productId) continue;
 
-      // Decrement Stock safely
+      // Decrement Stock safely and Increment soldCount
+      // Decrement Stock safely and Increment soldCount
       const qtyToDecrement = Number(item.quantity || 1);
       try {
         await Product.updateOne(
           { _id: item.productId },
           { $inc: { countInStock: -qtyToDecrement, soldCount: qtyToDecrement } }
         );
+        if (updatedP && (updatedP.soldCount || 0) >= 10 && !updatedP.isBestSeller) {
+          updatedP.isBestSeller = true;
+          await updatedP.save();
+        }
+        if (updatedP && (updatedP.soldCount || 0) >= 10 && !updatedP.isBestSeller) {
+          updatedP.isBestSeller = true;
+          await updatedP.save();
+        }
       }
       catch (stockErr) {
-        console.error(`✗ Failed to update stock for Product ${item.productId}:`, stockErr.message);
+        console.error(`✗ Failed to update stock/sales for Product ${item.productId}:`, stockErr.message);
+        console.error(`✗ Failed to update stock/sales for Product ${item.productId}:`, stockErr.message);
       }
 
       const dbProduct = dbProductMap.get(item.productId.toString());

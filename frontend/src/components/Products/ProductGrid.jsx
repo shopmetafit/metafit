@@ -7,6 +7,7 @@ import {
   openCartDrawer,
 } from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
+import { toggleCompare } from "../../redux/slices/compareSlice";
 import { toast } from "sonner";
 import { useState } from "react";
 import { trackMetaEvent } from "../../lib/meta-pixel";
@@ -20,6 +21,7 @@ import {
   Loader2,
   Minus,
   Plus,
+  ArrowLeftRight,
 } from "lucide-react";
 
 // Amazon/Nykaa-style Shimmer Skeleton Card
@@ -62,6 +64,7 @@ const ProductCard = ({ product, onProductClick }) => {
   const user = useSelector((state) => state.auth.user);
   const guestId = useSelector((state) => state.auth.guestId);
   const wishlistItems = useSelector((state) => state.wishlist?.products || []);
+  const compareItems = useSelector((state) => state.compare?.items || []);
   const cart = useSelector((state) => state.cart?.cart || state.cart);
   const cartProducts = cart?.products || [];
 
@@ -79,6 +82,14 @@ const ProductCard = ({ product, onProductClick }) => {
   const isWishlisted = wishlistItems.some(
     (item) => (item._id || item.productId || item) === product._id
   );
+
+  const isCompared = compareItems.some((item) => item._id === product._id);
+
+  const handleCompareToggle = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dispatch(toggleCompare(product));
+  };
 
   const handleAddToCart = async (e, prod, variant = null) => {
     e.preventDefault();
@@ -102,9 +113,9 @@ const ProductCard = ({ product, onProductClick }) => {
           userId: user?._id,
           variant: variant
             ? {
-                label: variant.label,
-                price: variant.discountPrice || variant.price,
-              }
+              label: variant.label,
+              price: variant.discountPrice || variant.price,
+            }
             : null,
         })
       );
@@ -120,9 +131,9 @@ const ProductCard = ({ product, onProductClick }) => {
         (variant
           ? variant.discountPrice || variant.price
           : null) ||
-          prod.discountPrice ||
-          prod.price ||
-          0
+        prod.discountPrice ||
+        prod.price ||
+        0
       );
 
       trackMetaEvent("AddToCart", {
@@ -299,21 +310,19 @@ const ProductCard = ({ product, onProductClick }) => {
 
   return (
     <div
-      className={`bg-white rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col h-full overflow-hidden group ${
-        isBestseller
-          ? "border border-amber-300/80 shadow-[0_2px_10px_rgba(217,119,6,0.08)] hover:shadow-[0_10px_25px_rgba(217,119,6,0.18)] hover:-translate-y-0.5 ring-1 ring-amber-400/25 relative"
-          : "border border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5"
-      }`}
+      className={`bg-white rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col h-full overflow-hidden group ${isBestseller
+        ? "border border-amber-300/80 shadow-[0_2px_10px_rgba(217,119,6,0.08)] hover:shadow-[0_10px_25px_rgba(217,119,6,0.18)] hover:-translate-y-0.5 ring-1 ring-amber-400/25 relative"
+        : "border border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5"
+        }`}
       onMouseEnter={() => secondaryImage && setHoveredImage(secondaryImage)}
       onMouseLeave={() => setHoveredImage(null)}
     >
       {/* Top Image Section */}
       <div
-        className={`relative aspect-square w-full p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b ${
-          isBestseller
-            ? "bg-gradient-to-b from-amber-50/30 via-[#fcfbfa] to-[#f8f8f6] border-amber-100/70"
-            : "bg-[#f8f8f6] border-gray-100/60"
-        }`}
+        className={`relative aspect-square w-full p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b ${isBestseller
+          ? "bg-gradient-to-b from-amber-50/30 via-[#fcfbfa] to-[#f8f8f6] border-amber-100/70"
+          : "bg-[#f8f8f6] border-gray-100/60"
+          }`}
       >
         <Link
           to={productUrl}
@@ -331,9 +340,8 @@ const ProductCard = ({ product, onProductClick }) => {
             loading="lazy"
             decoding="async"
             onLoad={() => setImageLoaded(true)}
-            className={`w-full h-full object-contain drop-shadow-xs transition-transform duration-300 ease-out group-hover:scale-105 ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className={`w-full h-full object-contain drop-shadow-xs transition-transform duration-300 ease-out group-hover:scale-105 ${imageLoaded ? "opacity-100" : "opacity-0"
+              }`}
           />
         </Link>
 
@@ -350,11 +358,10 @@ const ProductCard = ({ product, onProductClick }) => {
         {/* Discount Badge */}
         {discountPercentage && (
           <div
-            className={`absolute ${
-              isBestseller
-                ? "bottom-2 left-2"
-                : "top-2 left-2"
-            } bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs z-10 pointer-events-none`}
+            className={`absolute ${isBestseller
+              ? "bottom-2 left-2"
+              : "top-2 left-2"
+              } bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs z-10 pointer-events-none`}
           >
             {discountPercentage}% OFF
           </div>
@@ -365,17 +372,29 @@ const ProductCard = ({ product, onProductClick }) => {
           type="button"
           onClick={(e) => handleWishlistToggle(e, product)}
           aria-label="Add to wishlist"
-          className={`absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/90 backdrop-blur-xs shadow-xs border border-gray-100 flex items-center justify-center transition-all duration-150 z-10 ${
-            isWishlisted
-              ? "text-red-500"
-              : "text-gray-400 hover:text-red-500 hover:scale-110 active:scale-95"
-          }`}
+          className={`absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/90 backdrop-blur-xs shadow-xs border border-gray-100 flex items-center justify-center transition-all duration-150 z-10 ${isWishlisted
+            ? "text-red-500"
+            : "text-gray-400 hover:text-red-500 hover:scale-110 active:scale-95"
+            }`}
         >
           <Heart
-            className={`w-3.5 h-3.5 ${
-              isWishlisted ? "fill-red-500 text-red-500" : ""
-            }`}
+            className={`w-3.5 h-3.5 ${isWishlisted ? "fill-red-500 text-red-500" : ""
+              }`}
           />
+        </button>
+
+        {/* Compare Button */}
+        <button
+          type="button"
+          onClick={handleCompareToggle}
+          aria-label="Compare product"
+          title={isCompared ? "In Comparison (Click to remove)" : "Add to Compare"}
+          className={`absolute top-9 sm:top-10 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full backdrop-blur-xs shadow-xs border flex items-center justify-center transition-all duration-150 z-10 ${isCompared
+            ? "bg-emerald-600 border-emerald-600 text-white shadow-emerald-600/30 scale-105 opacity-100"
+            : "bg-white/95 border-gray-100 text-gray-400 hover:text-emerald-600 hover:border-emerald-200 opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+            }`}
+        >
+          <ArrowLeftRight className="w-3 h-3 stroke-[2.2]" />
         </button>
       </div>
 
