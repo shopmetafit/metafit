@@ -25,6 +25,8 @@ import {
   ExternalLink,
   Tag,
   Boxes,
+  Plus,
+  SlidersHorizontal,
 } from "lucide-react";
 
 const CompareModal = () => {
@@ -114,6 +116,14 @@ const CompareModal = () => {
     return Array.from(new Set(items.map((p) => (p.category || "General").trim()).filter(Boolean)));
   }, [items]);
 
+  const categoryDisplay = useMemo(() => {
+    if (!items || items.length === 0) return "";
+    if (uniqueCategories.length === 1) {
+      return `Category: ${uniqueCategories[0]}`;
+    }
+    return `Category: ${uniqueCategories.length} categories`;
+  }, [items, uniqueCategories]);
+
   const handleAddToCartDirect = async (product) => {
     if (!product?._id) return;
     setAddingId(product._id);
@@ -174,19 +184,19 @@ const CompareModal = () => {
 
         return (
           <div className="space-y-1">
-            <div className="flex items-baseline gap-2">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className="text-base sm:text-lg font-black text-stone-900">
                 ₹{finalPrice.toLocaleString("en-IN")}
               </span>
               {originalPrice > finalPrice && (
                 <span className="text-xs text-stone-400 line-through">
-                  ₹{originalPrice.toLocaleString("en-IN")}
+                  M.R.P. ₹{originalPrice.toLocaleString("en-IN")}
                 </span>
               )}
             </div>
 
             {isLowest && priceDiff > 0 && (
-              <div className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded shadow-2xs">
+              <div className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-2xs">
                 <Sparkles className="w-2.5 h-2.5 fill-emerald-600 text-emerald-600" />
                 <span>₹{priceDiff.toLocaleString("en-IN")} Cheaper</span>
               </div>
@@ -213,22 +223,22 @@ const CompareModal = () => {
         const isBestDiscount = p._id === highestDiscountId && discountPct > 0;
 
         if (savings <= 0) {
-          return <span className="text-xs text-stone-400 font-medium">Regular Price (No Discount)</span>;
+          return <span className="text-xs text-stone-400 font-medium">Regular Price</span>;
         }
 
         return (
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="bg-amber-100 text-amber-900 text-xs font-bold px-2 py-0.5 rounded">
+              <span className="bg-emerald-50 text-[#1e4620] border border-emerald-200 text-xs font-bold px-2 py-0.5 rounded-md">
                 {discountPct}% OFF
               </span>
               <span className="text-xs text-emerald-700 font-bold">
-                (Saves ₹{savings.toLocaleString("en-IN")})
+                (Save ₹{savings.toLocaleString("en-IN")})
               </span>
             </div>
             {isBestDiscount && items.length > 1 && (
-              <span className="inline-block text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
-                ★ Highest Discount
+              <span className="inline-block text-[10px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                ★ Best Savings
               </span>
             )}
           </div>
@@ -253,7 +263,7 @@ const CompareModal = () => {
         return (
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+              <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                 <span className="text-xs font-bold text-amber-950">{rating.toFixed(1)}</span>
               </div>
@@ -262,7 +272,7 @@ const CompareModal = () => {
               </span>
             </div>
             {isTop && (
-              <span className="text-[10px] font-bold text-emerald-700 block">
+              <span className="text-[10px] font-bold text-[#1e4620] block">
                 ✓ Highest Rated
               </span>
             )}
@@ -334,7 +344,7 @@ const CompareModal = () => {
         const charge = Number(p.shippingCharge || 0);
         if (charge === 0) {
           return (
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+            <span className="text-xs font-bold text-[#1e4620] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
               FREE Delivery
             </span>
           );
@@ -380,20 +390,20 @@ const CompareModal = () => {
         const stock = Number(p.countInStock || 0);
         if (stock <= 0) {
           return (
-            <span className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+            <span className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md inline-block">
               Out of Stock
             </span>
           );
         }
         if (stock <= 5) {
           return (
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+            <span className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
               Only {stock} Left
             </span>
           );
         }
         return (
-          <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+          <span className="text-xs font-bold text-[#1e4620] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
             In Stock
           </span>
         );
@@ -405,65 +415,70 @@ const CompareModal = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden">
+      <div className="fixed inset-0 z-[2000] flex items-center justify-center p-1.5 sm:p-4 md:p-6 overflow-hidden">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={() => dispatch(closeCompareModal())}
-          className="absolute inset-0 bg-stone-950/70 backdrop-blur-sm"
+          className="absolute inset-0 bg-stone-950/75 backdrop-blur-sm"
         />
 
-        {/* Modal Window */}
+        {/* Modal Window Container */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 15 }}
+          initial={{ opacity: 0, scale: 0.97, y: 12 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 15 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-5xl max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden z-10"
+          exit={{ opacity: 0, scale: 0.97, y: 12 }}
+          transition={{ type: "spring", damping: 28, stiffness: 320 }}
+          className="relative w-[calc(100vw-16px)] md:w-full max-w-[1400px] h-[95dvh] md:h-[90vh] max-h-[92vh] bg-white rounded-xl sm:rounded-2xl shadow-2xl border border-stone-200/80 flex flex-col overflow-hidden z-[2100] mx-auto"
         >
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-stone-200 bg-stone-50">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
-                <ArrowLeftRight className="w-5 h-5 stroke-[2.5]" />
+          {/* Modal Header */}
+          <div className="flex items-center justify-between px-3.5 sm:px-6 py-2 sm:py-2.5 border-b border-stone-200/80 bg-gradient-to-r from-stone-50 via-emerald-50/20 to-stone-50 flex-wrap gap-2 flex-shrink-0">
+            {/* Left Title & Subtitle */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#1e4620] text-white flex items-center justify-center shadow-xs flex-shrink-0">
+                <ArrowLeftRight className="w-4 h-4 stroke-[2.5]" />
               </div>
               <div>
-                <h2 className="text-base sm:text-lg font-black text-stone-900 flex items-center gap-2">
-                  <span>Product Comparison Matrix</span>
-                  <span className="bg-emerald-100 text-emerald-900 text-xs font-bold px-2 py-0.5 rounded-full">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-base sm:text-lg font-extrabold text-stone-900 tracking-tight">
+                    Product Comparison
+                  </h2>
+                  <span className="bg-emerald-100/90 text-[#1e4620] border border-emerald-200/80 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">
                     {items.length} of 4 Products
                   </span>
-                </h2>
-                <p className="text-xs text-stone-500">
-                  {uniqueCategories.length === 1 ? (
-                    <>Category: <span className="font-semibold text-stone-700">{uniqueCategories[0]}</span></>
-                  ) : (
-                    <>Categories: <span className="font-semibold text-stone-700">{uniqueCategories.join(" & ")}</span></>
+                </div>
+                <p className="text-[10px] sm:text-xs text-stone-500 font-medium">
+                  Compare products side-by-side
+                  {categoryDisplay && (
+                    <span className="text-stone-400 font-normal"> • {categoryDisplay}</span>
                   )}
                 </p>
               </div>
             </div>
 
             {/* Controls */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-3 ml-auto sm:ml-0">
               {items.length > 1 && (
-                <label className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-stone-700 cursor-pointer bg-white px-3 py-1.5 rounded-xl border border-stone-200 hover:bg-stone-50 transition-colors">
+                <label className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-700 cursor-pointer bg-white px-2 py-1 sm:px-2.5 sm:py-1 rounded-lg border border-stone-200/80 hover:bg-stone-50 transition-colors shadow-2xs">
                   <input
                     type="checkbox"
                     checked={highlightDifferences}
                     onChange={(e) => setHighlightDifferences(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded text-emerald-600 accent-emerald-600 cursor-pointer"
+                    className="w-3.5 h-3.5 rounded text-[#1e4620] accent-[#1e4620] cursor-pointer"
                   />
-                  <span>Show Differences Only</span>
+                  <span className="hidden sm:inline">Show Differences Only</span>
+                  <span className="sm:hidden text-[10px]">Differences</span>
                 </label>
               )}
 
               <button
                 type="button"
                 onClick={() => dispatch(clearCompare())}
-                className="text-stone-500 hover:text-rose-600 text-xs font-semibold px-2 py-1 transition-colors"
+                className="text-stone-500 hover:text-rose-600 text-xs font-semibold px-2 py-1 transition-colors cursor-pointer"
+                title="Clear all compared items"
+                aria-label="Clear all items from comparison"
               >
                 Clear All
               </button>
@@ -471,31 +486,212 @@ const CompareModal = () => {
               <button
                 type="button"
                 onClick={() => dispatch(closeCompareModal())}
-                className="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-700 flex items-center justify-center transition-colors"
-                title="Close"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 hover:text-stone-900 flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
+                title="Close comparison modal"
+                aria-label="Close comparison modal"
               >
                 <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
           </div>
 
-          {/* Table Container */}
-          <div className="flex-1 overflow-x-auto overflow-y-auto p-3 sm:p-5 pb-8 bg-white">
-            <table className="w-full border-collapse min-w-[600px] table-fixed mb-4">
+          {/* ========================================================= */}
+          {/* MOBILE DEDICATED LAYOUT (< 768px)                          */}
+          {/* ========================================================= */}
+          <div className="block md:hidden flex-1 min-h-0 overflow-y-auto custom-scrollbar bg-white">
+            {/* Top Swipable / Grid Product Header Cards */}
+            <div className="p-2 bg-stone-50/60 border-b border-stone-200/80">
+              <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
+                {items.map((prod) => {
+                  const imageSrc =
+                    prod.thumbnail ||
+                    (prod.images && prod.images[0]?.url) ||
+                    (typeof prod.images?.[0] === "string" ? prod.images[0] : null) ||
+                    "https://via.placeholder.com/150";
+
+                  const hasOptions =
+                    prod.hasVariants ||
+                    (Array.isArray(prod.variants) && prod.variants.length > 0) ||
+                    (Array.isArray(prod.sizes) && prod.sizes.length > 1);
+
+                  const isOutOfStock = Number(prod.countInStock || 0) <= 0;
+                  const finalPrice = Number(prod.discountPrice || prod.price || 0);
+                  const originalPrice = Number(prod.price || 0);
+
+                  return (
+                    <div
+                      key={prod._id}
+                      className="w-[140px] min-w-[140px] max-w-[155px] flex-shrink-0 bg-white p-2 rounded-lg border border-stone-200/80 relative flex flex-col justify-between shadow-2xs"
+                    >
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => dispatch(removeFromCompare(prod._id))}
+                        className="absolute top-1 right-1 w-5 h-5 bg-stone-100 hover:bg-rose-500 hover:text-white text-stone-400 rounded-full flex items-center justify-center transition-all z-10 cursor-pointer"
+                        title="Remove product"
+                        aria-label={`Remove ${prod.name}`}
+                      >
+                        <X className="w-3 h-3 stroke-[2.5]" />
+                      </button>
+
+                      <div className="flex flex-col items-center text-center">
+                        <Link
+                          to={`/product/${prod._id}`}
+                          onClick={() => dispatch(closeCompareModal())}
+                          className="w-16 h-16 rounded-md bg-stone-50 border border-stone-100 p-1 flex items-center justify-center overflow-hidden"
+                        >
+                          <img
+                            src={imageSrc}
+                            alt={prod.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </Link>
+
+                        <div className="flex items-center gap-1 text-[9px] font-bold text-[#1e4620] uppercase tracking-wider mt-1">
+                          <span className="truncate max-w-[95px]">{prod.brand || "Metafit"}</span>
+                          <CheckCircle2 className="w-2.5 h-2.5 text-[#1e4620] flex-shrink-0" />
+                        </div>
+
+                        <Link
+                          to={`/product/${prod._id}`}
+                          onClick={() => dispatch(closeCompareModal())}
+                          className="text-[11px] font-bold text-stone-900 line-clamp-2 leading-tight mt-0.5 h-7 flex items-center justify-center text-center"
+                          title={prod.name}
+                        >
+                          {prod.name}
+                        </Link>
+
+                        <div className="mt-0.5 flex items-baseline gap-1 justify-center flex-wrap">
+                          <span className="text-xs font-black text-stone-900">
+                            ₹{finalPrice.toLocaleString("en-IN")}
+                          </span>
+                          {originalPrice > finalPrice && (
+                            <span className="text-[9px] text-stone-400 line-through">
+                              ₹{originalPrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {hasOptions ? (
+                        <Link
+                          to={`/product/${prod._id}`}
+                          onClick={() => dispatch(closeCompareModal())}
+                          className="w-full mt-1.5 py-1 px-1.5 rounded-md text-[10px] font-bold bg-stone-100 text-stone-800 flex items-center justify-center gap-1 border border-stone-200/60 h-7"
+                        >
+                          <span>Options</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddToCartDirect(prod)}
+                          disabled={addingId === prod._id || isOutOfStock}
+                          className={`w-full mt-1.5 py-1 px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer h-7 ${
+                            isOutOfStock
+                              ? "bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed"
+                              : "bg-[#1e4620] text-white"
+                          }`}
+                        >
+                          <ShoppingCart className="w-3 h-3" />
+                          <span>{addingId === prod._id ? "Adding..." : isOutOfStock ? "Out" : "Add"}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {items.length < 4 && (
+                  <Link
+                    to="/collections/all"
+                    onClick={() => dispatch(closeCompareModal())}
+                    className="w-[140px] min-w-[140px] flex-shrink-0 bg-gradient-to-b from-emerald-50/80 to-white hover:from-emerald-100/70 hover:to-emerald-50 p-2.5 rounded-lg border border-emerald-200/90 hover:border-[#1e4620] flex flex-col items-center justify-center text-center transition-all cursor-pointer shadow-2xs group"
+                    title="Browse catalog to add product to comparison"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-[#1e4620] text-white flex items-center justify-center mb-1 shadow-xs group-hover:scale-105 transition-transform">
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    </div>
+                    <span className="text-[11px] font-extrabold text-[#1e4620] leading-tight">
+                      + Add Product
+                    </span>
+                    <span className="text-[9px] text-stone-500 font-medium mt-0.5">
+                      Up to 4 items
+                    </span>
+                    <span className="mt-1.5 px-2.5 py-0.5 bg-emerald-100/80 text-[#1e4620] border border-emerald-200 rounded text-[9px] font-extrabold inline-flex items-center gap-0.5 shadow-2xs">
+                      Browse
+                    </span>
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Stacked Specification Sections */}
+            <div className="p-2.5 space-y-2.5">
+              {activeRows.map((row) => {
+                const values = items.map((p) => String(row.getValue(p)));
+                const isDifferent = new Set(values).size > 1;
+
+                if (highlightDifferences && !isDifferent) {
+                  return null;
+                }
+
+                return (
+                  <div
+                    key={row.id}
+                    className="bg-white rounded-lg border border-stone-200/80 p-2.5 shadow-2xs space-y-1.5"
+                  >
+                    <div className="flex items-center gap-1.5 pb-1 border-b border-stone-100">
+                      <div className="w-4 h-4 rounded bg-stone-100 flex items-center justify-center text-stone-600">
+                        {row.icon}
+                      </div>
+                      <span className="text-xs font-extrabold text-stone-800">{row.label}</span>
+                    </div>
+
+                    <div className={`grid gap-1.5 ${items.length === 2 ? "grid-cols-2" : items.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4"}`}>
+                      {items.map((prod) => (
+                        <div
+                          key={prod._id}
+                          className="bg-stone-50/70 p-1.5 rounded-md border border-stone-200/60 text-xs flex flex-col justify-between min-w-0"
+                        >
+                          <span className="text-[9px] font-bold text-[#1e4620] uppercase truncate mb-0.5 block">
+                            {prod.name.slice(0, 16)}...
+                          </span>
+                          <div className="break-words min-w-0">{row.render(prod)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ========================================================= */}
+          {/* DESKTOP DEDICATED LAYOUT (>= 768px)                        */}
+          {/* ========================================================= */}
+          <div className="hidden md:block flex-1 min-h-0 overflow-x-auto overflow-y-auto bg-white custom-scrollbar">
+            <table className="w-full border-collapse min-w-[680px] table-fixed">
               <colgroup>
-                <col className="w-32 sm:w-44 bg-stone-50/70" />
+                <col className="w-48 lg:w-56 bg-stone-50/70" />
                 {items.map((prod) => (
-                  <col key={prod._id} className="w-48 sm:w-56" />
+                  <col key={prod._id} className="min-w-[180px]" />
                 ))}
-                {items.length === 1 && <col className="w-48 sm:w-56" />}
+                {items.length < 4 && <col className="w-44 lg:w-48 min-w-[160px]" />}
               </colgroup>
 
               <thead className="sticky top-0 z-20 bg-white shadow-xs">
-                <tr className="border-b-2 border-stone-200">
-                  <th className="p-3 text-left align-bottom font-bold text-stone-400 uppercase text-[11px] tracking-wider sticky top-0 left-0 bg-stone-50 z-30 border-r border-stone-200">
-                    Product
+                <tr className="border-b-2 border-stone-200/80">
+                  {/* Specification Column Header */}
+                  <th className="p-3 text-left align-bottom font-extrabold text-stone-500 uppercase text-[10px] tracking-wider sticky left-0 bg-stone-50/98 z-30 border-r border-stone-200/80 w-48 lg:w-56 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                    <div className="flex items-center gap-1.5 text-stone-700">
+                      <div className="w-5 h-5 rounded-md bg-emerald-50 border border-emerald-200/60 flex items-center justify-center text-[#1e4620]">
+                        <SlidersHorizontal className="w-3 h-3 stroke-[2.5]" />
+                      </div>
+                      <span>SPECIFICATIONS</span>
+                    </div>
                   </th>
 
+                  {/* Selected Product Cards */}
                   {items.map((prod) => {
                     const imageSrc =
                       prod.thumbnail ||
@@ -509,57 +705,84 @@ const CompareModal = () => {
                       (Array.isArray(prod.sizes) && prod.sizes.length > 1);
 
                     const isOutOfStock = Number(prod.countInStock || 0) <= 0;
+                    const finalPrice = Number(prod.discountPrice || prod.price || 0);
+                    const originalPrice = Number(prod.price || 0);
+                    const discountPct =
+                      originalPrice > finalPrice
+                        ? Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+                        : 0;
 
                     return (
                       <th
                         key={prod._id}
-                        className="p-3 text-left align-top font-normal border-l border-stone-200 bg-white relative group"
+                        className="p-3 text-left align-top font-normal border-r border-stone-200/60 bg-white relative group"
                       >
                         {/* Remove Button */}
                         <button
                           type="button"
                           onClick={() => dispatch(removeFromCompare(prod._id))}
-                          className="absolute top-2 right-2 w-6 h-6 bg-stone-100 hover:bg-rose-500 hover:text-white text-stone-500 rounded-full flex items-center justify-center transition-colors"
-                          title="Remove from comparison"
+                          className="absolute top-2 right-2 w-7 h-7 bg-stone-100 hover:bg-rose-500 hover:text-white text-stone-400 rounded-full flex items-center justify-center transition-all shadow-2xs z-10 cursor-pointer"
+                          title="Remove product"
+                          aria-label={`Remove ${prod.name} from comparison`}
                         >
-                          <X className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <X className="w-3 h-3 stroke-[2.5]" />
                         </button>
 
-                        <div className="flex flex-col items-center text-center gap-2">
+                        <div className="flex flex-col items-center text-center">
+                          {/* Product Image */}
                           <Link
                             to={`/product/${prod._id}`}
                             onClick={() => dispatch(closeCompareModal())}
-                            className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-stone-100 p-2 flex items-center justify-center overflow-hidden hover:opacity-90 transition-opacity"
+                            className="w-20 h-20 lg:w-24 lg:h-24 rounded-xl bg-stone-50 border border-stone-100 p-1.5 flex items-center justify-center overflow-hidden hover:border-emerald-300 transition-colors group/img"
                           >
                             <img
                               src={imageSrc}
                               alt={prod.name}
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain group-hover/img:scale-105 transition-transform duration-200"
                             />
                           </Link>
 
-                          <div className="flex items-center gap-1 text-[11px] font-bold text-[#1e4620] uppercase tracking-wider">
-                            <span className="truncate max-w-[130px]">{prod.brand || "Metafit"}</span>
+                          {/* Seller / Brand */}
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-[#1e4620] uppercase tracking-wider mt-1.5">
+                            <span className="truncate max-w-[120px]">{prod.brand || "Metafit"}</span>
                             <CheckCircle2 className="w-3 h-3 text-[#1e4620] flex-shrink-0" />
                           </div>
 
+                          {/* Product Name */}
                           <Link
                             to={`/product/${prod._id}`}
                             onClick={() => dispatch(closeCompareModal())}
-                            className="text-xs sm:text-sm font-bold text-stone-900 hover:text-teal-700 line-clamp-2 leading-snug transition-colors"
+                            className="text-xs lg:text-sm font-bold text-stone-900 hover:text-[#1e4620] line-clamp-2 leading-snug transition-colors mt-0.5 h-8 lg:h-9 flex items-center justify-center"
                             title={prod.name}
                           >
                             {prod.name}
                           </Link>
 
-                          {/* CTA: If item has variants, link to detail page; if simple, allow direct Add to Cart */}
+                          {/* Price Header Display */}
+                          <div className="mt-1 flex items-baseline gap-1 flex-wrap justify-center">
+                            <span className="text-sm lg:text-base font-black text-stone-900">
+                              ₹{finalPrice.toLocaleString("en-IN")}
+                            </span>
+                            {originalPrice > finalPrice && (
+                              <span className="text-[11px] text-stone-400 line-through">
+                                ₹{originalPrice.toLocaleString("en-IN")}
+                              </span>
+                            )}
+                            {discountPct > 0 && (
+                              <span className="text-[9px] font-bold text-[#1e4620] bg-emerald-50 border border-emerald-200/80 px-1 py-0.2 rounded">
+                                {discountPct}% OFF
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Add to Cart CTA */}
                           {hasOptions ? (
                             <Link
                               to={`/product/${prod._id}`}
                               onClick={() => dispatch(closeCompareModal())}
-                              className="w-full mt-1 py-1.5 px-2.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center gap-1 transition-colors"
+                              className="w-full mt-2 py-1.5 px-2.5 h-8 lg:h-9 rounded-lg text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 flex items-center justify-center gap-1 transition-colors border border-stone-200/60"
                             >
-                              <span>Select Size / Options</span>
+                              <span>Select Options</span>
                               <ExternalLink className="w-3 h-3" />
                             </Link>
                           ) : (
@@ -567,11 +790,12 @@ const CompareModal = () => {
                               type="button"
                               onClick={() => handleAddToCartDirect(prod)}
                               disabled={addingId === prod._id || isOutOfStock}
-                              className={`w-full mt-1 py-1.5 px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer ${
+                              className={`w-full mt-2 py-1.5 px-2.5 h-8 lg:h-9 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition-all cursor-pointer ${
                                 isOutOfStock
-                                  ? "bg-stone-200 text-stone-400 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-emerald-600/20"
+                                  ? "bg-stone-100 text-stone-400 border border-stone-200 cursor-not-allowed"
+                                  : "bg-[#1e4620] hover:bg-[#153417] text-white shadow-emerald-900/10"
                               }`}
+                              aria-label={`Add ${prod.name} to cart`}
                             >
                               <ShoppingCart className="w-3.5 h-3.5" />
                               <span>
@@ -588,25 +812,30 @@ const CompareModal = () => {
                     );
                   })}
 
-                  {/* If only 1 product is present, show second slot guidance */}
-                  {items.length === 1 && (
-                    <th className="p-4 text-center align-middle border-l border-dashed border-stone-200 bg-stone-50/50">
-                      <div className="flex flex-col items-center justify-center gap-2 py-4">
-                        <div className="w-10 h-10 rounded-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400">
-                          <ArrowLeftRight className="w-4 h-4" />
+                  {/* Add Product Action Column Header */}
+                  {items.length < 4 && (
+                    <th className="p-3 text-center align-middle border-r border-stone-200/60 bg-stone-50/30 w-44 lg:w-48 min-w-[160px]">
+                      <Link
+                        to="/collections/all"
+                        onClick={() => dispatch(closeCompareModal())}
+                        className="flex flex-col items-center justify-center p-3.5 rounded-xl bg-gradient-to-b from-emerald-50/80 to-white hover:from-emerald-100/70 hover:to-emerald-50 border border-emerald-200/90 hover:border-[#1e4620] text-center transition-all cursor-pointer group shadow-2xs hover:shadow-md space-y-2 h-full min-h-[165px]"
+                        title="Add product to comparison"
+                      >
+                        <div className="w-9 h-9 rounded-full bg-[#1e4620] text-white flex items-center justify-center shadow-xs group-hover:scale-110 transition-transform">
+                          <Plus className="w-5 h-5 stroke-[2.5]" />
                         </div>
-                        <p className="text-xs font-bold text-stone-700">Add 2nd product</p>
-                        <p className="text-[11px] text-stone-400 max-w-[130px]">
-                          Choose another item from catalog to compare side-by-side
-                        </p>
-                        <Link
-                          to={`/collections/all`}
-                          onClick={() => dispatch(closeCompareModal())}
-                          className="mt-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
-                        >
-                          Browse Products
-                        </Link>
-                      </div>
+                        <div>
+                          <span className="block text-xs lg:text-sm font-extrabold text-[#1e4620] group-hover:text-[#153417]">
+                            + Add Product
+                          </span>
+                          <span className="block text-[10px] sm:text-[11px] text-stone-500 font-medium mt-0.5">
+                            Compare up to 4 products
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#1e4620] bg-white border border-emerald-200/90 group-hover:border-emerald-400 px-2.5 py-1 rounded-md shadow-2xs transition-colors mt-0.5">
+                          Browse Catalog
+                        </span>
+                      </Link>
                     </th>
                   )}
                 </tr>
@@ -625,31 +854,34 @@ const CompareModal = () => {
                     <tr
                       key={row.id}
                       className={`border-b border-stone-100 transition-colors ${
-                        rIdx % 2 === 0 ? "bg-stone-50/20" : "bg-white"
+                        rIdx % 2 === 0 ? "bg-[#fcfdfc]" : "bg-white"
                       } ${
                         isDifferent && items.length > 1
-                          ? "bg-amber-50/30"
+                          ? "bg-amber-50/20"
                           : ""
                       }`}
                     >
                       {/* Left Feature Column */}
-                      <td className="p-3 text-xs font-bold text-stone-700 sticky left-0 bg-stone-50/95 z-10 border-r border-stone-200 flex items-center gap-2">
-                        {row.icon}
-                        <span>{row.label}</span>
+                      <td className="p-2.5 text-xs font-bold text-stone-700 sticky left-0 bg-stone-50/98 z-10 border-r border-stone-200/80 flex items-center gap-2 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                        <div className="w-5 h-5 rounded bg-stone-100 flex items-center justify-center flex-shrink-0 text-stone-600">
+                          {row.icon}
+                        </div>
+                        <span className="line-clamp-2 min-w-0 break-words">{row.label}</span>
                       </td>
 
                       {/* Values for each product */}
                       {items.map((prod) => (
                         <td
                           key={prod._id}
-                          className="p-3 border-l border-stone-200 align-middle"
+                          className="p-2.5 border-r border-stone-100 align-middle text-xs break-words min-w-0"
                         >
                           {row.render(prod)}
                         </td>
                       ))}
 
-                      {items.length === 1 && (
-                        <td className="p-3 border-l border-dashed border-stone-200 text-center text-stone-300 text-xs">
+                      {/* Add Product Action Column Value Cell */}
+                      {items.length < 4 && (
+                        <td className="p-2.5 border-r border-stone-100 text-center text-stone-300 text-xs italic bg-stone-50/20">
                           —
                         </td>
                       )}
@@ -661,12 +893,15 @@ const CompareModal = () => {
           </div>
 
           {/* Footer */}
-          <div className="px-4 sm:px-6 py-2.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
-            <span>Real specifications directly from the Metafit catalog</span>
+          <div className="px-4 sm:px-6 py-2 min-h-[48px] max-h-[56px] bg-stone-50/90 border-t border-stone-200/80 flex items-center justify-between gap-2 text-xs text-stone-500 flex-shrink-0">
+            <span className="font-medium text-stone-500 text-[11px] sm:text-xs truncate max-w-[75%] sm:max-w-none">
+              Real specifications directly from the Metafit catalog
+            </span>
             <button
               type="button"
               onClick={() => dispatch(closeCompareModal())}
-              className="px-4 py-1.5 rounded-lg bg-stone-900 text-white font-semibold hover:bg-stone-800 transition-colors"
+              className="px-4 py-1.5 rounded-lg bg-[#1e4620] hover:bg-[#153417] text-white font-bold text-xs shadow-xs transition-colors cursor-pointer ml-auto flex-shrink-0"
+              aria-label="Close modal"
             >
               Done
             </button>

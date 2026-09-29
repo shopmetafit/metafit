@@ -22,6 +22,7 @@ import {
   Heart,
   Loader2,
   ArrowLeftRight,
+  ArrowLeft,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -1285,6 +1286,8 @@ const ProductDetails = ({ productId }) => {
 
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
 
+        
+
         {/* ====================================================
             MAIN PRODUCT CARD
         ==================================================== */}
@@ -1316,9 +1319,9 @@ const ProductDetails = ({ productId }) => {
                           )
                         }
                         className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
-                            "video"
-                            ? "border-[#047ca8]"
-                            : "border-gray-200 hover:border-[#047ca8]"
+                          "video"
+                          ? "border-[#047ca8]"
+                          : "border-gray-200 hover:border-[#047ca8]"
                           }`}
                       >
                         <video
@@ -1360,9 +1363,9 @@ const ProductDetails = ({ productId }) => {
                             )
                           }
                           className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
-                              imgUrl
-                              ? "border-[#047ca8]"
-                              : "border-gray-200 hover:border-[#047ca8]"
+                            imgUrl
+                            ? "border-[#047ca8]"
+                            : "border-gray-200 hover:border-[#047ca8]"
                             }`}
                         >
                           <img
@@ -1411,9 +1414,9 @@ const ProductDetails = ({ productId }) => {
                                   )
                                 }
                                 className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
-                                    imgUrl
-                                    ? "border-[#047ca8]"
-                                    : "border-gray-200 hover:border-[#047ca8]"
+                                  imgUrl
+                                  ? "border-[#047ca8]"
+                                  : "border-gray-200 hover:border-[#047ca8]"
                                   }`}
                               >
                                 <img
@@ -1547,9 +1550,9 @@ const ProductDetails = ({ productId }) => {
                           )
                         }
                         className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
-                            "video"
-                            ? "border-[#047ca8]"
-                            : "border-gray-200"
+                          "video"
+                          ? "border-[#047ca8]"
+                          : "border-gray-200"
                           }`}
                       >
                         <video
@@ -1591,9 +1594,9 @@ const ProductDetails = ({ productId }) => {
                             )
                           }
                           className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage ===
-                              imgUrl
-                              ? "border-[#047ca8]"
-                              : "border-gray-200"
+                            imgUrl
+                            ? "border-[#047ca8]"
+                            : "border-gray-200"
                             }`}
                         >
                           <img
@@ -1654,13 +1657,26 @@ const ProductDetails = ({ productId }) => {
                 </Link>
               )}
 
-              {/* NAME */}
+              {/* NAME & COMPARE CONTROL */}
 
-              <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-snug mb-3">
-                {
-                  selectedProduct.name
-                }
-              </h1>
+              <div className="flex items-start justify-between sm:justify-start gap-3 mb-3">
+                <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-snug flex-1 sm:flex-initial">
+                  {selectedProduct.name}
+                </h1>
+
+                <button
+                  type="button"
+                  onClick={() => selectedProduct && dispatch(toggleCompare(selectedProduct))}
+                  title={isCompared ? "In Comparison (Click to remove)" : "Compare with Other Products"}
+                  aria-label={isCompared ? "Remove from comparison" : "Compare product"}
+                  className={`w-[35px] h-[30px] min-w-[35px] min-h-[30px] rounded-lg border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${isCompared
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-emerald-500/10"
+                      : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700"
+                    }`}
+                >
+                  <ArrowLeftRight className={`h-5 w-5 ${isCompared ? "stroke-[2.5]" : ""}`} />
+                </button>
+              </div>
 
               {activeReferral && (
                 <div className="mb-3 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
@@ -1877,9 +1893,9 @@ const ProductDetails = ({ productId }) => {
                               )
                             }
                             className={`p-3 border-2 rounded-lg text-left transition-all ${selectedVariant?.label ===
-                                variant.label
-                                ? "border-[#047ca8] bg-blue-50"
-                                : "border-gray-200 hover:border-[#047ca8]"
+                              variant.label
+                              ? "border-[#047ca8] bg-blue-50"
+                              : "border-gray-200 hover:border-[#047ca8]"
                               }`}
                           >
                             <p className="text-xs font-bold text-gray-800 mb-0.5">
@@ -1982,9 +1998,9 @@ const ProductDetails = ({ productId }) => {
                                 )
                               }
                               className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize ===
-                                  sizeRaw
-                                  ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
-                                  : "border-gray-300 hover:border-[#047ca8] text-gray-800"
+                                sizeRaw
+                                ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
+                                : "border-gray-300 hover:border-[#047ca8] text-gray-800"
                                 }`}
                             >
                               <span>
@@ -2041,9 +2057,9 @@ const ProductDetails = ({ productId }) => {
                               color
                             }
                             className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor ===
-                                color
-                                ? "ring-2 ring-[#047ca8] ring-offset-2"
-                                : "border-gray-300 hover:scale-110"
+                              color
+                              ? "ring-2 ring-[#047ca8] ring-offset-2"
+                              : "border-gray-300 hover:scale-110"
                               }`}
                             style={{
                               backgroundColor:
@@ -2097,11 +2113,10 @@ const ProductDetails = ({ productId }) => {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isButtonDisabled || isBuyNowLoading}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${
-                      isButtonDisabled
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${isButtonDisabled
                         ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                         : "border-[#0FB7A3] bg-teal-50/60 text-[#0a7a6c] hover:bg-[#0FB7A3] hover:text-white shadow-xs hover:shadow-md active:scale-[0.98] cursor-pointer"
-                    }`}
+                      }`}
                   >
                     <ShoppingCart className="h-4 w-4" />
                     {isButtonDisabled ? "Adding..." : "Add to Cart"}
@@ -2113,11 +2128,10 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleBuyNow}
                   disabled={isButtonDisabled || isBuyNowLoading}
-                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${
-                    isBuyNowLoading
+                  className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${isBuyNowLoading
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-gradient-to-r from-[#047ca8] via-[#036e96] to-[#025877] hover:from-[#036a90] hover:to-[#024963] hover:shadow-lg active:scale-[0.98] cursor-pointer"
-                  }`}
+                    }`}
                 >
                   <Zap className="h-4 w-4 fill-white" />
                   {isBuyNowLoading ? "Processing..." : "Buy Now"}
@@ -2128,28 +2142,12 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleWishlistToggle}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-                  className={`px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${
-                    isWishlisted
+                  className={`px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${isWishlisted
                       ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
                       : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
+                    }`}
                 >
                   <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : ""}`} />
-                </button>
-
-                {/* COMPARE BUTTON */}
-                <button
-                  type="button"
-                  onClick={() => selectedProduct && dispatch(toggleCompare(selectedProduct))}
-                  title={isCompared ? "In Comparison (Click to remove)" : "Compare with Other Products"}
-                  className={`px-3.5 sm:px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0 ${
-                    isCompared
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-emerald-500/10 font-bold text-xs"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700 font-semibold text-xs"
-                  }`}
-                >
-                  <ArrowLeftRight className={`h-4 w-4 ${isCompared ? "stroke-[2.5]" : ""}`} />
-                  <span className="hidden sm:inline">{isCompared ? "In Compare" : "Compare"}</span>
                 </button>
               </div>
 

@@ -23,6 +23,8 @@ import {
   CheckCircle2,
   Lock,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Info,
   TrendingUp,
   Award,
@@ -161,7 +163,7 @@ const renderFormattedAiText = (text) => {
   });
 };
 
-export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
+export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandlerRef }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, guestId } = useSelector((state) => state.auth || {});
@@ -172,6 +174,21 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
   const [scanProgress, setScanProgress] = useState(0);
   const [scanStatusText, setScanStatusText] = useState("Analyzing Biomarkers...");
 
+  // Expose step back handler to parent
+  useEffect(() => {
+    if (backHandlerRef) {
+      backHandlerRef.current = () => {
+        if (currentStep > 1) {
+          setCurrentStep((prev) => prev - 1);
+        } else if (window.history.length > 1) {
+          navigate(-1);
+        } else {
+          navigate("/");
+        }
+      };
+    }
+  }, [currentStep, backHandlerRef, navigate]);
+
   // ─── User Intake Profile ───
   const [userName, setUserName] = useState(user?.name ? user.name.split(" ")[0] : "");
   const [userGender, setUserGender] = useState("all");
@@ -181,6 +198,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
   const [sleepHours, setSleepHours] = useState("6-7");
   const [preference, setPreference] = useState("ayurvedic");
   const [routineTiming, setRoutineTiming] = useState("full_day");
+  const [isDoctorEvalOpen, setIsDoctorEvalOpen] = useState(false);
 
   // ─── Products & Catalog ───
   const [allCatalogProducts, setAllCatalogProducts] = useState([]);
@@ -625,61 +643,44 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
       <div className="bg-white/95 backdrop-blur-2xl rounded-2xl lg:rounded-[22px] shadow-xl border border-teal-100/90 overflow-hidden relative">
 
         {/* ─── TOP HEADER BAR WITH STEPPER PROGRESS ─── */}
-        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#046559] p-3.5 sm:p-4 lg:p-5 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#046559] p-3 sm:p-3.5 lg:p-4 text-white relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Top Row: Back to Store & Close Buttons */}
-          <div className="flex items-center justify-between pb-2 sm:pb-2.5 border-b border-teal-800/60 mb-2.5 sm:mb-3 relative z-10 text-xs">
-            <button
-              type="button"
-              onClick={() => navigate("/")}
-              className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-3.5 rounded-lg border border-teal-400/30 bg-teal-950/40 hover:bg-teal-900/50 text-teal-100 hover:text-white transition-all cursor-pointer font-semibold text-xs shadow-2xs"
-            >
-              <ArrowLeft className="w-2.5 h-3.5" />
-
-            </button>
-
-            {isModal && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
-            )}
-          </div>
 
           {/* Title & Subtitle Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 relative z-10">
-            <div className="flex items-start gap-2 sm:gap-2.5">
-              <div className="p-2 sm:p-2.5 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-300 shadow-inner flex-shrink-0 mt-0.5">
-                <Sparkles className="w-4.5 h-4.5 sm:w-5 sm:h-5 animate-pulse text-teal-300" />
-              </div>
-              <div>
-                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-400/30 inline-block mb-0.5">
-                  Personalized Wellness Match
-                </span>
-                <h1 className="text-base sm:text-lg lg:text-xl font-black text-white tracking-tight leading-snug">
-                  Build Your Personalized Wellness Routine
-                </h1>
-                <p className="text-[11px] sm:text-xs text-teal-100/90 mt-0.5 max-w-xl leading-relaxed">
-                  Tell us about yourself and we'll personalize the next steps.
-                </p>
-              </div>
+            <div>
+              <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-400/30 inline-block mb-0.5">
+                Personalized Wellness Match
+              </span>
+              <h1 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-snug">
+                Build Your Personalized Wellness Routine
+              </h1>
+              <p className="text-[11px] sm:text-xs text-teal-100/90 mt-0.5 max-w-xl leading-relaxed">
+                Tell us about yourself and we'll personalize the next steps.
+              </p>
             </div>
 
             {/* Step Counter Pill */}
-            <div className="self-start sm:self-center flex-shrink-0">
-              <span className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1 sm:py-1.5 rounded-xl border border-white/15 text-xs font-black text-teal-200 tracking-wider shadow-inner">
+            <div className="self-start sm:self-center flex-shrink-0 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-md px-2 py-1 rounded-lg border border-white/15 text-[10px] font-black text-teal-200 tracking-wider shadow-inner">
                 <span>Step {currentStep} of 4</span>
               </span>
+              {isModal && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
           {/* ─── MODERN PROGRESS STEPPER ─── */}
-          <div className="mt-3 sm:mt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 text-xs">
+          <div className="mt-2 sm:mt-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-1.5 text-xs">
               {[
                 { num: 1, label: "Profile & Goal", key: "01" },
                 { num: 2, label: "Biomarkers", key: "02" },
@@ -693,7 +694,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
                     key={step.num}
                     type="button"
                     onClick={() => setCurrentStep(step.num)}
-                    className={`p-1.5 sm:p-2 rounded-xl border transition-all duration-300 text-left flex items-center gap-1.5 sm:gap-2 cursor-pointer ${isActive
+                    className={`p-1 sm:p-1.5 rounded-xl border transition-all duration-300 text-left flex items-center gap-1.5 sm:gap-2 cursor-pointer ${isActive
                       ? "bg-gradient-to-r from-teal-400 to-emerald-300 text-slate-950 font-black shadow-md border-transparent scale-[1.01]"
                       : isCompleted
                         ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-200 font-semibold"
@@ -717,7 +718,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
             </div>
 
             {/* Continuous Progress Fill Line */}
-            <div className="h-1 bg-teal-950/80 rounded-full overflow-hidden border border-teal-800/40 mt-2">
+            <div className="h-1 bg-teal-950/80 rounded-full overflow-hidden border border-teal-800/40 mt-1.5">
               <div
                 className="h-full bg-gradient-to-r from-teal-400 via-emerald-300 to-teal-200 transition-all duration-500 shadow-sm"
                 style={{ width: `${(currentStep / 4) * 100}%` }}
@@ -1138,8 +1139,18 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
                 </div>
 
                 {/* Prescription / Protocol Certificate Card */}
-                <div className="bg-gradient-to-br from-[#022824] via-[#033f37] to-[#01221e] rounded-2xl p-3.5 sm:p-5 text-white shadow-xl relative overflow-hidden border border-teal-500/30">
+                <div className="bg-gradient-to-br from-[#022824] via-[#033f37] to-[#01221e] rounded-2xl p-3.5 sm:p-5 pt-11 sm:pt-12 text-white shadow-xl relative overflow-hidden border border-teal-500/30">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
+
+                  {/* Top-Left Back Arrow Button */}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(3)}
+                    className="absolute top-3 left-3 sm:top-3.5 sm:left-3.5 z-20 w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 border border-teal-400/30 flex items-center justify-center text-teal-200 hover:text-white transition-all cursor-pointer active:scale-95 shadow-sm"
+                    title="Back to Step 3"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                  </button>
 
                   {/* Header Row */}
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-teal-700/50 relative z-10">
@@ -1439,77 +1450,90 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
                   )}
                 </div>
 
-                {/* 🩺 Dr. AyurAI Clinical Biomarker Analysis & Circadian Lifestyle Hacks */}
-                <div className="bg-gradient-to-br from-slate-900 via-[#012723] to-slate-950 rounded-2xl p-4 sm:p-5 text-white border border-teal-500/30 shadow-xl space-y-3.5">
-                  <div className="flex items-center justify-between pb-2.5 border-b border-teal-800/60">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300">
+                {/* 🩺 Dr. AyurAI Clinical Biomarker Analysis & Circadian Lifestyle Hacks (Collapsible Accordion) */}
+                <div className="bg-gradient-to-br from-slate-900 via-[#012723] to-slate-950 rounded-2xl p-3.5 sm:p-4 text-white border border-teal-500/30 shadow-xl">
+                  <button
+                    type="button"
+                    onClick={() => setIsDoctorEvalOpen(!isDoctorEvalOpen)}
+                    className="w-full flex items-center justify-between cursor-pointer text-left focus:outline-none group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300 group-hover:bg-teal-500/30 transition-colors">
                         <Activity className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="text-[9px] font-black uppercase tracking-wider text-teal-400">
-                          Clinical AI Doctor Evaluation
+                        <span className="text-[9px] font-black uppercase tracking-wider text-teal-400 flex items-center gap-1">
+                          ✦ CLINICAL AI DOCTOR EVALUATION
                         </span>
-                        <h3 className="text-xs sm:text-sm font-bold text-white">
+                        <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-teal-200 transition-colors">
                           Personalized Biomarker & Circadian Assessment
                         </h3>
                       </div>
                     </div>
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
-                      <ShieldCheck className="w-3 h-3" /> Direct Store Inventory Match
-                    </span>
-                  </div>
-
-                  {/* Doctor Analysis Text */}
-                  <div className="p-3 rounded-xl bg-teal-950/40 border border-teal-500/20 text-xs text-teal-100/90 leading-relaxed">
-                    <div className="flex items-center gap-1.5 mb-1 text-teal-300 font-bold text-[11px] uppercase tracking-wider">
-                      <Sparkles className="w-3.5 h-3.5" /> Doctor's Clinical Note:
-                    </div>
-                    {renderFormattedAiText(resolvedDoctorAnalysis)}
-                  </div>
-
-                  {/* 3-Phase Circadian Lifestyle Hacks */}
-                  <div>
-                    <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-teal-300 mb-1.5 flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5" /> 24-Hour Circadian Biological Bio-Hacks:
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-0.5 text-xs">
-                          <Sun className="w-3.5 h-3.5" /> 🌅 Morning Awakening
-                        </div>
-                        <p className="text-slate-300 text-[11px] leading-relaxed">
-                          {resolvedCircadianHacks.morning}
-                        </p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-teal-300 font-bold mb-0.5 text-xs">
-                          <Zap className="w-3.5 h-3.5" /> ☀️ Afternoon Focus
-                        </div>
-                        <p className="text-slate-300 text-[11px] leading-relaxed">
-                          {resolvedCircadianHacks.afternoon}
-                        </p>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 transition-colors">
-                        <div className="flex items-center gap-1.5 text-indigo-300 font-bold mb-0.5 text-xs">
-                          <Moon className="w-3.5 h-3.5" /> 🌙 Evening Wind-Down
-                        </div>
-                        <p className="text-slate-300 text-[11px] leading-relaxed">
-                          {resolvedCircadianHacks.night}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dietary Advice */}
-                  {resolvedDietaryAdvice && (
-                    <div className="flex items-start gap-2 pt-2 border-t border-teal-800/40 text-[11px] sm:text-xs text-teal-200/90">
-                      <Utensils className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                      <span>
-                        <strong className="text-white">Dietary Synergy:</strong> {resolvedDietaryAdvice}
+                    <div className="flex items-center gap-2">
+                      <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold">
+                        <ShieldCheck className="w-3 h-3" /> Direct Store Inventory Match
                       </span>
+                      <div className="w-7 h-7 rounded-lg bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-teal-300 group-hover:bg-teal-500/30 transition-colors">
+                        {isDoctorEvalOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </div>
+                    </div>
+                  </button>
+
+                  {isDoctorEvalOpen && (
+                    <div className="space-y-3.5 pt-3.5 mt-3 border-t border-teal-800/60 animate-fadeIn">
+                      {/* Doctor Analysis Text */}
+                      <div className="p-3 rounded-xl bg-teal-950/40 border border-teal-500/20 text-xs text-teal-100/90 leading-relaxed">
+                        <div className="flex items-center gap-1.5 mb-1 text-teal-300 font-bold text-[11px] uppercase tracking-wider">
+                          <Sparkles className="w-3.5 h-3.5" /> Doctor's Clinical Note:
+                        </div>
+                        {renderFormattedAiText(resolvedDoctorAnalysis)}
+                      </div>
+
+                      {/* 3-Phase Circadian Lifestyle Hacks */}
+                      <div>
+                        <h4 className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-teal-300 mb-1.5 flex items-center gap-1.5">
+                          <Compass className="w-3.5 h-3.5" /> 24-Hour Circadian Biological Bio-Hacks:
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                          <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-amber-400/40 transition-colors">
+                            <div className="flex items-center gap-1.5 text-amber-300 font-bold mb-0.5 text-xs">
+                              <Sun className="w-3.5 h-3.5" /> 🌅 Morning Awakening
+                            </div>
+                            <p className="text-slate-300 text-[11px] leading-relaxed">
+                              {resolvedCircadianHacks.morning}
+                            </p>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-teal-400/40 transition-colors">
+                            <div className="flex items-center gap-1.5 text-teal-300 font-bold mb-0.5 text-xs">
+                              <Zap className="w-3.5 h-3.5" /> ☀️ Afternoon Focus
+                            </div>
+                            <p className="text-slate-300 text-[11px] leading-relaxed">
+                              {resolvedCircadianHacks.afternoon}
+                            </p>
+                          </div>
+
+                          <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-indigo-400/40 transition-colors">
+                            <div className="flex items-center gap-1.5 text-indigo-300 font-bold mb-0.5 text-xs">
+                              <Moon className="w-3.5 h-3.5" /> 🌙 Evening Wind-Down
+                            </div>
+                            <p className="text-slate-300 text-[11px] leading-relaxed">
+                              {resolvedCircadianHacks.night}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dietary Advice */}
+                      {resolvedDietaryAdvice && (
+                        <div className="flex items-start gap-2 pt-2 border-t border-teal-800/40 text-[11px] sm:text-xs text-teal-200/90">
+                          <Utensils className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <span>
+                            <strong className="text-white">Dietary Synergy:</strong> {resolvedDietaryAdvice}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1655,73 +1679,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { } }) => {
                   </form>
                 </div>
 
-                {/* 30-Day Expected Transformation Milestones */}
-                <div className="bg-slate-50/90 rounded-xl p-3 sm:p-3.5 border border-slate-200/80">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-                      What to Expect with Consistency
-                    </h4>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
-                      <span className="font-bold text-teal-700">Day 7:</span>
-                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day7}</p>
-                    </div>
-                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
-                      <span className="font-bold text-teal-700">Day 21:</span>
-                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day21}</p>
-                    </div>
-                    <div className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200/80 shadow-2xs">
-                      <span className="font-bold text-teal-700">Day 45:</span>
-                      <p className="text-slate-600 text-[11px] mt-0.5 leading-snug">{resolvedMilestones.day45}</p>
-                    </div>
-                  </div>
-                </div>
 
-                {/* Action Bar / 1-Click Cart Addition */}
-                <div className="bg-gradient-to-r from-slate-900 via-[#012622] to-slate-900 rounded-xl lg:rounded-2xl p-3.5 sm:p-4 text-white flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-300 font-medium">Selected Protocol Total:</span>
-                      <span className="text-xl sm:text-2xl font-black text-white">₹{totalDiscount}</span>
-                      {savings > 0 && (
-                        <span className="text-xs text-slate-400 line-through">₹{totalOriginal}</span>
-                      )}
-                      {savings > 0 && (
-                        <span className="bg-emerald-400 text-slate-950 text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded-md">
-                          Save ₹{savings}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[10px] sm:text-[11px] text-teal-200/80 mt-0.5">
-                      ✅ Free Express Shipping • Direct Brand Genuine Guarantee
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button
-                      type="button"
-                      onClick={handleShare}
-                      className="p-2 sm:p-2.5 h-10 sm:h-11 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/10 flex-shrink-0 cursor-pointer"
-                      title="Share Protocol"
-                    >
-                      <Share2 className="w-4 h-4" />
-                    </button>
-
-                    <button
-                      type="button"
-                      disabled={isAddingToCart || selectedProductIds.size === 0}
-                      onClick={handleAddProtocolToCart}
-                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 sm:px-6 h-10 sm:h-11 rounded-xl lg:rounded-2xl bg-gradient-to-r from-teal-400 via-emerald-400 to-[#0FB7A3] text-slate-950 font-black text-xs sm:text-sm shadow-lg hover:shadow-teal-400/30 hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
-                    >
-                      <ShoppingCart className="w-4 h-4 text-slate-950" />
-                      <span>
-                        {isAddingToCart ? "Adding to Cart..." : `Adopt Protocol (${selectedProductIds.size} Selected)`}
-                      </span>
-                    </button>
-                  </div>
-                </div>
 
                 {/* Back & Edit Answers Navigation (PREMIUM NAV CONTROLS) */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 pb-1 border-t border-slate-200/80 gap-2.5 sm:gap-3">

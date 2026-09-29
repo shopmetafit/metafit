@@ -6,115 +6,509 @@ import {
   clearCompare,
   openCompareModal,
 } from "../../redux/slices/compareSlice";
-import { ArrowLeftRight, X, Sparkles, Plus } from "lucide-react";
+import { ArrowLeftRight, X, Plus } from "lucide-react";
 
 const CompareFloatingBar = () => {
   const dispatch = useDispatch();
+
   const { items, isCompareModalOpen } = useSelector(
-    (state) => state.compare || { items: [], isCompareModalOpen: false }
+    (state) =>
+      state.compare || {
+        items: [],
+        isCompareModalOpen: false,
+      }
   );
 
-  // Hide bar when no items or when modal is open
-  if (!items || items.length === 0 || isCompareModalOpen) {
+  // =========================================================
+  // SHOW ONLY WHEN 2 OR MORE PRODUCTS ARE SELECTED
+  // =========================================================
+
+  if (!items || items.length < 2 || isCompareModalOpen) {
     return null;
   }
 
   const maxSlots = 4;
-  const emptySlotsCount = Math.max(0, maxSlots - items.length);
 
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 50, scale: 0.95 }}
-        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-        className="fixed bottom-[4.2rem] md:bottom-6 left-3 right-16 md:left-1/2 md:right-auto md:-translate-x-1/2 z-45 md:w-auto md:max-w-xl bg-stone-950/95 backdrop-blur-md border border-stone-800 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl p-2.5 sm:p-3.5 text-white"
+        initial={{
+          opacity: 0, y: 25, scale: 0.96,
+        }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+        }}
+        exit={{
+          opacity: 0,
+          y: 25,
+          scale: 0.96,
+        }}
+        transition={{
+          type: "spring",
+          stiffness: 350,
+          damping: 25,
+        }}
+        className="
+          fixed
+          z-[9999]
+
+          bottom-[76px]
+
+          left-1/2
+          -translate-x-1/2
+
+          w-max
+          max-w-[calc(100vw-16px)]
+
+          md:bottom-6
+
+          md:max-w-xl
+
+          bg-[#111714]/98
+          backdrop-blur-xl
+
+          border
+          border-white/10
+
+          shadow-[0_10px_35px_rgba(0,0,0,0.35)]
+
+          rounded-xl
+          md:rounded-2xl
+
+          p-1.5
+          md:p-2
+
+          text-white
+
+          box-border
+        "
       >
-        <div className="flex items-center justify-between gap-3">
-          {/* Left Title & Counter */}
-          <div className="flex items-center gap-2.5 min-w-max">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-stone-950 shadow-md shadow-emerald-500/20">
-              <ArrowLeftRight className="w-4 h-4 stroke-[2.5]" />
+        {/* =====================================================
+            MAIN BAR
+        ====================================================== */}
+
+        <div
+          className="
+            flex
+            items-center
+            justify-center
+
+            gap-2
+            md:gap-3
+
+            w-max
+            max-w-full
+
+            min-w-0
+          "
+        >
+          {/* ===================================================
+              DESKTOP COMPARE INFO
+          =================================================== */}
+
+          <div
+            className="
+              hidden
+              sm:flex
+
+              items-center
+              gap-2
+
+              flex-shrink-0
+            "
+          >
+            <div
+              className="
+                w-8
+                h-8
+
+                rounded-lg
+
+                bg-[#1e4620]
+
+                flex
+                items-center
+                justify-center
+
+                flex-shrink-0
+              "
+            >
+              <ArrowLeftRight
+                className="
+                  w-4
+                  h-4
+
+                  text-emerald-300
+
+                  stroke-[2.5]
+                "
+              />
             </div>
-            <div className="hidden sm:block">
+
+            <div className="leading-none">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-bold tracking-wide uppercase text-stone-200">
+                <span
+                  className="
+                    text-xs
+                    font-bold
+                    uppercase
+                    tracking-wide
+                    text-white
+                  "
+                >
                   Compare
                 </span>
-                <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+
+                <span
+                  className="
+                    text-[9px]
+                    font-bold
+
+                    px-1.5
+                    py-0.5
+
+                    rounded-full
+
+                    bg-emerald-500/15
+                    text-emerald-300
+
+                    border
+                    border-emerald-400/20
+                  "
+                >
                   {items.length}/{maxSlots}
                 </span>
               </div>
-              <p className="text-[11px] text-stone-400">Side-by-Side Matrix</p>
+
+              <span className="text-[10px] text-stone-400">
+                Side-by-Side Matrix
+              </span>
             </div>
           </div>
 
-          {/* Center Product Thumbnails */}
-          <div className="flex items-center gap-2 overflow-x-auto py-1 px-1">
-            {items.map((prod) => {
+          {/* ===================================================
+              PRODUCT THUMBNAILS
+          =================================================== */}
+
+          <div
+            className="
+              flex
+              items-center
+
+              gap-1.5
+
+              flex-shrink-0
+
+              min-w-0
+            "
+          >
+            {items.slice(0, 2).map((prod) => {
               const imageSrc =
                 prod.thumbnail ||
                 (prod.images && prod.images[0]?.url) ||
-                (typeof prod.images?.[0] === "string" ? prod.images[0] : null) ||
+                (typeof prod.images?.[0] === "string"
+                  ? prod.images[0]
+                  : null) ||
                 "https://via.placeholder.com/60";
 
               return (
                 <div
                   key={prod._id}
-                  className="relative group w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-stone-900 border border-stone-700/80 p-1 flex-shrink-0 flex items-center justify-center shadow-inner"
+                  className="
+                    relative
+
+                    w-9
+                    h-9
+
+                    md:w-10
+                    md:h-10
+
+                    rounded-lg
+
+                    bg-white
+
+                    border
+                    border-white/15
+
+                    p-0.5
+
+                    flex-shrink-0
+
+                    flex
+                    items-center
+                    justify-center
+
+                    shadow-sm
+                  "
                   title={prod.name}
                 >
                   <img
                     src={imageSrc}
                     alt={prod.name}
-                    className="w-full h-full object-contain rounded-lg"
+                    className="
+                      w-full
+                      h-full
+
+                      object-contain
+
+                      rounded-md
+                    "
                   />
+
+                  {/* Remove */}
+
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      dispatch(removeFromCompare(prod._id));
+
+                      dispatch(
+                        removeFromCompare(prod._id)
+                      );
                     }}
-                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center shadow-md transition-transform transform hover:scale-110 active:scale-95"
-                    title="Remove item"
+                    className="
+                      absolute
+
+                      -top-1.5
+                      -right-1.5
+
+                      w-4
+                      h-4
+
+                      rounded-full
+
+                      bg-rose-500
+                      hover:bg-rose-600
+
+                      text-white
+
+                      flex
+                      items-center
+                      justify-center
+
+                      shadow-md
+
+                      cursor-pointer
+
+                      z-20
+
+                      transition
+                      hover:scale-110
+                    "
+                    title="Remove product"
+                    aria-label={`Remove ${prod.name} from compare`}
                   >
-                    <X className="w-2.5 h-2.5 stroke-[3]" />
+                    <X
+                      className="
+                        w-2.5
+                        h-2.5
+
+                        stroke-[3]
+                      "
+                    />
                   </button>
                 </div>
               );
             })}
 
-            {/* Empty Slots */}
-            {Array.from({ length: emptySlotsCount }).map((_, idx) => (
+            {/* =================================================
+                EXTRA PRODUCTS
+            ================================================= */}
+
+            {items.length > 2 && (
               <div
-                key={`empty-${idx}`}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl border border-dashed border-stone-700/60 bg-stone-900/40 flex items-center justify-center flex-shrink-0 text-stone-600"
-                title="Add more products to compare"
+                className="
+                  w-9
+                  h-9
+
+                  md:w-10
+                  md:h-10
+
+                  rounded-lg
+
+                  bg-[#1e4620]
+
+                  border
+                  border-emerald-500/30
+
+                  flex
+                  items-center
+                  justify-center
+
+                  flex-shrink-0
+
+                  text-[10px]
+                  md:text-xs
+
+                  font-extrabold
+
+                  text-emerald-200
+                "
               >
-                <Plus className="w-3.5 h-3.5" />
+                +{items.length - 2}
               </div>
-            ))}
+            )}
+
+            {/* Desktop Empty Slots */}
+
+            <div className="hidden md:flex items-center gap-1.5">
+              {Array.from({
+                length: Math.max(
+                  0,
+                  maxSlots - items.length
+                ),
+              }).map((_, index) => (
+                <div
+                  key={`empty-${index}`}
+                  className="
+                    w-10
+                    h-10
+
+                    rounded-lg
+
+                    border
+                    border-dashed
+                    border-white/10
+
+                    bg-white/5
+
+                    flex
+                    items-center
+                    justify-center
+
+                    text-stone-600
+
+                    flex-shrink-0
+                  "
+                >
+                  <Plus className="w-3 h-3" />
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 min-w-max">
+          {/* ===================================================
+              MOBILE / DESKTOP ACTIONS
+          =================================================== */}
+
+          <div
+            className="
+              flex
+              items-center
+
+              gap-1.5
+
+              flex-shrink-0
+            "
+          >
+            {/* Desktop Clear */}
+
             <button
               type="button"
-              onClick={() => dispatch(clearCompare())}
-              className="text-stone-400 hover:text-stone-200 text-xs px-2 py-1.5 font-medium transition-colors hidden sm:block"
+              onClick={() =>
+                dispatch(clearCompare())
+              }
+              className="
+                hidden
+                md:block
+
+                text-[11px]
+
+                text-stone-400
+                hover:text-black
+
+                font-semibold
+
+                px-1.5
+                py-1
+
+                transition-colors
+
+                cursor-pointer
+
+                whitespace-nowrap
+              "
+              title="Clear all products"
             >
               Clear
             </button>
 
+            {/* =================================================
+                COMPARE BUTTON
+            ================================================= */}
             <button
               type="button"
               onClick={() => dispatch(openCompareModal())}
-              className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-stone-950 font-bold text-xs sm:text-sm shadow-lg shadow-teal-500/25 active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
+              className="
+               h-7
+               md:h-8
+
+                  px-2
+                  md:px-2.5
+
+                  min-w-[58px]
+                  md:min-w-[78px]
+
+                  rounded-md
+                  md:rounded-lg
+
+                  bg-[#1e4620]
+                  hover:bg-[#285c2a]
+
+                  border
+                  border-emerald-400/20
+
+                  text-white
+
+                  font-bold
+
+                  text-[9px]
+                  md:text-[11px]
+
+                  shadow-[0_3px_8px_rgba(30,70,32,0.30)]
+
+                  inline-flex
+                  items-center
+                  justify-center
+
+                  gap-0.5
+                  md:gap-1
+
+                  whitespace-nowrap
+
+                  flex-shrink-0
+
+                  cursor-pointer
+
+                  active:scale-[0.97]
+
+                  transition-all
+                "
+              aria-label={`Open comparison with ${items.length} products`}
             >
-              <Sparkles className="w-3.5 h-3.5 text-stone-950 fill-stone-950" />
-              <span>Compare ({items.length})</span>
+              <ArrowLeftRight
+                className="
+                    w-2.5
+                    h-2.5
+
+                    md:w-3
+                    md:h-3
+
+                    text-emerald-300
+
+                    stroke-[2.5]
+
+                    flex-shrink-0
+                  "
+              />
+
+              <span>
+                ({items.length})
+              </span>
             </button>
+
           </div>
         </div>
       </motion.div>
