@@ -64,8 +64,10 @@ const RoutineBuilderPage = () => {
           relative
         "
       >
+
+
         {/* =====================================================
-            TOP LEFT BACK ARROW
+            TOP LEFT BACK ARROW (ALWAYS VISIBLE)
         ====================================================== */}
         <div className="flex items-center justify-start">
           <button
@@ -110,54 +112,12 @@ const RoutineBuilderPage = () => {
             sm:space-y-3.5
 
             pt-0
-            pb-2
+            pb-1
             sm:pb-2.5
           "
         >
-          {/* Eyebrow Pill */}
-          <div className="flex justify-center">
-            <div
-              className="
-                inline-flex
-                items-center
-                gap-1.5
-
-                px-3
-                py-1
-
-                rounded-full
-
-                bg-teal-100/80
-                border
-                border-teal-200/90
-
-                text-[#022824]
-
-                text-[10px]
-                sm:text-xs
-
-                font-bold
-                uppercase
-                tracking-widest
-
-                shadow-2xs
-              "
-            >
-              <Sparkles
-                className="
-                  w-3.5
-                  h-3.5
-                  text-teal-600
-                  animate-pulse
-                "
-              />
-
-              <span>
-                PERSONALIZED WELLNESS EXPERIENCE
-              </span>
-            </div>
-          </div>
-
+        
+          
           {/* Main Heading */}
           <h1
             className="

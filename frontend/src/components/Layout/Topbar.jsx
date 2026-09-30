@@ -1018,7 +1018,7 @@ const Topbar = () => {
   </span>
 
   <span className="hidden sm:inline">
-    Routine Matcher
+    Wellness Assistant
   </span>
 </Link>
 

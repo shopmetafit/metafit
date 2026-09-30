@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Sun,
@@ -34,6 +35,7 @@ import {
   HelpCircle,
   Compass,
   Utensils,
+  X,
 } from "lucide-react";
 import { addToCart } from "../../redux/slices/cartSlice";
 import { toast } from "sonner";
@@ -199,6 +201,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
   const [preference, setPreference] = useState("ayurvedic");
   const [routineTiming, setRoutineTiming] = useState("full_day");
   const [isDoctorEvalOpen, setIsDoctorEvalOpen] = useState(false);
+  const [isAiChatModalOpen, setIsAiChatModalOpen] = useState(false);
 
   // ─── Products & Catalog ───
   const [allCatalogProducts, setAllCatalogProducts] = useState([]);
@@ -411,7 +414,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
         {
           id: "welcome-1",
           sender: "ai",
-          text: `Namaste ${userName || "Friend"}! 🙏 Main hoon **Dr. AyurAI**, aapka AI Clinical Health Specialist.\n\nMaine aapke liye **${activeGoalObj.title}** ka personalized protocol formulate kiya hai. Aap mujhse **Hinglish, Hindi, English ya kisi bhi bhasha** me pooch sakte hain — jaise dosage, timing, khane-peene ke parhez ya results kab tak dikhenge! 🌿✨`,
+          text: `Namaste ${userName || "Friend"}! 🙏 Main hoon **Dr. AyurAI**, aapka AI Clinical Health Specialist.\n\nMaine aapke liye **${activeGoalObj.title}** ka personalized protocol formulate kiya hai. Aap mujhse **Hindi, English ya kisi bhi bhasha** me pooch sakte hain — jaise dosage, timing, khane-peene ke parhez ya results kab tak dikhenge! 🌿✨`,
           time: "Just now",
         },
       ]);
@@ -647,29 +650,110 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Title & Subtitle Row */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 relative z-10">
-            <div>
-              <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-400/30 inline-block mb-0.5">
-                Personalized Wellness Match
-              </span>
-              <h1 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-snug">
-                Build Your Personalized Wellness Routine
-              </h1>
-              <p className="text-[11px] sm:text-xs text-teal-100/90 mt-0.5 max-w-xl leading-relaxed">
-                Tell us about yourself and we'll personalize the next steps.
-              </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
+            <div className="flex items-start gap-2.5 min-w-0 flex-1">
+              {/* Dynamic Plain Header Back Arrow for Step 2+ */}
+              <AnimatePresence>
+                {currentStep > 1 && (
+                  <motion.button
+                    type="button"
+                    initial={{ opacity: 0, x: -4, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -4, scale: 0.95 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    onClick={() => setCurrentStep((prev) => prev - 1)}
+                    className="
+                      text-teal-200
+                      hover:text-white
+                      transition-colors
+                      cursor-pointer
+                      p-0
+                      focus:outline-none
+                      flex
+                      items-center
+                      justify-center
+                      flex-shrink-0
+                      mt-0.5
+                    "
+                    aria-label={`Go Back to Step ${currentStep - 1}`}
+                    title={`Go Back to Step ${currentStep - 1}`}
+                  >
+                    <ArrowLeft
+                      className="
+                        w-6
+                        h-6
+                        sm:w-7
+                        sm:h-7
+                        stroke-[2.2]
+                      "
+                    />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <div className="min-w-0">
+                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-teal-300 bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-400/30 inline-block mb-0.5">
+                  Personalized Wellness Match
+                </span>
+                <h1 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-snug">
+                  Build Your Personalized Wellness Routine
+                </h1>
+                <p className="text-[11px] sm:text-xs text-teal-100/90 mt-0.5 max-w-xl leading-relaxed">
+                  Tell us about yourself and we'll personalize the next steps.
+                </p>
+              </div>
             </div>
 
-            {/* Step Counter Pill */}
-            <div className="self-start sm:self-center flex-shrink-0 flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 bg-white/10 backdrop-blur-md px-2 py-1 rounded-lg border border-white/15 text-[10px] font-black text-teal-200 tracking-wider shadow-inner">
-                <span>Step {currentStep} of 4</span>
-              </span>
+            {/* Right Controls: Animated Dr. AyurAI Avatar & Step Counter Pill */}
+            <div className="self-start sm:self-center flex-shrink-0 flex items-center gap-2.5 sm:gap-3.5">
+              {/* Dr. AyurAI Animated Character Entry Point */}
+              <button
+  type="button"
+  onClick={() => setIsAiChatModalOpen(true)}
+  className="
+    relative
+    w-[60px] h-[60px]
+    sm:w-[76px] sm:h-[76px]
+    lg:w-[86px] lg:h-[86px]
+    flex-shrink-0
+    bg-transparent
+    border-none
+    shadow-none
+    p-0
+    m-0
+    outline-none
+    focus:outline-none
+    cursor-pointer
+    flex items-center justify-center
+    transition-transform
+    hover:scale-105
+    active:scale-95
+  "
+  aria-label="Ask Dr. AyurAI"
+  title="Ask Dr. AyurAI"
+>
+  <img
+    src="/doctor.svg"
+    alt="Dr. AyurAI"
+    className="
+      w-full
+      h-full
+      object-contain
+      pointer-events-none
+      select-none
+      bg-transparent
+      border-none
+      shadow-none
+    "
+  />
+</button>
+
+             
               {isModal && (
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                  className="text-teal-200 hover:text-white bg-white/10 hover:bg-white/20 w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer flex-shrink-0"
                   aria-label="Close"
                 >
                   ✕
@@ -1109,14 +1193,9 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
               <div className="space-y-4 lg:space-y-5">
                 {/* Top Quick Actions Bar */}
                 <div className="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setCurrentStep(3)}
-                    className="inline-flex items-center gap-1.5 h-8.5 sm:h-9 px-3 rounded-lg bg-white hover:bg-slate-50 text-slate-800 font-bold shadow-2xs border border-slate-200 transition-colors cursor-pointer"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5 text-teal-700" />
-                    <span>Back to Step 3</span>
-                  </button>
+
+
+
 
                   <div className="flex items-center gap-2">
                     <button
@@ -1538,162 +1617,13 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                   )}
                 </div>
 
-                {/* 💬 INTERACTIVE 24/7 AI DOCTOR CONSULTATION CHAT */}
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                  {/* Chat Header */}
-                  <div className="p-3 sm:p-3.5 bg-gradient-to-r from-slate-900 via-[#012723] to-slate-900 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-2 sm:gap-2.5">
-                      <div className="relative">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-md">
-                          <Bot className="w-4 h-4" />
-                        </div>
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-xs sm:text-sm text-white">Dr. AyurAI</h3>
-                          <span className="text-[9px] font-bold bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/30">
-                            Multilingual AI Health Specialist
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-teal-200/80">
-                          Ask anything in Hinglish, Hindi, English, Gujarati, etc.
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
-                      <Sparkles className="w-3 h-3 text-teal-400" />
-                      <span>Live Gemini Assistant</span>
-                    </div>
-                  </div>
-
-                  {/* Suggested Question Pills */}
-                  <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs">
-                    <span className="text-[10px] font-bold text-slate-400 flex-shrink-0 flex items-center gap-1">
-                      <HelpCircle className="w-3 h-3 text-teal-600" /> Quick Ask:
-                    </span>
-                    {[
-                      "Diet me kya parhez rakhna hai?",
-                      "Kya ise doodh ya gungune paani ke sath le sakte hain?",
-                      "Kitne din me noticeable result dikhega?",
-                      "Koi side effect to nahi hoga?",
-                      "How should I use this routine?",
-                    ].map((q, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSendChatMessage(q)}
-                        disabled={isChatSending}
-                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 border border-slate-200 hover:border-teal-300 text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Chat Messages Container */}
-                  <div className="p-3 space-y-2.5 max-h-56 sm:max-h-64 overflow-y-auto bg-slate-50/50">
-                    {chatMessages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
-                      >
-                        {msg.sender === "ai" && (
-                          <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
-                            <Bot className="w-3.5 h-3.5" />
-                          </div>
-                        )}
-
-                        <div
-                          className={`max-w-[85%] sm:max-w-[78%] rounded-xl p-2.5 sm:p-3 text-xs leading-relaxed shadow-2xs ${msg.sender === "user"
-                            ? "bg-teal-600 text-white rounded-br-none"
-                            : "bg-white text-slate-800 border border-slate-200/90 rounded-bl-none"
-                            }`}
-                        >
-                          <div className="whitespace-pre-line leading-relaxed">
-                            {renderFormattedAiText(msg.text)}
-                          </div>
-                          <div
-                            className={`text-[9px] mt-1 font-mono flex items-center justify-end gap-1 ${msg.sender === "user" ? "text-teal-100" : "text-slate-400"
-                              }`}
-                          >
-                            <span>{msg.time}</span>
-                            {msg.sender === "ai" && <span>• Dr. AyurAI</span>}
-                          </div>
-                        </div>
-
-                        {msg.sender === "user" && (
-                          <div className="w-6.5 h-6.5 rounded-lg bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
-                            <User className="w-3.5 h-3.5" />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    {/* Typing Animation when AI is generating */}
-                    {isChatSending && (
-                      <div className="flex gap-2 justify-start items-center">
-                        <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs">
-                          <Bot className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="bg-white border border-slate-200 rounded-xl rounded-bl-none p-2.5 shadow-2xs flex items-center gap-2 text-xs text-slate-500">
-                          <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
-                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
-                          </div>
-                          <span className="text-[11px]">Dr. AyurAI is formulating clinical advice...</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div ref={chatBottomRef} />
-                  </div>
-
-                  {/* Chat Input Bar */}
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      handleSendChatMessage();
-                    }}
-                    className="p-2 sm:p-2.5 bg-white border-t border-slate-200 flex items-center gap-2"
-                  >
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder={`Poochiye Dr. AyurAI se kuch bhi (Hinglish, Hindi, English, Gujarati, etc.)...`}
-                      disabled={isChatSending}
-                      className="flex-1 px-3 py-1.5 h-8.5 sm:h-9 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
-                    />
-
-                    <button
-                      type="submit"
-                      disabled={!chatInput.trim() || isChatSending}
-                      className="inline-flex items-center justify-center gap-1 px-3 py-1.5 h-8.5 sm:h-9 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-40 cursor-pointer flex-shrink-0"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Send</span>
-                    </button>
-                  </form>
-                </div>
 
 
 
                 {/* Back & Edit Answers Navigation (PREMIUM NAV CONTROLS) */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-3 pb-1 border-t border-slate-200/80 gap-2.5 sm:gap-3">
-                  {/* Left Side: Step Navigation Button */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentStep(3)}
-                      className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-3.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200/90 hover:border-slate-300 text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5 text-teal-700" />
-                      <span>Back to Step 3</span>
-                    </button>
-                  </div>
+
 
                   {/* Right Side: Secondary Utility Action */}
                   <button
@@ -1969,6 +1899,167 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
           </div>
         </div>
       )}
+
+      {/* ─── DR. AYURAI QUICK ASK CHAT MODAL ─── */}
+      <AnimatePresence>
+        {isAiChatModalOpen && (
+          <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full max-w-xl max-h-[calc(100dvh-16px)] sm:max-h-[640px] bg-white rounded-2xl shadow-2xl border border-teal-500/30 overflow-hidden flex flex-col"
+            >
+              {/* Modal Header */}
+              <div className="p-3 sm:p-4 bg-gradient-to-r from-slate-900 via-[#012723] to-slate-900 text-white flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="relative">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-md">
+                      <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </div>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900 absolute -bottom-0.5 -right-0.5 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-xs sm:text-sm text-white">Dr. AyurAI</h3>
+                      <span className="text-[9px] font-bold bg-teal-500/20 text-teal-300 px-2 py-0.5 rounded-full border border-teal-400/30">
+                        Multilingual AI Health Specialist
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-teal-200/80">Personalized Wellness Assistant</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/10">
+                    <Sparkles className="w-3 h-3 text-teal-400" />
+                    <span>Live Gemini Assistant</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAiChatModalOpen(false)}
+                    className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    aria-label="Close Chat"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Suggested Question Pills */}
+              <div className="p-2 bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs flex-shrink-0">
+                <span className="text-[10px] font-bold text-slate-400 flex-shrink-0 flex items-center gap-1 pl-1">
+                  <HelpCircle className="w-3 h-3 text-teal-600" /> Quick Ask:
+                </span>
+                {[
+                  "Diet me kya parhez rakhna hai?",
+                  "Kya ise doodh ya gungune paani ke sath le sakte hain?",
+                  "Kitne din me noticeable result dikhega?",
+                  "Koi side effect to nahi hoga?",
+                  "How should I use this routine?",
+                ].map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleSendChatMessage(q)}
+                    disabled={isChatSending}
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-teal-50 text-slate-700 hover:text-teal-800 border border-slate-200 hover:border-teal-300 text-[10px] sm:text-[11px] font-medium whitespace-nowrap transition-all cursor-pointer shadow-2xs active:scale-95 disabled:opacity-50"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+
+              {/* Chat Messages Container */}
+              <div className="p-3.5 space-y-3 flex-1 overflow-y-auto bg-slate-50/50 min-h-[200px]">
+                {chatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex gap-2 ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    {msg.sender === "ai" && (
+                      <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
+                        <Bot className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+
+                    <div
+                      className={`max-w-[88%] sm:max-w-[80%] rounded-xl p-2.5 sm:p-3 text-xs leading-relaxed shadow-2xs ${msg.sender === "user"
+                        ? "bg-teal-600 text-white rounded-br-none"
+                        : "bg-white text-slate-800 border border-slate-200/90 rounded-bl-none"
+                        }`}
+                    >
+                      <div className="whitespace-pre-line leading-relaxed">
+                        {renderFormattedAiText(msg.text)}
+                      </div>
+                      <div
+                        className={`text-[9px] mt-1 font-mono flex items-center justify-end gap-1 ${msg.sender === "user" ? "text-teal-100" : "text-slate-400"
+                          }`}
+                      >
+                        <span>{msg.time}</span>
+                        {msg.sender === "ai" && <span>• Dr. AyurAI</span>}
+                      </div>
+                    </div>
+
+                    {msg.sender === "user" && (
+                      <div className="w-6.5 h-6.5 rounded-lg bg-slate-800 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs mt-0.5">
+                        <User className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Typing Indicator */}
+                {isChatSending && (
+                  <div className="flex gap-2 justify-start items-center">
+                    <div className="w-6.5 h-6.5 rounded-lg bg-teal-700 text-white flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-2xs">
+                      <Bot className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="bg-white border border-slate-200 rounded-xl rounded-bl-none p-2.5 shadow-2xs flex items-center gap-2 text-xs text-slate-500">
+                      <div className="flex gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.2s]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-bounce [animation-delay:0.4s]" />
+                      </div>
+                      <span className="text-[11px]">Dr. AyurAI is formulating clinical advice...</span>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={chatBottomRef} />
+              </div>
+
+              {/* Chat Input Bar */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendChatMessage();
+                }}
+                className="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2 flex-shrink-0"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  placeholder={`Apni wellness journey ke liye Dr. AyurAI se poochiye...`}
+                  disabled={isChatSending}
+                  className="flex-1 px-3 py-1.5 h-9 sm:h-10 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
+                />
+
+                <button
+                  type="submit"
+                  disabled={!chatInput.trim() || isChatSending}
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 h-9 sm:h-10 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm transition-all disabled:opacity-40 cursor-pointer flex-shrink-0"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Send</span>
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
