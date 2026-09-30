@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { X, ChevronRight, Phone } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
@@ -80,43 +80,45 @@ const Navbar = () => {
     "hare care": "hair care",
   };
 
-  const dynamicCategories = (allProducts || []).reduce(
-    (acc, product) => {
-      let category = product.category?.trim();
+  const dynamicCategories = useMemo(() => {
+    return (allProducts || []).reduce(
+      (acc, product) => {
+        let category = product.category?.trim();
 
-      if (category) {
-        let normalizedCategory = category.toLowerCase();
+        if (category) {
+          let normalizedCategory = category.toLowerCase();
 
-        if (typoCorrectionMap[normalizedCategory]) {
-          normalizedCategory =
-            typoCorrectionMap[normalizedCategory];
+          if (typoCorrectionMap[normalizedCategory]) {
+            normalizedCategory =
+              typoCorrectionMap[normalizedCategory];
 
-          if (category.toLowerCase() in typoCorrectionMap) {
-            category = typoCorrectionMap[
-              category.toLowerCase()
-            ].replace(/\b\w/g, (s) => s.toUpperCase());
+            if (category.toLowerCase() in typoCorrectionMap) {
+              category = typoCorrectionMap[
+                category.toLowerCase()
+              ].replace(/\b\w/g, (s) => s.toUpperCase());
+            }
+          }
+
+          if (
+            !acc.find(
+              (c) => c.normalizedName === normalizedCategory
+            )
+          ) {
+            acc.push({
+              label: category,
+              link: `/collections/all?category=${encodeURIComponent(
+                normalizedCategory
+              )}`,
+              normalizedName: normalizedCategory,
+            });
           }
         }
 
-        if (
-          !acc.find(
-            (c) => c.normalizedName === normalizedCategory
-          )
-        ) {
-          acc.push({
-            label: category,
-            link: `/collections/all?category=${encodeURIComponent(
-              normalizedCategory
-            )}`,
-            normalizedName: normalizedCategory,
-          });
-        }
-      }
-
-      return acc;
-    },
-    []
-  );
+        return acc;
+      },
+      []
+    );
+  }, [allProducts]);
 
   const displayedCategories =
     dynamicCategories.length > 0

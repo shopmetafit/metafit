@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   FaLeaf,
@@ -44,35 +44,39 @@ const FilterSidebar = () => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
 
-  const uniqueBrands = allProducts.reduce((acc, product) => {
-    const brand = product.brand?.trim();
-    if (brand) {
-      const normalizedBrand = brand.toLowerCase();
-      if (!acc.find(b => b.normalizedName === normalizedBrand)) {
-        acc.push({ normalizedName: normalizedBrand, displayName: brand });
-      }
-    }
-    return acc;
-  }, []);
-
-  const uniqueCategories = allProducts.reduce((acc, product) => {
-    let category = product.category?.trim();
-    if (category) {
-      let normalizedCategory = category.toLowerCase();
-      // Apply typo correction
-      if (typoCorrectionMap[normalizedCategory]) {
-        normalizedCategory = typoCorrectionMap[normalizedCategory];
-        if (category.toLowerCase() in typoCorrectionMap) {
-          category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, s => s.toUpperCase()); // Capitalize corrected name for display
+  const uniqueBrands = useMemo(() => {
+    return (allProducts || []).reduce((acc, product) => {
+      const brand = product.brand?.trim();
+      if (brand) {
+        const normalizedBrand = brand.toLowerCase();
+        if (!acc.find(b => b.normalizedName === normalizedBrand)) {
+          acc.push({ normalizedName: normalizedBrand, displayName: brand });
         }
       }
+      return acc;
+    }, []);
+  }, [allProducts]);
 
-      if (!acc.find(c => c.normalizedName === normalizedCategory)) {
-        acc.push({ normalizedName: normalizedCategory, displayName: category });
+  const uniqueCategories = useMemo(() => {
+    return (allProducts || []).reduce((acc, product) => {
+      let category = product.category?.trim();
+      if (category) {
+        let normalizedCategory = category.toLowerCase();
+        // Apply typo correction
+        if (typoCorrectionMap[normalizedCategory]) {
+          normalizedCategory = typoCorrectionMap[normalizedCategory];
+          if (category.toLowerCase() in typoCorrectionMap) {
+            category = typoCorrectionMap[category.toLowerCase()].replace(/\b\w/g, s => s.toUpperCase()); // Capitalize corrected name for display
+          }
+        }
+
+        if (!acc.find(c => c.normalizedName === normalizedCategory)) {
+          acc.push({ normalizedName: normalizedCategory, displayName: category });
+        }
       }
-    }
-    return acc;
-  }, []);
+      return acc;
+    }, []);
+  }, [allProducts]);
 
   const [openSections, setOpenSections] = useState({
     category: false,

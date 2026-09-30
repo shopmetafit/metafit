@@ -40,8 +40,9 @@ const CompareModal = () => {
 
   // Close modal when Escape key is pressed
   React.useEffect(() => {
+    if (!isCompareModalOpen) return;
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isCompareModalOpen) {
+      if (e.key === "Escape") {
         dispatch(closeCompareModal());
       }
     };

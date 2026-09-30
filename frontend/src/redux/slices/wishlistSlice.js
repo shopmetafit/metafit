@@ -27,6 +27,14 @@ export const fetchWishlist = createAsyncThunk(
           : error.message
       );
     }
+  },
+  {
+    condition: (_, { getState }) => {
+      const { wishlist } = getState();
+      if (wishlist?.products && wishlist.products.length > 0) {
+        return false; // Skip network fetch if wishlist items are already in store
+      }
+    },
   }
 );
 

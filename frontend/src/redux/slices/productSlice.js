@@ -70,6 +70,14 @@ export const fetchAllProducts = createAsyncThunk(
         error.response?.data?.message || "Failed to fetch products"
       );
     }
+  },
+  {
+    condition: (_, { getState }) => {
+      const { products } = getState();
+      if (products?.allProducts && products.allProducts.length > 0) {
+        return false; // Skip network fetch if products are already present in store
+      }
+    },
   }
 );
 
@@ -131,6 +139,14 @@ export const fetchWellnessGoals = createAsyncThunk(
         error.response?.data?.message || "Failed to fetch wellness goals"
       );
     }
+  },
+  {
+    condition: (_, { getState }) => {
+      const { products } = getState();
+      if (products?.wellnessGoals && products.wellnessGoals.length > 0) {
+        return false; // Skip network fetch if wellness goals are already loaded
+      }
+    },
   }
 );
 
