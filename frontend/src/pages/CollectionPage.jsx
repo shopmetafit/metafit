@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import FilterSidebar from "../components/Products/FilterSidebar";
 import GoalBar from "../components/Products/GoalBar";
 import ProductGrid from "../components/Products/ProductGrid";
+import NavratriBannerSection from "../components/common/NavratriBannerSection";
 
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productSlice";
@@ -12,6 +13,16 @@ import FAQSection from "./FAQ";
 import WelcomeAccordion from "../components/common/WelcomeAccordion";
 
 import SEO from "../components/SEO/SEO";
+
+export const getProductDiscount = (product) => {
+  if (!product) return 0;
+  const sellingPrice = Number(product.discountPrice || product.price || 0);
+  const mrpPrice = Number(product.price || 0);
+  if (product.discountPrice && mrpPrice > sellingPrice && mrpPrice > 0) {
+    return Math.round(((mrpPrice - sellingPrice) / mrpPrice) * 100);
+  }
+  return 0;
+};
 
 const categorySlugToName = {
   "ayurvedic-devices": "Ayurvedic Devices",
@@ -117,6 +128,32 @@ const CollectionPage = () => {
 
 
 
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+
+  // Filter products by real discount percentage if discount query parameters exist
+  const filteredProducts = useMemo(() => {
+    if (!products || !Array.isArray(products)) return [];
+
+    let result = products;
+
+    if (queryParams.discount) {
+      const targetDiscount = Number(queryParams.discount);
+      result = result.filter(
+        (product) => getProductDiscount(product) === targetDiscount
+      );
+    } else if (queryParams.discountMin || queryParams.discountMax) {
+      const minD = queryParams.discountMin ? Number(queryParams.discountMin) : 0;
+      const maxD = queryParams.discountMax ? Number(queryParams.discountMax) : 100;
+      result = result.filter((product) => {
+        const d = getProductDiscount(product);
+        return d >= minD && d <= maxD;
+      });
+    }
+
+    return result;
+  }, [products, queryParams.discount, queryParams.discountMin, queryParams.discountMax]);
+
   const handleSearch = (e) => {
     e.preventDefault();
     const params = new URLSearchParams(searchParams);
@@ -130,7 +167,18 @@ const CollectionPage = () => {
 
   // Active filter count for badge in GoalBar
   const activeFilterCount = Object.keys(queryParams).filter(
-    (k) => ["brand", "minPrice", "maxPrice", "search", "category", "subCategory"].includes(k) && queryParams[k]
+    (k) =>
+      [
+        "brand",
+        "minPrice",
+        "maxPrice",
+        "search",
+        "category",
+        "subCategory",
+        "discount",
+        "discountMin",
+        "discountMax",
+      ].includes(k) && queryParams[k]
   ).length;
 
   // Prevent body scroll when filter drawer is open
@@ -156,7 +204,7 @@ const CollectionPage = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSidebarOpen]);
 
-  // Active filter chips derived from URL params (Sidebar filters like brand, search, price)
+  // Active filter chips derived from URL params (Sidebar filters like brand, search, price, discount)
   const activeFilters = [];
   if (queryParams.category && !queryParams.goal) {
     activeFilters.push({ key: "category", label: `Category: ${queryParams.category}` });
@@ -171,11 +219,29 @@ const CollectionPage = () => {
     });
   }
 
+  if (queryParams.discount) {
+    activeFilters.push({
+      key: "discount",
+      label: `Discount: ${queryParams.discount}% OFF`,
+    });
+  }
+  if (queryParams.discountMin || queryParams.discountMax) {
+    activeFilters.push({
+      key: "discountRange",
+      label: `Discount: ${queryParams.discountMin || 0}% – ${queryParams.discountMax || 100}% OFF`,
+    });
+  }
+
   const removeFilter = (key) => {
     const params = new URLSearchParams(searchParams);
     if (key === "price") {
       params.delete("minPrice");
       params.delete("maxPrice");
+    } else if (key === "discount") {
+      params.delete("discount");
+    } else if (key === "discountRange") {
+      params.delete("discountMin");
+      params.delete("discountMax");
     } else {
       params.delete(key);
     }
@@ -195,7 +261,7 @@ const CollectionPage = () => {
 
   // Dynamic SEO metadata
   const hasFilterParams = Object.keys(queryParams).some(
-    (k) => ["brand", "minPrice", "maxPrice", "search", "material"].includes(k)
+    (k) => ["brand", "minPrice", "maxPrice", "search", "material", "discount", "discountMin", "discountMax"].includes(k)
   );
 
   const displayCategoryName = activeCategory
@@ -225,23 +291,26 @@ const CollectionPage = () => {
         robots={robotsDirective}
       />
 
-      <div className="max-w-screen-2xl mx-auto px-4 pt-2 pb-4">
+      <div className="max-w-screen-2xl mx-auto px-2 sm:px-4 pt-1 pb-4">
         {/* ── Main Content Container ── */}
         <div className="w-full space-y-2">
+          {/* ── Navratri 3-Banner Section (Homepage Only) ── */}
+          {isHomePage && <NavratriBannerSection />}
+
           {/* ── Health & Wellness Goal Bar + Refine Results Trigger ── */}
           <GoalBar
             onOpenFilter={() => setIsSidebarOpen(true)}
             activeFilterCount={activeFilterCount}
           />
 
-          {/* ── Active Secondary Filter Chips (Only shown when Brand, Price, Search are active) ── */}
+          {/* ── Active Secondary Filter Chips (Shown when Brand, Price, Search, or Discount filters are active) ── */}
           {activeFilters.length > 0 && (
             <div className="bg-white rounded-lg shadow-xs border border-slate-200/80 px-3 py-1.5 flex flex-wrap items-center gap-1.5">
               <span className="text-[11px] text-slate-500 font-medium flex-shrink-0">Filters:</span>
               {activeFilters.map((f) => (
                 <span
                   key={f.key}
-                  className="inline-flex items-center gap-1 bg-teal-50 border border-teal-200 text-[#0a8274] text-xs font-medium px-2 py-0.5 rounded-md"
+                  className="inline-flex items-center gap-1 bg-[#FFF8E7] border border-[#D4A017]/40 text-[#4A0712] text-xs font-bold px-2 py-0.5 rounded-md"
                 >
                   <span>{f.label}</span>
                   <button
@@ -267,14 +336,14 @@ const CollectionPage = () => {
           {/* Mobile Product Header */}
           <div className="lg:hidden flex items-center justify-between bg-white px-3.5 py-1.5 rounded-lg shadow-xs">
             <h1 className="text-base font-bold text-gray-900">
-              All Products <span className="text-gray-500 font-normal text-xs">({totalProducts || products?.length || 0})</span>
+              All Products <span className="text-gray-500 font-normal text-xs">({filteredProducts?.length || totalProducts || products?.length || 0})</span>
             </h1>
           </div>
 
           {/* ── Full-Width Product Grid ── */}
           <div className="bg-white rounded-lg shadow-sm p-4">
             <ProductGrid
-              products={products}
+              products={filteredProducts}
               loading={loading}
               loadingMore={loadingMore}
               error={error}

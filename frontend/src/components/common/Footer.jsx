@@ -60,19 +60,19 @@ const Footer = () => {
       {/* ── Back to Top ── */}
       <button
         onClick={scrollToTop}
-        className="w-full bg-[#37475a] hover:bg-[#4a5d73] text-white text-sm font-semibold py-3.5 flex items-center justify-center gap-2 transition-colors"
+        className="w-full bg-[#4A0712] hover:bg-[#650B18] text-[#FFF8E7] text-sm font-semibold py-3.5 flex items-center justify-center gap-2 transition-colors border-t border-[#D4A017]/30"
       >
-        <ChevronUp className="h-4 w-4" />
+        <ChevronUp className="h-4 w-4 text-[#F2C94C]" />
         Back to top
       </button>
 
       {/* ── 4-Column Links ── */}
-      <div className="bg-[#232f3e] text-white">
+      <div className="bg-[#3A0610] text-[#FFF8E7]">
         <div className="max-w-screen-2xl mx-auto px-6 py-10">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {footerColumns.map((col) => (
               <div key={col.heading}>
-                <h3 className="text-sm font-bold text-white mb-4">{col.heading}</h3>
+                <h3 className="text-sm font-bold text-[#F2C94C] mb-4">{col.heading}</h3>
                 <ul className="space-y-2.5">
                   {col.links.map((link) => (
                     <li key={link.label}>
@@ -81,14 +81,14 @@ const Footer = () => {
                           href={link.href}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-gray-300 hover:text-white transition-colors"
+                          className="text-xs text-[#FFF8E7]/80 hover:text-[#F2C94C] transition-colors"
                         >
                           {link.label}
                         </a>
                       ) : (
                         <Link
                           to={link.href}
-                          className="text-xs text-gray-300 hover:text-white transition-colors"
+                          className="text-xs text-[#FFF8E7]/80 hover:text-[#F2C94C] transition-colors"
                         >
                           {link.label}
                         </Link>
@@ -103,7 +103,7 @@ const Footer = () => {
       </div>
 
       {/* ── Trust Badges Row ── */}
-      <div className="bg-[#37475a] border-t border-white/10">
+      <div className="bg-[#4A0712] border-t border-[#D4A017]/20">
         <div className="max-w-screen-2xl mx-auto px-6 py-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
@@ -113,12 +113,12 @@ const Footer = () => {
             ].map((badge) => (
               <div
                 key={badge.title}
-                className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-3"
+                className="flex items-center gap-3 bg-[#3A0610]/60 border border-[#D4A017]/30 rounded-lg px-4 py-3"
               >
-                <span className="text-xl flex-shrink-0">{badge.icon}</span>
+                <span className="text-xl flex-shrink-0 text-[#F2C94C]">{badge.icon}</span>
                 <div>
-                  <p className="text-xs font-bold text-white">{badge.title}</p>
-                  <p className="text-xs text-gray-400">{badge.desc}</p>
+                  <p className="text-xs font-bold text-[#FFF8E7]">{badge.title}</p>
+                  <p className="text-xs text-[#FFF8E7]/70">{badge.desc}</p>
                 </div>
               </div>
             ))}
@@ -127,18 +127,18 @@ const Footer = () => {
       </div>
 
       {/* ── Bottom Bar ── */}
-      <div className="bg-[#131a22] border-t border-white/10">
+      <div className="bg-[#240309] border-t border-[#D4A017]/20">
         <div className="max-w-screen-2xl mx-auto px-6 py-5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-black text-base">M</span>
+              <div className="w-8 h-8 bg-gradient-to-br from-[#D4A017] to-[#F2C94C] rounded-lg flex items-center justify-center">
+                <span className="text-[#3A0610] font-black text-base">M</span>
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-black text-white">M Wellness Bazaar</div>
-                <div className="text-xs text-teal-400">From Ancient Healing to AI Living</div>
+                <div className="text-sm font-black text-[#FFF8E7]">M Wellness Bazaar</div>
+                <div className="text-xs text-[#F2C94C]">From Ancient Healing to AI Living</div>
               </div>
             </Link>
 
@@ -148,45 +148,45 @@ const Footer = () => {
                 href="https://www.facebook.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-blue-600 hover:bg-blue-500 rounded-lg flex items-center justify-center transition-colors"
+                className="w-8 h-8 bg-[#4A0712] hover:bg-[#650B18] rounded-lg flex items-center justify-center border border-[#D4A017]/40 transition-colors"
                 aria-label="Facebook"
               >
-                <Facebook className="h-4 w-4 text-white" />
+                <Facebook className="h-4 w-4 text-[#F2C94C]" />
               </a>
               <a
                 href="https://www.instagram.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-gradient-to-br from-pink-500 to-rose-500 hover:from-pink-400 hover:to-rose-400 rounded-lg flex items-center justify-center transition-colors"
+                className="w-8 h-8 bg-[#4A0712] hover:bg-[#650B18] rounded-lg flex items-center justify-center border border-[#D4A017]/40 transition-colors"
                 aria-label="Instagram"
               >
-                <Instagram className="h-4 w-4 text-white" />
+                <Instagram className="h-4 w-4 text-[#F2C94C]" />
               </a>
               <a
                 href="tel:+918829912389"
-                className="w-8 h-8 bg-teal-600 hover:bg-teal-500 rounded-lg flex items-center justify-center transition-colors"
+                className="w-8 h-8 bg-[#4A0712] hover:bg-[#650B18] rounded-lg flex items-center justify-center border border-[#D4A017]/40 transition-colors"
                 aria-label="Phone"
               >
-                <Phone className="h-4 w-4 text-white" />
+                <Phone className="h-4 w-4 text-[#F2C94C]" />
               </a>
               <a
                 href="mailto:info@metafitwellness.com"
-                className="w-8 h-8 bg-[#047ca8] hover:bg-[#06b6d4] rounded-lg flex items-center justify-center transition-colors"
+                className="w-8 h-8 bg-[#4A0712] hover:bg-[#650B18] rounded-lg flex items-center justify-center border border-[#D4A017]/40 transition-colors"
                 aria-label="Email"
               >
-                <Mail className="h-4 w-4 text-white" />
+                <Mail className="h-4 w-4 text-[#F2C94C]" />
               </a>
             </div>
 
             {/* Copyright + Policies */}
             <div className="flex flex-col items-center md:items-end gap-1">
-              <p className="text-xs text-gray-400">
-                © 2025 <span className="text-white font-semibold">MetaFit Wellness</span>. All Rights Reserved.
+              <p className="text-xs text-[#FFF8E7]/70">
+                © 2025 <span className="text-[#FFF8E7] font-semibold">MetaFit Wellness</span>. All Rights Reserved.
               </p>
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setPolicyOpen(!policyOpen)}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-xs text-[#F2C94C] hover:text-[#FFF8E7] transition-colors"
                 >
                   Policies{" "}
                   <ChevronDown
@@ -194,7 +194,7 @@ const Footer = () => {
                   />
                 </button>
                 {policyOpen && (
-                  <div className="absolute right-0 bottom-full mb-2 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-50 overflow-hidden">
+                  <div className="absolute right-0 bottom-full mb-2 w-44 bg-[#FFFDF5] rounded-lg shadow-xl border border-[#D4A017]/40 z-50 overflow-hidden">
                     <ul className="py-1 text-xs">
                       {[
                         { label: "🔒 Privacy Policy", href: "/privacy-policy" },
@@ -207,7 +207,7 @@ const Footer = () => {
                           <Link
                             to={p.href}
                             onClick={() => setPolicyOpen(false)}
-                            className="block px-3 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors"
+                            className="block px-3 py-2 text-[#3A0610] hover:bg-[#FFF8E7] hover:text-[#7A1522] transition-colors"
                           >
                             {p.label}
                           </Link>

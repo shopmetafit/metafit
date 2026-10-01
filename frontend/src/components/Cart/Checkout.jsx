@@ -874,7 +874,7 @@ const CheckOut = () => {
             </div>
             <button
               type="submit"
-              className="w-full bg-black hover:bg-gray-900 text-white font-bold py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-sm"
+              className="w-full bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] font-extrabold py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-sm"
             >
               Continue to Payment
             </button>
@@ -882,8 +882,8 @@ const CheckOut = () => {
         </div>
 
         {/* Right Section - Cart Order Summary */}
-        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 h-fit space-y-6">
-          <h3 className="text-xl font-extrabold uppercase tracking-tight text-gray-900">Order Summary</h3>
+        <div className="bg-[#FFFDF5] rounded-xl p-6 border border-[#D4A017]/30 h-fit space-y-6">
+          <h3 className="text-xl font-extrabold uppercase tracking-tight text-[#4A0712]">Order Summary</h3>
 
           {/* Cart items list */}
           <div className="space-y-3 divide-y divide-gray-200">
@@ -892,37 +892,37 @@ const CheckOut = () => {
                 <div className="flex items-center gap-3 min-w-0">
                   <img src={item.image} alt={item.name} className="w-14 h-14 object-contain rounded-lg border border-gray-200 bg-white p-1" />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-gray-900 truncate">{item.name}</p>
+                    <p className="text-xs font-bold text-[#3A0610] truncate">{item.name}</p>
                     <p className="text-xs text-gray-500">Qty: {item.quantity} × ₹{item.price?.toLocaleString()}</p>
                   </div>
                 </div>
-                <p className="text-xs font-bold text-gray-900">₹{(item.price * item.quantity).toLocaleString()}</p>
+                <p className="text-xs font-bold text-[#650B18]">₹{(item.price * item.quantity).toLocaleString()}</p>
               </div>
             ))}
           </div>
 
           {/* Coupon Code Box */}
           <div className="border-t border-gray-200 pt-4">
-            <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase">Apply Coupon Code</label>
+            <label className="block text-xs font-bold text-[#4A0712] mb-1.5 uppercase">Apply Coupon Code</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Enter coupon"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                className="flex-1 p-2 text-xs border border-gray-300 rounded-xl uppercase font-semibold outline-none bg-white"
+                className="flex-1 p-2 text-xs border border-[#D4A017]/40 rounded-xl uppercase font-semibold outline-none bg-white focus:border-[#D4A017]"
               />
               <button
                 type="button"
                 onClick={handleApplyCoupon}
                 disabled={isApplyingCoupon}
-                className="px-4 py-2 bg-[#047ca8] hover:bg-[#036d94] text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] text-xs font-extrabold rounded-xl transition-all cursor-pointer"
               >
                 Apply
               </button>
             </div>
             {appliedCoupon && (
-              <p className="text-xs text-emerald-600 font-bold mt-1.5">
+              <p className="text-xs text-emerald-700 font-bold mt-1.5">
                 ✓ Coupon '{appliedCoupon}' applied! Discount: ₹{couponDiscount.toLocaleString()}
               </p>
             )}
@@ -932,27 +932,27 @@ const CheckOut = () => {
           <div className="border-t border-gray-200 pt-4 space-y-2 text-xs sm:text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span className="font-semibold text-gray-900">₹{subtotal.toLocaleString()}</span>
+              <span className="font-semibold text-[#3A0610]">₹{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Handling Fee (3%)</span>
-              <span className="font-semibold text-gray-900">₹{serviceCharge.toLocaleString()}</span>
+              <span className="font-semibold text-[#3A0610]">₹{serviceCharge.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Shipping Charge</span>
-              <span className={`font-semibold ${deliveryCharge === 0 ? 'text-emerald-600' : 'text-gray-900'}`}>
+              <span className={`font-semibold ${deliveryCharge === 0 ? 'text-emerald-700' : 'text-[#3A0610]'}`}>
                 {deliveryCharge > 0 ? `₹${deliveryCharge.toLocaleString()}` : "FREE"}
               </span>
             </div>
             {couponDiscount > 0 && (
-              <div className="flex justify-between text-emerald-600">
+              <div className="flex justify-between text-emerald-700">
                 <span>Discount</span>
                 <span className="font-bold">- ₹{couponDiscount.toLocaleString()}</span>
               </div>
             )}
-            <div className="border-t border-gray-300 pt-3 flex justify-between items-center text-base font-extrabold text-gray-900">
+            <div className="border-t border-[#D4A017]/30 pt-3 flex justify-between items-center text-base font-extrabold text-[#3A0610]">
               <span>Total Payable</span>
-              <span className="text-[#047ca8] text-lg">₹{finalTotal.toLocaleString()}</span>
+              <span className="text-[#650B18] text-lg font-black">₹{finalTotal.toLocaleString()}</span>
             </div>
           </div>
         </div>

@@ -612,8 +612,20 @@ const Topbar = () => {
           AMAZON STYLE MAIN HEADER
       ====================================================== */}
 
-      <div className="bg-[#022824] text-white">
-        <div className="max-w-screen-2xl mx-auto px-3 py-2.5 flex items-center gap-2 lg:gap-4">
+      {/* =====================================================
+          AMAZON STYLE MAIN HEADER - NAVRATRI BURGUNDY THEME
+      ====================================================== */}
+
+      <div className="bg-gradient-to-r from-[#3A0610] via-[#650B18] to-[#4A0712] text-[#FFF8E7] border-b border-[#D4A017]/30 shadow-md relative overflow-hidden">
+        {/* Subtle Festive Golden Particle Overlay Layer */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-50">
+          <div className="absolute top-2 left-[12%] w-1.5 h-1.5 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-1" />
+          <div className="absolute bottom-2 left-[38%] w-1 h-1 rounded-full bg-[#D4A017] blur-[0.5px] animate-navratri-sparkle-2" />
+          <div className="absolute top-3 left-[65%] w-1.5 h-1.5 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-3" />
+          <div className="absolute bottom-1 right-[18%] w-1 h-1 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-1" />
+        </div>
+
+        <div className="max-w-screen-2xl mx-auto px-3 py-2.5 flex items-center gap-2 lg:gap-4 relative z-10">
 
           {/* =================================================
               LOGO
@@ -621,20 +633,20 @@ const Topbar = () => {
 
           <Link
             to="/"
-            className="flex items-center gap-2 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 group"
+            className="flex items-center gap-2 hover:ring-1 hover:ring-[#F2C94C] rounded px-2 py-1 flex-shrink-0 group"
           >
-            <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center shadow-lg transition-all group-hover:shadow-teal-400/40">
-              <span className="text-white font-black text-lg">
+            <div className="w-9 h-9 bg-gradient-to-br from-[#D4A017] to-[#F2C94C] rounded-lg flex items-center justify-center shadow-lg transition-all group-hover:shadow-[#D4A017]/50">
+              <span className="text-[#3A0610] font-black text-lg">
                 M
               </span>
             </div>
 
             <div className="leading-tight">
-              <div className="text-[13px] sm:text-[15px] font-black text-white whitespace-nowrap">
+              <div className="text-[13px] sm:text-[15px] font-black text-[#FFF8E7] whitespace-nowrap">
                 M Wellness
               </div>
 
-              <div className="text-[9px] sm:text-xs text-teal-300 font-semibold -mt-0.5">
+              <div className="text-[9px] sm:text-xs text-[#F2C94C] font-extrabold -mt-0.5 tracking-wider">
                 Bazaar
               </div>
             </div>
@@ -651,22 +663,22 @@ const Topbar = () => {
                 ? 'Detecting location...'
                 : `Deliver to ${userLocation}`
             }
-            className="hidden md:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-white rounded px-1.5 py-0.5 cursor-pointer select-none"
+            className="hidden md:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-[#F2C94C] rounded px-1.5 py-0.5 cursor-pointer select-none"
           >
-            <span className="text-xs text-gray-300 leading-tight">
+            <span className="text-xs text-[#FFF8E7]/80 leading-tight">
               Deliver to
             </span>
 
             <div className="flex items-center gap-1">
               <MapPin
-                className={`h-4 w-4 ${
+                className={`h-4 w-4 text-[#F2C94C] ${
                   isFetchingLocation
-                    ? 'animate-bounce text-teal-400'
+                    ? 'animate-bounce'
                     : ''
                 }`}
               />
 
-              <span className="text-sm font-bold truncate max-w-[140px]">
+              <span className="text-sm font-bold truncate max-w-[140px] text-[#FFFDF5]">
                 {isFetchingLocation
                   ? 'Detecting...'
                   : userLocation}
@@ -697,20 +709,20 @@ const Topbar = () => {
                   setShowSuggestions(true)
                 }
                 placeholder="Search products by name, category, subcategory, wellness tags..."
-                className="flex-1 min-w-0 px-4 py-2.5 text-sm text-gray-900 focus:outline-none"
+                className="flex-1 min-w-0 px-4 py-2.5 text-sm bg-[#FFF8E7] text-[#4A0712] placeholder-[#650B18]/60 focus:outline-none focus:ring-2 focus:ring-[#D4A017]"
               />
 
               <button
                 type="submit"
-                className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-4 transition-colors flex items-center justify-center flex-shrink-0"
+                className="bg-[#D4A017] hover:bg-[#F2C94C] px-4 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer"
               >
-                <Search className="h-5 w-5 text-white" />
+                <Search className="h-5 w-5 text-[#4A0712]" />
               </button>
             </form>
 
             {/* Desktop Search Suggestions */}
             {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto font-sans text-gray-800">
+              <div className="absolute top-full left-0 right-0 z-50 mt-1.5 bg-[#FFFDF5] border border-[#D4A017]/30 rounded-xl shadow-2xl overflow-hidden max-h-96 overflow-y-auto font-sans text-gray-800">
 
                 {searchQuery.trim().length === 0 ? (
                   <div className="p-3 space-y-4">
@@ -754,9 +766,9 @@ const Topbar = () => {
                                     )}`
                                   );
                                 }}
-                                className="inline-flex items-center gap-1.5 text-xs bg-gray-100 hover:bg-teal-50 hover:text-teal-700 text-gray-700 px-3 py-1.5 rounded-full border border-gray-200 transition-colors"
+                                className="inline-flex items-center gap-1.5 text-xs bg-[#FFF8E7] hover:bg-[#F2C94C]/20 hover:text-[#4A0712] text-[#650B18] px-3 py-1.5 rounded-full border border-[#D4A017]/40 transition-colors"
                               >
-                                <span className="text-gray-400">
+                                <span className="text-[#D4A017]">
                                   🕒
                                 </span>
 
@@ -797,7 +809,7 @@ const Topbar = () => {
                                   )}`
                                 );
                               }}
-                              className="inline-flex items-center gap-1.5 text-xs bg-teal-50/70 hover:bg-teal-100 text-teal-800 font-medium px-3 py-1.5 rounded-full border border-teal-200/60 transition-colors"
+                              className="inline-flex items-center gap-1.5 text-xs bg-[#FFF8E7] hover:bg-[#F2C94C]/30 text-[#4A0712] font-semibold px-3 py-1.5 rounded-full border border-[#D4A017]/40 transition-colors"
                             >
                               <span>
                                 {term}
@@ -816,14 +828,14 @@ const Topbar = () => {
                         key={n}
                         className="flex items-center gap-3 px-3 py-2 animate-pulse"
                       >
-                        <div className="w-10 h-10 rounded-lg bg-gray-200 flex-shrink-0" />
+                        <div className="w-10 h-10 rounded-lg bg-amber-100/60 flex-shrink-0" />
 
                         <div className="flex-1 space-y-1.5">
-                          <div className="h-3 bg-gray-200 rounded w-3/4" />
-                          <div className="h-2.5 bg-gray-150 rounded w-1/2" />
+                          <div className="h-3 bg-amber-100/60 rounded w-3/4" />
+                          <div className="h-2.5 bg-amber-100/40 rounded w-1/2" />
                         </div>
 
-                        <div className="w-12 h-3 bg-gray-200 rounded flex-shrink-0" />
+                        <div className="w-12 h-3 bg-amber-100/60 rounded flex-shrink-0" />
                       </div>
                     ))}
                   </div>
@@ -836,13 +848,13 @@ const Topbar = () => {
                   </div>
                 ) : (
                   <div>
-                    <div className="px-3 py-1.5 bg-gray-50 border-b border-gray-100 flex items-center justify-between text-[11px] font-semibold text-gray-500 uppercase tracking-wider">
+                    <div className="px-3 py-1.5 bg-[#FFF8E7] border-b border-[#D4A017]/20 flex items-center justify-between text-[11px] font-semibold text-[#650B18] uppercase tracking-wider">
                       <span>
                         Product Suggestions (
                         {suggestions.length})
                       </span>
 
-                      <span className="text-[10px] text-teal-600 font-medium">
+                      <span className="text-[10px] text-[#D4A017] font-medium">
                         Use ↑ ↓ to navigate
                       </span>
                     </div>
@@ -873,9 +885,9 @@ const Topbar = () => {
                               `/product/${item._id}`
                             );
                           }}
-                          className={`flex items-center gap-3 px-3 py-2.5 hover:bg-teal-50/70 cursor-pointer border-b border-gray-100 transition-colors group ${
+                          className={`flex items-center gap-3 px-3 py-2.5 hover:bg-[#FFF8E7] cursor-pointer border-b border-gray-100 transition-colors group ${
                             selectedIndex === idx
-                              ? 'bg-teal-100/80 font-bold border-l-4 border-l-teal-600 pl-2'
+                              ? 'bg-[#FFF8E7] font-bold border-l-4 border-l-[#D4A017] pl-2'
                               : ''
                           }`}
                         >
@@ -894,7 +906,7 @@ const Topbar = () => {
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-teal-700 transition-colors">
+                            <p className="text-xs font-semibold text-gray-800 truncate group-hover:text-[#650B18] transition-colors">
                               {highlightMatch(
                                 item.name,
                                 searchQuery
@@ -903,7 +915,7 @@ const Topbar = () => {
 
                             <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5 flex-wrap">
                               {item.category && (
-                                <span className="bg-teal-50 text-teal-700 font-medium px-1.5 py-0.5 rounded border border-teal-200/50">
+                                <span className="bg-amber-50 text-[#650B18] font-medium px-1.5 py-0.5 rounded border border-[#D4A017]/30">
                                   {highlightMatch(
                                     item.category,
                                     searchQuery
@@ -932,7 +944,7 @@ const Topbar = () => {
                               )}
 
                               {item.wellnessGoal && (
-                                <span className="bg-amber-50 text-amber-700 font-medium px-1.5 py-0.5 rounded border border-amber-200/50">
+                                <span className="bg-amber-50 text-amber-800 font-medium px-1.5 py-0.5 rounded border border-amber-200/50">
                                   {highlightMatch(
                                     item.wellnessGoal,
                                     searchQuery
@@ -973,54 +985,54 @@ const Topbar = () => {
           <div className="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
 
             {/* =================================================
-                DESKTOP ROUTINE MATCHER
+                DESKTOP ROUTINE MATCHER - WELLNESS ASSISTANT
             ================================================= */}
 
             <Link
-  to="/routine-builder"
-  className="
-    flex items-center justify-center
-    gap-1
-    px-1.5 py-1.5
-    sm:px-2 sm:py-1.5
-    lg:px-2.5 lg:py-1
-    rounded-lg
-    bg-teal-500/20
-    hover:bg-teal-500/30
-    border border-teal-400/40
-    text-teal-200
-    hover:text-white
-    transition-all
-    text-[10px]
-    sm:text-xs
-    font-bold
-    group
-    shadow-xs
-    flex-shrink-0
-    whitespace-nowrap
-  "
-  title="Build your personalized Morning & Evening daily routine"
-  aria-label="Routine Matcher"
->
-  <Sparkles
-    className="
-      w-4 h-4
-      sm:w-3.5 sm:h-3.5
-      text-teal-300
-      group-hover:rotate-12
-      transition-transform
-      flex-shrink-0
-    "
-  />
+              to="/routine-builder"
+              className="
+                flex items-center justify-center
+                gap-1
+                px-1.5 py-1.5
+                sm:px-2 sm:py-1.5
+                lg:px-2.5 lg:py-1
+                rounded-lg
+                bg-[#4A0712]/90
+                hover:bg-[#650B18]
+                border border-[#D4A017]/50
+                text-[#F2C94C]
+                hover:text-[#FFF8E7]
+                transition-all
+                text-[10px]
+                sm:text-xs
+                font-bold
+                group
+                shadow-xs
+                flex-shrink-0
+                whitespace-nowrap
+              "
+              title="Build your personalized Morning & Evening daily routine"
+              aria-label="Routine Matcher"
+            >
+              <Sparkles
+                className="
+                  w-4 h-4
+                  sm:w-3.5 sm:h-3.5
+                  text-[#F2C94C]
+                  group-hover:rotate-12
+                  transition-transform
+                  flex-shrink-0
+                "
+              />
 
-  <span className="inline sm:hidden">
-    
-  </span>
+              <span className="inline sm:hidden">
+                
+              </span>
 
-  <span className="hidden sm:inline">
-    Wellness Assistant
-  </span>
-</Link>
+              <span className="hidden sm:inline">
+                Wellness Assistant
+              </span>
+            </Link>
 
             {/* =================================================
                 DESKTOP ACCOUNT
@@ -1038,14 +1050,14 @@ const Topbar = () => {
                       (prev) => !prev
                     )
                   }
-                  className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all cursor-pointer text-left select-none"
+                  className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#F2C94C] rounded px-2 py-1 flex-shrink-0 transition-all cursor-pointer text-left select-none"
                 >
-                  <div className="w-7 h-7 rounded-full bg-teal-500 text-white font-extrabold text-xs flex items-center justify-center border border-teal-200 shadow-xs shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-[#D4A017] text-[#3A0610] font-extrabold text-xs flex items-center justify-center border border-[#F2C94C] shadow-xs shrink-0">
                     {initials}
                   </div>
 
                   <div className="flex flex-col">
-                    <span className="text-xs text-gray-300 leading-tight truncate max-w-[110px]">
+                    <span className="text-xs text-[#FFF8E7]/90 leading-tight truncate max-w-[110px]">
                       Hello,{' '}
                       {user.name?.split(
                         ' '
@@ -1053,14 +1065,14 @@ const Topbar = () => {
                     </span>
 
                     <div className="flex items-center gap-0.5">
-                      <span className="text-xs font-bold leading-tight">
+                      <span className="text-xs font-bold leading-tight text-[#FFF8E7]">
                         Account & Lists
                       </span>
 
                       <ChevronDown
-                        className={`h-3 w-3 transition-transform ${
+                        className={`h-3 w-3 text-[#F2C94C] transition-transform ${
                           accountMenuOpen
-                            ? 'rotate-180 text-teal-300'
+                            ? 'rotate-180 text-[#F2C94C]'
                             : ''
                         }`}
                       />
@@ -1072,8 +1084,8 @@ const Topbar = () => {
                 {accountMenuOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[100] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
 
-                    <div className="px-3.5 py-2.5 border-b border-gray-100 bg-teal-50/40">
-                      <p className="text-xs font-bold text-gray-900 truncate">
+                    <div className="px-3.5 py-2.5 border-b border-gray-100 bg-[#FFF8E7]">
+                      <p className="text-xs font-bold text-[#4A0712] truncate">
                         {user.name}
                       </p>
 
@@ -1090,9 +1102,9 @@ const Topbar = () => {
                             false
                           )
                         }
-                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 transition-colors"
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#FFF8E7] hover:text-[#650B18] transition-colors"
                       >
-                        <User className="h-4 w-4 text-teal-600 shrink-0" />
+                        <User className="h-4 w-4 text-[#D4A017] shrink-0" />
 
                         <span>
                           Profile
@@ -1121,18 +1133,18 @@ const Topbar = () => {
             ) : (
               <Link
                 to="/login"
-                className="hidden md:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+                className="hidden md:flex flex-col hover:ring-1 hover:ring-[#F2C94C] rounded px-2 py-1 flex-shrink-0 transition-all"
               >
-                <span className="text-xs text-gray-300 leading-tight">
+                <span className="text-xs text-[#FFF8E7]/90 leading-tight">
                   Hello, Sign in
                 </span>
 
                 <div className="flex items-center gap-0.5">
-                  <span className="text-xs font-bold leading-tight">
+                  <span className="text-xs font-bold leading-tight text-[#FFF8E7]">
                     Account & Lists
                   </span>
 
-                  <ChevronDown className="h-3 w-3" />
+                  <ChevronDown className="h-3 w-3 text-[#F2C94C]" />
                 </div>
               </Link>
             )}
@@ -1150,21 +1162,21 @@ const Topbar = () => {
                       true
                     )
                   }
-                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-white rounded-lg transition-all cursor-pointer"
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#F2C94C] rounded-lg transition-all cursor-pointer"
                   aria-label="Account menu"
                 >
-                  <div className="w-7 h-7 rounded-full bg-teal-500 text-white font-extrabold text-xs flex items-center justify-center border border-teal-200 shadow-xs">
+                  <div className="w-7 h-7 rounded-full bg-[#D4A017] text-[#3A0610] font-extrabold text-xs flex items-center justify-center border border-[#F2C94C] shadow-xs">
                     {initials}
                   </div>
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-white rounded-lg text-white transition-all"
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#F2C94C] rounded-lg text-white transition-all"
                   aria-label="Sign in"
                 >
                   <User
-                    className="h-6 w-6 text-white"
+                    className="h-6 w-6 text-[#FFF8E7]"
                     strokeWidth={1.75}
                   />
                 </Link>
@@ -1177,13 +1189,13 @@ const Topbar = () => {
 
             <Link
               to="/my-orders"
-              className="hidden md:flex flex-col hover:ring-1 hover:ring-white rounded px-2 py-1 flex-shrink-0 transition-all"
+              className="hidden md:flex flex-col hover:ring-1 hover:ring-[#F2C94C] rounded px-2 py-1 flex-shrink-0 transition-all"
             >
-              <span className="text-xs text-gray-300 leading-tight">
+              <span className="text-xs text-[#FFF8E7]/90 leading-tight">
                 Returns
               </span>
 
-              <span className="text-xs font-bold leading-tight">
+              <span className="text-xs font-bold leading-tight text-[#FFF8E7]">
                 & Orders
               </span>
             </Link>
@@ -1204,22 +1216,22 @@ const Topbar = () => {
                   openCartDrawer()
                 );
               }}
-              className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
+              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#F2C94C] rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
             >
               <div className="relative flex items-center justify-center p-0.5">
                 <Heart
-                  className="h-6 w-6 text-white group-hover:scale-105 transition-transform"
+                  className="h-6 w-6 text-[#FFF8E7] group-hover:text-[#F2C94C] group-hover:scale-105 transition-all"
                   strokeWidth={1.75}
                 />
 
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-rose-500 text-white text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center border-2 border-[#022824] shadow-md leading-none">
+                  <span className="absolute -top-1.5 -right-2 bg-[#F2C94C] text-[#3A0610] text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center border-2 border-[#3A0610] shadow-md leading-none">
                     {wishlistCount}
                   </span>
                 )}
               </div>
 
-              <span className="hidden sm:block text-xs font-bold leading-none text-white">
+              <span className="hidden sm:block text-xs font-bold leading-none text-[#FFF8E7] group-hover:text-[#F2C94C]">
                 Wishlist
               </span>
             </button>
@@ -1236,22 +1248,22 @@ const Topbar = () => {
                   openCartDrawer()
                 );
               }}
-              className="flex items-center gap-1.5 hover:ring-1 hover:ring-white rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group"
+              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#F2C94C] rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
             >
               <div className="relative flex items-center justify-center p-0.5">
                 <ShoppingCart
-                  className="h-7 w-7 text-white group-hover:scale-105 transition-transform"
+                  className="h-7 w-7 text-[#FFF8E7] group-hover:text-[#F2C94C] group-hover:scale-105 transition-all"
                   strokeWidth={1.75}
                 />
 
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-amber-400 text-slate-950 text-[11px] font-black rounded-full min-w-[20px] h-[20px] px-1 flex items-center justify-center border-2 border-[#022824] shadow-md leading-none">
+                  <span className="absolute -top-1.5 -right-2.5 bg-[#F2C94C] text-[#3A0610] text-[11px] font-black rounded-full min-w-[20px] h-[20px] px-1 flex items-center justify-center border-2 border-[#3A0610] shadow-md leading-none">
                     {cartItemCount}
                   </span>
                 )}
               </div>
 
-              <span className="hidden sm:block text-xs font-bold leading-none text-white">
+              <span className="hidden sm:block text-xs font-bold leading-none text-[#FFF8E7] group-hover:text-[#F2C94C]">
                 Cart
               </span>
             </button>
@@ -1269,22 +1281,22 @@ const Topbar = () => {
               ? 'Detecting location...'
               : `Deliver to ${userLocation}`
           }
-          className="md:hidden flex items-center px-3 py-1.5 bg-[#011e1b] text-xs text-gray-200 border-t border-b border-teal-900/60 cursor-pointer select-none hover:bg-[#012521] transition-colors"
+          className="md:hidden flex items-center px-3 py-1.5 bg-[#2E040C] text-xs text-[#FFF8E7] border-t border-b border-[#D4A017]/20 cursor-pointer select-none hover:bg-[#3A0610] transition-colors"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin
-              className={`h-4 w-4 text-teal-400 flex-shrink-0 ${
+              className={`h-4 w-4 text-[#F2C94C] flex-shrink-0 ${
                 isFetchingLocation
                   ? 'animate-bounce'
                   : ''
               }`}
             />
 
-            <span className="text-gray-300 flex-shrink-0 text-[11px] font-medium">
+            <span className="text-[#FFF8E7]/80 flex-shrink-0 text-[11px] font-medium">
               Deliver to
             </span>
 
-            <span className="font-bold text-white text-xs truncate max-w-[240px] xs:max-w-[280px] sm:max-w-[350px]">
+            <span className="font-bold text-[#FFF8E7] text-xs truncate max-w-[240px] xs:max-w-[280px] sm:max-w-[350px]">
               {isFetchingLocation
                 ? 'Detecting location...'
                 : userLocation}
@@ -1298,7 +1310,7 @@ const Topbar = () => {
 
         <div
           ref={mobileSearchContainerRef}
-          className="md:hidden px-3 py-2 relative bg-[#022824]"
+          className="md:hidden px-3 py-2 relative bg-gradient-to-r from-[#3A0610] via-[#650B18] to-[#4A0712]"
         >
           <form
             onSubmit={handleSearch}
@@ -1315,14 +1327,14 @@ const Topbar = () => {
                 setShowSuggestions(true)
               }
               placeholder="Search products..."
-              className="flex-1 min-w-0 px-3 py-2 text-xs text-gray-900 focus:outline-none"
+              className="flex-1 min-w-0 px-3 py-2 text-xs bg-[#FFF8E7] text-[#4A0712] focus:outline-none"
             />
 
             <button
               type="submit"
-              className="bg-[#0FB7A3] hover:bg-[#0DA28E] px-3.5 transition-colors flex items-center justify-center flex-shrink-0"
+              className="bg-[#D4A017] hover:bg-[#F2C94C] px-3.5 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer"
             >
-              <Search className="h-4 w-4 text-white" />
+              <Search className="h-4 w-4 text-[#4A0712]" />
             </button>
           </form>
 

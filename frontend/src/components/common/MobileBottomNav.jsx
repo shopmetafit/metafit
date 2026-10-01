@@ -13,7 +13,7 @@ const MobileBottomNav = () => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden pb-safe">
+    <div className="fixed bottom-0 left-0 right-0 bg-[#3A0610] border-t border-[#D4A017]/30 z-50 md:hidden pb-safe shadow-lg">
       <div className="flex justify-between items-center px-4 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -33,11 +33,14 @@ const MobileBottomNav = () => {
             <Link
               key={item.label}
               to={item.path}
-              className={`flex flex-col items-center flex-1 gap-1 ${isActive ? "text-[#0FB7A3]" : "text-gray-500 hover:text-gray-800"
+              className={`flex flex-col items-center flex-1 gap-0.5 py-0.5 transition-colors relative ${isActive ? "text-[#F2C94C]" : "text-[#FFF8E7]/80 hover:text-[#FFF8E7]"
                 }`}
             >
-              <Icon className={`h-6 w-6 ${isActive ? "stroke-[#0FB7A3]" : ""}`} strokeWidth={isActive ? 2.5 : 1.5} />
-              <span className={`text-[10px] font-medium ${isActive ? "text-[#0FB7A3]" : ""}`}>
+              {isActive && (
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-[#D4A017] rounded-full shadow-[0_0_6px_#D4A017]" />
+              )}
+              <Icon className={`h-5 w-5 ${isActive ? "stroke-[#F2C94C]" : "stroke-[#FFF8E7]/80"}`} strokeWidth={isActive ? 2.5 : 1.75} />
+              <span className={`text-[10px] font-semibold ${isActive ? "text-[#F2C94C]" : "text-[#FFF8E7]/80"}`}>
                 {item.label}
               </span>
             </Link>

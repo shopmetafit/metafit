@@ -152,11 +152,18 @@ const Navbar = () => {
   return (
     <>
       {/* =====================================================
-          AMAZON STYLE CATEGORY NAV BAR
+          AMAZON STYLE CATEGORY NAV BAR - NAVRATRI BURGUNDY THEME
       ====================================================== */}
 
-      <nav className="bg-[#0a3d35] text-white">
-        <div className="max-w-screen-2xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+      <nav className="bg-gradient-to-r from-[#3A0610] via-[#4A0712] to-[#650B18] text-[#FFF8E7] shadow-xs relative overflow-hidden">
+        {/* Subtle Festive Golden Particle Overlay Layer */}
+        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
+          <div className="absolute top-1 left-[20%] w-1 h-1 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-2" />
+          <div className="absolute bottom-1.5 left-[55%] w-1.5 h-1.5 rounded-full bg-[#D4A017] blur-[0.5px] animate-navratri-sparkle-1" />
+          <div className="absolute top-2 right-[25%] w-1 h-1 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-3" />
+        </div>
+
+        <div className="max-w-screen-2xl mx-auto px-3 flex items-center gap-0.5 overflow-x-auto no-scrollbar relative z-10">
 
           {/* =================================================
               HOME - LAPTOP / DESKTOP ONLY
@@ -164,14 +171,14 @@ const Navbar = () => {
 
           <Link
             to="/"
-            className="hidden lg:flex px-3 py-2.5 text-sm font-bold text-white whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+            className="hidden lg:flex px-3 py-2.5 text-sm font-bold text-[#FFF8E7] whitespace-nowrap hover:bg-[#D4A017]/20 hover:text-[#F2C94C] rounded flex-shrink-0 transition-colors"
           >
             Home
           </Link>
 
           {/* Divider */}
 
-          <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
+          <div className="w-px h-5 bg-[#D4A017]/30 mx-1 flex-shrink-0" />
 
           {/* =================================================
               CATEGORY LINKS
@@ -181,7 +188,7 @@ const Navbar = () => {
             <Link
               key={cat.label}
               to={cat.link}
-              className="px-3 py-2.5 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+              className="px-3 py-2.5 text-sm font-medium text-[#FFF8E7] whitespace-nowrap hover:bg-[#D4A017]/20 hover:text-[#F2C94C] rounded flex-shrink-0 transition-colors"
             >
               {cat.label}
             </Link>
@@ -193,16 +200,16 @@ const Navbar = () => {
 
           <button
             onClick={() => setMenuOpen(true)}
-            className="px-3 py-2.5 text-sm font-bold text-orange-400 hover:bg-white/10 rounded flex-shrink-0 transition-colors whitespace-nowrap flex items-center gap-0.5"
+            className="px-3 py-2.5 text-sm font-extrabold text-[#F2C94C] hover:bg-[#D4A017]/20 hover:text-white rounded flex-shrink-0 transition-all whitespace-nowrap flex items-center gap-0.5 cursor-pointer hover:drop-shadow-[0_0_8px_rgba(242,201,76,0.6)]"
           >
             ALL
 
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-4 w-4 text-[#F2C94C]" />
           </button>
 
           {/* Divider */}
 
-          <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
+          <div className="w-px h-5 bg-[#D4A017]/30 mx-1 flex-shrink-0" />
 
           {/* =================================================
               BLOG
@@ -210,7 +217,7 @@ const Navbar = () => {
 
           <Link
             to="/blog"
-            className="px-3 py-2.5 text-sm font-medium text-white whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+            className="px-3 py-2.5 text-sm font-medium text-[#FFF8E7] whitespace-nowrap hover:bg-[#D4A017]/20 hover:text-[#F2C94C] rounded flex-shrink-0 transition-colors"
           >
             Blog
           </Link>
@@ -221,14 +228,14 @@ const Navbar = () => {
 
           <Link
             to="/collections/all"
-            className="px-3 py-2.5 text-sm font-bold text-orange-400 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+            className="px-3 py-2.5 text-sm font-extrabold text-[#F2C94C] whitespace-nowrap hover:bg-[#D4A017]/20 rounded flex-shrink-0 transition-all hover:drop-shadow-[0_0_8px_rgba(242,201,76,0.6)]"
           >
             Today's Deals
           </Link>
 
           {/* Divider */}
 
-          <div className="w-px h-5 bg-white/20 mx-1 flex-shrink-0" />
+          <div className="w-px h-5 bg-[#D4A017]/30 mx-1 flex-shrink-0" />
 
           {/* =================================================
               PHONE
@@ -236,9 +243,9 @@ const Navbar = () => {
 
           <a
             href="tel:+918829912389"
-            className="flex items-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors text-teal-200"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm whitespace-nowrap hover:bg-[#D4A017]/20 rounded flex-shrink-0 transition-colors text-[#FFF8E7] hover:text-[#F2C94C]"
           >
-            <Phone className="h-4 w-4" />
+            <Phone className="h-4 w-4 text-[#D4A017]" />
 
             <span className="hidden xl:inline">
               +91 88299 12389
@@ -252,7 +259,7 @@ const Navbar = () => {
           {user?.role === "admin" && (
             <Link
               to="/admin"
-              className="px-3 py-2.5 text-sm font-medium text-amber-400 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+              className="px-3 py-2.5 text-sm font-medium text-[#F2C94C] whitespace-nowrap hover:bg-[#D4A017]/20 rounded flex-shrink-0 transition-colors"
             >
               Admin
             </Link>
@@ -264,11 +271,13 @@ const Navbar = () => {
 
           <a
             href="https://partner.mwellnessbazaar.com/become-vendor"
-            className="ml-auto px-3 py-2.5 text-sm font-medium text-teal-300 whitespace-nowrap hover:bg-white/10 rounded flex-shrink-0 transition-colors"
+            className="ml-auto px-3 py-2.5 text-sm font-semibold text-[#F2C94C] whitespace-nowrap hover:bg-[#D4A017]/20 hover:text-white rounded flex-shrink-0 transition-colors"
           >
             Become a Vendor
           </a>
         </div>
+        {/* Subtle Decorative Animated Gold Gradient Bottom Line */}
+        <div className="w-full h-[1.5px] navratri-gold-border opacity-70 relative z-20" />
       </nav>
 
       {/* =====================================================
@@ -284,25 +293,25 @@ const Navbar = () => {
 
             {/* Sidebar Header */}
 
-            <div className="bg-gradient-to-r from-[#022824] to-[#0a3d35] text-white px-4 py-4 flex items-center justify-between flex-shrink-0">
+            <div className="bg-gradient-to-r from-[#3A0610] via-[#650B18] to-[#4A0712] text-[#FFF8E7] px-4 py-4 flex items-center justify-between flex-shrink-0">
 
               <div className="flex items-center gap-2">
 
-                <div className="w-9 h-9 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-lg flex items-center justify-center">
-                  <span className="font-black text-white text-lg">
+                <div className="w-9 h-9 bg-gradient-to-br from-[#D4A017] to-[#F2C94C] rounded-lg flex items-center justify-center">
+                  <span className="font-black text-[#3A0610] text-lg">
                     M
                   </span>
                 </div>
 
                 <div>
-                  <div className="font-bold text-base leading-tight">
+                  <div className="font-bold text-base leading-tight text-[#FFF8E7]">
                     Hello,{" "}
                     {user
                       ? user.name?.split(" ")[0]
                       : "Sign in"}
                   </div>
 
-                  <div className="text-xs text-teal-300">
+                  <div className="text-xs text-[#F2C94C]">
                     M Wellness Bazaar
                   </div>
                 </div>
@@ -310,7 +319,7 @@ const Navbar = () => {
 
               <button
                 onClick={() => setMenuOpen(false)}
-                className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                className="p-1.5 hover:bg-white/10 rounded transition-colors text-[#FFF8E7]"
                 aria-label="Close menu"
               >
                 <X className="h-5 w-5" />
@@ -321,8 +330,8 @@ const Navbar = () => {
                 SHOP BY CATEGORY
             ================================================= */}
 
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <div className="bg-[#FFF8E7] px-4 py-2 border-b border-[#D4A017]/20">
+              <h3 className="text-xs font-bold text-[#7A1522] uppercase tracking-widest">
                 Shop by Category
               </h3>
             </div>
@@ -332,19 +341,19 @@ const Navbar = () => {
                 key={cat.label}
                 to={cat.link}
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
+                className="flex items-center justify-between px-4 py-3.5 text-sm text-[#3A0610] hover:bg-[#FFF8E7] hover:text-[#7A1522] border-b border-gray-100 transition-colors"
               >
                 <span
                   className={
                     cat.highlight
-                      ? "text-orange-500 font-semibold"
+                      ? "text-[#D4A017] font-semibold"
                       : "font-medium"
                   }
                 >
                   {cat.label}
                 </span>
 
-                <ChevronRight className="h-4 w-4 text-gray-400" />
+                <ChevronRight className="h-4 w-4 text-[#D4A017]" />
               </Link>
             ))}
 
@@ -352,8 +361,8 @@ const Navbar = () => {
                 MORE LINKS
             ================================================= */}
 
-            <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 mt-2">
-              <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
+            <div className="bg-[#FFF8E7] px-4 py-2 border-b border-[#D4A017]/20 mt-2">
+              <h3 className="text-xs font-bold text-[#7A1522] uppercase tracking-widest">
                 More
               </h3>
             </div>
@@ -364,26 +373,26 @@ const Navbar = () => {
                   key={item.label}
                   href={item.link}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
+                  className="flex items-center justify-between px-4 py-3.5 text-sm text-[#3A0610] hover:bg-[#FFF8E7] hover:text-[#7A1522] border-b border-gray-100 transition-colors"
                 >
                   <span className="font-medium">
                     {item.label}
                   </span>
 
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                  <ChevronRight className="h-4 w-4 text-[#D4A017]" />
                 </a>
               ) : (
                 <Link
                   key={item.label}
                   to={item.link}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3.5 text-sm text-gray-800 hover:bg-teal-50 hover:text-teal-700 border-b border-gray-100 transition-colors"
+                  className="flex items-center justify-between px-4 py-3.5 text-sm text-[#3A0610] hover:bg-[#FFF8E7] hover:text-[#7A1522] border-b border-gray-100 transition-colors"
                 >
                   <span className="font-medium">
                     {item.label}
                   </span>
 
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                  <ChevronRight className="h-4 w-4 text-[#D4A017]" />
                 </Link>
               )
             )}
@@ -396,9 +405,9 @@ const Navbar = () => {
 
               <a
                 href="tel:+918829912389"
-                className="flex items-center gap-2 text-sm text-teal-700 font-semibold hover:text-teal-900 transition-colors"
+                className="flex items-center gap-2 text-sm text-[#7A1522] font-semibold hover:text-[#3A0610] transition-colors"
               >
-                <Phone className="h-4 w-4" />
+                <Phone className="h-4 w-4 text-[#D4A017]" />
 
                 +91 88299 12389
               </a>

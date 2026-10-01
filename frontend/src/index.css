@@ -17,3 +17,60 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* =========================================================
+   NAVRATRI FESTIVE SPARKLE & GLOW ANIMATIONS (PURE CSS)
+   ========================================================= */
+
+@keyframes navratriGlow {
+  0%, 100% {
+    opacity: 0.35;
+    box-shadow: 0 0 6px rgba(212, 160, 23, 0.2);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 14px rgba(242, 201, 76, 0.45);
+  }
+}
+
+@keyframes navratriSparkle {
+  0%, 100% {
+    opacity: 0.15;
+    transform: translateY(0px) scale(0.9);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-4px) scale(1.15);
+  }
+}
+
+@keyframes navratriGoldLine {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-navratri-glow {
+  animation: navratriGlow 5s ease-in-out infinite;
+}
+
+.animate-navratri-sparkle-1 {
+  animation: navratriSparkle 4.5s ease-in-out infinite;
+}
+
+.animate-navratri-sparkle-2 {
+  animation: navratriSparkle 6s ease-in-out 1.5s infinite;
+}
+
+.animate-navratri-sparkle-3 {
+  animation: navratriSparkle 5.2s ease-in-out 3s infinite;
+}
+
+.navratri-gold-border {
+  background: linear-gradient(90deg, transparent, #D4A017, #F2C94C, #D4A017, transparent);
+  background-size: 200% 100%;
+  animation: navratriGoldLine 7s linear infinite;
+}

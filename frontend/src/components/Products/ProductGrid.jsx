@@ -1,11 +1,5 @@
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addToCart,
-  removeFromCart,
-  updateCartItemQuantity,
-  openCartDrawer,
-} from "../../redux/slices/cartSlice";
 import { addToWishlist, removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { toggleCompare } from "../../redux/slices/compareSlice";
 import { toast } from "sonner";
@@ -13,46 +7,28 @@ import { useState } from "react";
 import { trackMetaEvent } from "../../lib/meta-pixel";
 import {
   Heart,
-  Star,
-  CheckCircle2,
-  Activity,
-  ShoppingCart,
   ShieldCheck,
-  Loader2,
-  Minus,
-  Plus,
   ArrowLeftRight,
+  Star,
 } from "lucide-react";
 
-// Amazon/Nykaa-style Shimmer Skeleton Card
+// Clean borderless Shimmer Skeleton Card
 export const ProductSkeleton = () => {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2.5 sm:p-3 flex flex-col h-full animate-pulse">
+    <div className="bg-white rounded-lg p-2 flex flex-col h-full animate-pulse">
       {/* Image Skeleton */}
-      <div className="bg-gray-100 rounded-lg aspect-square w-full relative overflow-hidden" />
+      <div className="bg-gray-100 rounded-lg aspect-square w-full relative overflow-hidden mb-2.5" />
 
       {/* Content Skeleton */}
-      <div className="mt-2.5 flex flex-col flex-1">
-        {/* Brand */}
-        <div className="h-2.5 bg-gray-100 rounded-full w-20 mb-1.5" />
-
+      <div className="flex flex-col flex-1 px-0.5">
         {/* Title */}
-        <div className="h-3.5 bg-gray-100 rounded-md w-full mb-1" />
-        <div className="h-3.5 bg-gray-100 rounded-md w-3/4 mb-2" />
+        <div className="h-3.5 bg-gray-100 rounded-md w-full mb-1.5" />
+        <div className="h-3.5 bg-gray-100 rounded-md w-3/4 mb-3" />
 
-        {/* Rating & Category */}
-        <div className="h-3 bg-gray-100 rounded-full w-24 mb-2" />
-
-        {/* Wellness Goal Tag */}
-        <div className="h-4.5 bg-gray-100 rounded w-20 mb-2" />
-
-        {/* Price & Button */}
-        <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100">
-          <div className="flex flex-col gap-0.5">
-            <div className="h-4 bg-gray-100 rounded w-14" />
-            <div className="h-2.5 bg-gray-100 rounded w-8" />
-          </div>
-          <div className="h-7 w-16 bg-gray-100 rounded-lg" />
+        {/* Price & MRP Skeleton */}
+        <div className="mt-auto flex flex-col gap-1">
+          <div className="h-4 bg-gray-100 rounded w-16" />
+          <div className="h-3 bg-gray-100 rounded w-24" />
         </div>
       </div>
     </div>
@@ -62,22 +38,11 @@ export const ProductSkeleton = () => {
 const ProductCard = ({ product, onProductClick }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
-  const guestId = useSelector((state) => state.auth.guestId);
   const wishlistItems = useSelector((state) => state.wishlist?.products || []);
   const compareItems = useSelector((state) => state.compare?.items || []);
-  const cart = useSelector((state) => state.cart?.cart || state.cart);
-  const cartProducts = cart?.products || [];
 
   const [hoveredImage, setHoveredImage] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-
-  // Find if product is already in cart
-  const cartItem = cartProducts.find((item) => {
-    const itemId = item.productId?._id || item.productId || item._id;
-    return itemId === product._id;
-  });
-  const cartQuantity = cartItem?.quantity || 0;
 
   const isWishlisted = wishlistItems.some(
     (item) => (item._id || item.productId || item) === product._id
@@ -85,156 +50,17 @@ const ProductCard = ({ product, onProductClick }) => {
 
   const isCompared = compareItems.some((item) => item._id === product._id);
 
+  const isBestseller = Boolean(
+    product.isBestSeller ||
+    product.tags?.includes("BESTSELLER") ||
+    Number(product.soldCount || 0) >= 50 ||
+    Number(product.totalSold || 0) >= 50
+  );
+
   const handleCompareToggle = (e) => {
     e.preventDefault();
     e.stopPropagation();
     dispatch(toggleCompare(product));
-  };
-
-  const handleAddToCart = async (e, prod, variant = null) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (!prod?._id) {
-      toast.error("Product ID not available");
-      return;
-    }
-
-    setIsUpdating(true);
-
-    try {
-      const result = await dispatch(
-        addToCart({
-          productId: prod._id,
-          quantity: 1,
-          size: null,
-          color: null,
-          guestId,
-          userId: user?._id,
-          variant: variant
-            ? {
-              label: variant.label,
-              price: variant.discountPrice || variant.price,
-            }
-            : null,
-        })
-      );
-
-      if (result?.error) {
-        throw new Error(
-          result.error.message || "Failed to add product to cart"
-        );
-      }
-
-      // Meta Pixel - AddToCart
-      const itemPrice = Number(
-        (variant
-          ? variant.discountPrice || variant.price
-          : null) ||
-        prod.discountPrice ||
-        prod.price ||
-        0
-      );
-
-      trackMetaEvent("AddToCart", {
-        content_ids: [prod._id],
-        content_name: prod.name,
-        content_type: "product",
-        value: itemPrice,
-        currency: "INR",
-        quantity: 1,
-      });
-
-      toast.success("Product added to cart!", { duration: 1500 });
-      dispatch(openCartDrawer());
-    } catch (cartError) {
-      console.error("ProductGrid AddToCart error:", cartError);
-      toast.error(cartError?.message || "Failed to add product!", {
-        duration: 1500,
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleIncrement = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (isUpdating) return;
-    setIsUpdating(true);
-
-    try {
-      const nextQty = (cartItem?.quantity || 1) + 1;
-      const result = await dispatch(
-        updateCartItemQuantity({
-          productId: product._id,
-          quantity: nextQty,
-          guestId,
-          userId: user?._id,
-          size: cartItem?.size || null,
-          color: cartItem?.color || null,
-        })
-      );
-
-      if (result?.error) {
-        throw new Error(result.error.message || "Failed to update quantity");
-      }
-    } catch (err) {
-      console.error("Increment error:", err);
-      toast.error(err?.message || "Failed to update quantity");
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleDecrement = async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    if (isUpdating) return;
-    setIsUpdating(true);
-
-    try {
-      const currentQty = cartItem?.quantity || 1;
-      if (currentQty <= 1) {
-        const result = await dispatch(
-          removeFromCart({
-            productId: product._id,
-            guestId,
-            userId: user?._id,
-            size: cartItem?.size || null,
-            color: cartItem?.color || null,
-          })
-        );
-
-        if (result?.error) {
-          throw new Error(result.error.message || "Failed to remove item");
-        }
-        toast.info("Removed from cart", { duration: 1200 });
-      } else {
-        const nextQty = currentQty - 1;
-        const result = await dispatch(
-          updateCartItemQuantity({
-            productId: product._id,
-            quantity: nextQty,
-            guestId,
-            userId: user?._id,
-            size: cartItem?.size || null,
-            color: cartItem?.color || null,
-          })
-        );
-
-        if (result?.error) {
-          throw new Error(result.error.message || "Failed to update quantity");
-        }
-      }
-    } catch (err) {
-      console.error("Decrement error:", err);
-      toast.error(err?.message || "Failed to update quantity");
-    } finally {
-      setIsUpdating(false);
-    }
   };
 
   const handleWishlistToggle = async (e, prod) => {
@@ -291,47 +117,31 @@ const ProductCard = ({ product, onProductClick }) => {
 
   const currentImage = hoveredImage || primaryImage;
 
-  const discountPercentage =
-    product.price && product.discountPrice && product.price > product.discountPrice
-      ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
-      : null;
+  const sellingPrice = Number(product.discountPrice || product.price || 0);
+  const mrpPrice = Number(product.price || 0);
+  const hasMrp = Boolean(product.discountPrice && mrpPrice > sellingPrice);
 
-  const rawRating = typeof product.rating === "number" ? product.rating : 0;
-  const ratingValue = rawRating > 0 ? Number(rawRating).toFixed(1) : "0.0";
-  const numReviewsValue = typeof product.numReviews === "number" ? product.numReviews : 0;
+  const discountPercentage = hasMrp
+    ? Math.round(((mrpPrice - sellingPrice) / mrpPrice) * 100)
+    : null;
+
   const productUrl = `/product/${product.slug || product._id}`;
-
-  const isBestseller = Boolean(
-    product.isBestSeller ||
-    product.tags?.includes("BESTSELLER") ||
-    Number(product.soldCount || 0) >= 50 ||
-    Number(product.totalSold || 0) >= 50
-  );
 
   return (
     <div
-      className={`bg-white rounded-xl sm:rounded-2xl transition-all duration-200 flex flex-col h-full overflow-hidden group ${isBestseller
-        ? "border border-amber-300/80 shadow-[0_2px_10px_rgba(217,119,6,0.08)] hover:shadow-[0_10px_25px_rgba(217,119,6,0.18)] hover:-translate-y-0.5 ring-1 ring-amber-400/25 relative"
-        : "border border-gray-100 shadow-[0_1px_6px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.07)] hover:-translate-y-0.5"
-        }`}
+      className="group flex flex-col h-full bg-white transition-all duration-200 cursor-pointer relative hover:-translate-y-0.5"
       onMouseEnter={() => secondaryImage && setHoveredImage(secondaryImage)}
       onMouseLeave={() => setHoveredImage(null)}
     >
-      {/* Top Image Section */}
-      <div
-        className={`relative aspect-square w-full p-2.5 sm:p-3 flex items-center justify-center overflow-hidden border-b ${isBestseller
-          ? "bg-gradient-to-b from-amber-50/30 via-[#fcfbfa] to-[#f8f8f6] border-amber-100/70"
-          : "bg-[#f8f8f6] border-gray-100/60"
-          }`}
+      <Link
+        to={productUrl}
+        onClick={() => onProductClick && onProductClick()}
+        className="flex flex-col flex-1 h-full w-full"
       >
-        <Link
-          to={productUrl}
-          onClick={() => onProductClick && onProductClick()}
-          className="w-full h-full flex items-center justify-center relative"
-        >
-          {/* Skeleton Placeholder until loaded */}
+        {/* PRODUCT IMAGE */}
+        <div className="relative aspect-square w-full bg-[#f8f9fa] rounded-xl overflow-hidden flex items-center justify-center p-3 mb-2.5">
           {!imageLoaded && (
-            <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-lg" />
+            <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-xl" />
           )}
 
           <img
@@ -340,191 +150,85 @@ const ProductCard = ({ product, onProductClick }) => {
             loading="lazy"
             decoding="async"
             onLoad={() => setImageLoaded(true)}
-            className={`w-full h-full object-contain drop-shadow-xs transition-transform duration-300 ease-out group-hover:scale-105 ${imageLoaded ? "opacity-100" : "opacity-0"
-              }`}
+            className={`w-full h-full object-contain drop-shadow-2xs transition-transform duration-300 ease-out group-hover:scale-105 ${
+              imageLoaded ? "opacity-100" : "opacity-0"
+            }`}
           />
-        </Link>
 
-        {/* ✨ Metallic Diagonal Corner Ribbon for Bestseller */}
-        {isBestseller && (
-          <div className="absolute top-0 left-0 w-24 h-24 overflow-hidden z-20 pointer-events-none rounded-tl-xl sm:rounded-tl-2xl">
-            <div className="absolute top-[15px] -left-[30px] w-[112px] -rotate-45 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-500 text-stone-950 font-extrabold text-[8px] sm:text-[8.5px] tracking-wider uppercase py-0.5 text-center shadow-[0_2px_4px_rgba(0,0,0,0.2)] flex items-center justify-center gap-0.5 border-y border-amber-200/70">
-              <Star className="w-2 h-2 fill-stone-950 text-stone-950" />
-              <span>BESTSELLER</span>
+          {/* Bestseller Ribbon */}
+          {isBestseller && (
+            <div className="absolute top-0 left-0 w-24 h-24 overflow-hidden z-20 pointer-events-none rounded-tl-xl">
+              <div className="absolute top-[15px] -left-[30px] w-[112px] -rotate-45 bg-gradient-to-r from-amber-600 via-amber-400 to-amber-500 text-stone-950 font-extrabold text-[8px] sm:text-[8.5px] tracking-wider uppercase py-0.5 text-center shadow-[0_2px_4px_rgba(0,0,0,0.2)] flex items-center justify-center gap-0.5 border-y border-amber-200/70">
+                <Star className="w-2 h-2 fill-stone-950 text-stone-950" />
+                <span>BESTSELLER</span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Discount Badge */}
-        {discountPercentage && (
-          <div
-            className={`absolute ${isBestseller
-              ? "bottom-2 left-2"
-              : "top-2 left-2"
-              } bg-amber-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs z-10 pointer-events-none`}
+          {/* Wishlist Button */}
+          <button
+            type="button"
+            onClick={(e) => handleWishlistToggle(e, product)}
+            aria-label="Add to wishlist"
+            className={`absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs shadow-xs flex items-center justify-center transition-all duration-150 z-10 ${
+              isWishlisted
+                ? "text-[#D4A017]"
+                : "text-gray-400 hover:text-[#D4A017] hover:scale-110 active:scale-95"
+            }`}
           >
-            {discountPercentage}% OFF
-          </div>
-        )}
-
-        {/* Wishlist Button */}
-        <button
-          type="button"
-          onClick={(e) => handleWishlistToggle(e, product)}
-          aria-label="Add to wishlist"
-          className={`absolute top-2 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/90 backdrop-blur-xs shadow-xs border border-gray-100 flex items-center justify-center transition-all duration-150 z-10 ${isWishlisted
-            ? "text-red-500"
-            : "text-gray-400 hover:text-red-500 hover:scale-110 active:scale-95"
-            }`}
-        >
-          <Heart
-            className={`w-3.5 h-3.5 ${isWishlisted ? "fill-red-500 text-red-500" : ""
+            <Heart
+              className={`w-3.5 h-3.5 ${
+                isWishlisted ? "fill-[#D4A017] text-[#D4A017]" : ""
               }`}
-          />
-        </button>
+            />
+          </button>
 
-        {/* Compare Button */}
-        <button
-          type="button"
-          onClick={handleCompareToggle}
-          aria-label="Compare product"
-          title={isCompared ? "In Comparison (Click to remove)" : "Add to Compare"}
-          className={`absolute top-9 sm:top-10 right-2 w-6 h-6 sm:w-7 sm:h-7 rounded-full backdrop-blur-xs shadow-xs border flex items-center justify-center transition-all duration-150 z-10 ${isCompared
-            ? "bg-emerald-600 border-emerald-600 text-white shadow-emerald-600/30 scale-105 opacity-100"
-            : "bg-white/95 border-gray-100 text-gray-400 hover:text-emerald-600 hover:border-emerald-200 opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+          {/* Compare Button */}
+          <button
+            type="button"
+            onClick={handleCompareToggle}
+            aria-label="Compare product"
+            title={isCompared ? "In Comparison (Click to remove)" : "Add to Compare"}
+            className={`absolute top-10 right-2 w-7 h-7 rounded-full backdrop-blur-xs shadow-xs flex items-center justify-center transition-all duration-150 z-10 ${
+              isCompared
+                ? "bg-[#D4A017] text-[#3A0610] shadow-[#D4A017]/30 scale-105 opacity-100 font-bold"
+                : "bg-white/90 text-gray-400 hover:text-[#D4A017] opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
             }`}
-        >
-          <ArrowLeftRight className="w-3 h-3 stroke-[2.2]" />
-        </button>
-      </div>
+          >
+            <ArrowLeftRight className="w-3 h-3 stroke-[2.2]" />
+          </button>
+        </div>
 
-      {/* Card Content Section */}
-      <div className="p-2.5 sm:p-3 flex flex-col flex-1">
-        <Link
-          to={productUrl}
-          onClick={() => onProductClick && onProductClick()}
-          className="flex flex-col flex-1"
-        >
-          {/* Brand Row */}
-          <div className="flex items-center gap-1 text-[#1e4620] text-[10px] sm:text-[11px] font-bold tracking-wider uppercase mb-0.5">
-            <span className="truncate max-w-[130px] sm:max-w-[150px]">
-              {product.brand || "Metafit"}
-            </span>
-            <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#1e4620] flex-shrink-0" />
-          </div>
-
-          {/* Product Title */}
-          <h3 className="text-xs sm:text-[13px] font-semibold text-gray-900 leading-tight line-clamp-2 mb-1 group-hover:text-[#1e4620] transition-colors">
+        {/* PRODUCT DETAILS AREA */}
+        <div className="flex flex-col flex-1 px-0.5 pb-1">
+          {/* PRODUCT NAME */}
+          <h3 className="text-xs sm:text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 mb-2 group-hover:text-[#7A1522] transition-colors">
             {product.name}
           </h3>
 
-          {/* Rating & Category Row */}
-          <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-gray-500 mb-1.5 flex-wrap">
-            {rawRating > 0 && numReviewsValue > 0 && (
-              <>
-                <div className="inline-flex items-center gap-0.5 bg-amber-50 text-amber-900 border border-amber-200/60 px-1 py-0.2 rounded font-semibold text-[10px]">
-                  <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
-                  <span>{ratingValue}</span>
-                </div>
-                <span className="text-gray-400 font-normal">({numReviewsValue})</span>
-                <span className="text-gray-300">·</span>
-              </>
-            )}
-            <span className="text-gray-500 capitalize truncate max-w-[130px] sm:max-w-[160px]">
-              {product.category || "Wellness"}
+          {/* PRICES HIERARCHY */}
+          <div className="mt-auto flex flex-col gap-0.5">
+            {/* SELLING PRICE */}
+            <span className="text-sm sm:text-base font-bold text-[#650B18]">
+              ₹{sellingPrice.toLocaleString()}
             </span>
-          </div>
 
-          {/* Wellness Goal Pill */}
-          <div className="mb-2">
-            {product.wellnessGoal && product.wellnessGoal.length > 0 ? (
-              <span className="inline-flex items-center gap-1 bg-[#eef7f0] text-[#1e4620] px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-medium border border-[#d8ecd9] max-w-full truncate">
-                <Activity className="w-2.5 h-2.5 flex-shrink-0" />
-                <span className="truncate">{product.wellnessGoal[0]}</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 bg-[#eef7f0] text-[#1e4620] px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-medium border border-[#d8ecd9]">
-                <Activity className="w-2.5 h-2.5 flex-shrink-0" />
-                <span>Wellness</span>
-              </span>
-            )}
-          </div>
-        </Link>
-
-        {/* Price & Add to Cart Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100 gap-1.5 mt-auto">
-          {/* Price */}
-          <div className="flex flex-col">
-            <span className="text-sm sm:text-[15px] font-bold text-gray-900 leading-none">
-              ₹{product.discountPrice || product.price}
-            </span>
-            {product.discountPrice && product.price > product.discountPrice && (
-              <span className="text-[10px] sm:text-[11px] text-gray-400 line-through font-normal mt-0.5">
-                ₹{product.price}
-              </span>
-            )}
-          </div>
-
-          {/* Add to Cart / Quantity Controller Button */}
-          {cartQuantity > 0 ? (
-            <div
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className="flex items-center bg-[#1e4620] text-white rounded-lg shadow-xs overflow-hidden flex-shrink-0"
-            >
-              <button
-                type="button"
-                onClick={handleDecrement}
-                disabled={isUpdating}
-                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center hover:bg-[#153216] active:bg-[#0f2410] transition-colors cursor-pointer disabled:opacity-50"
-                aria-label="Decrease quantity"
-              >
-                <Minus className="w-3 h-3 stroke-[2.5]" />
-              </button>
-              <span className="min-w-[20px] sm:min-w-[24px] text-center font-bold text-[11px] sm:text-xs select-none">
-                {isUpdating ? (
-                  <Loader2 className="w-3 h-3 animate-spin mx-auto" />
-                ) : (
-                  cartQuantity
+            {/* MRP & DISCOUNT ROW */}
+            {hasMrp && (
+              <div className="flex items-center gap-1.5 flex-wrap text-xs">
+                <span className="text-gray-400 line-through font-normal">
+                  M.R.P. ₹{mrpPrice.toLocaleString()}
+                </span>
+                {discountPercentage && (
+                  <span className="font-bold text-[#D4A017]">
+                    {discountPercentage}% off
+                  </span>
                 )}
-              </span>
-              <button
-                type="button"
-                onClick={handleIncrement}
-                disabled={isUpdating}
-                className="w-6 sm:w-7 h-6 sm:h-7 flex items-center justify-center hover:bg-[#153216] active:bg-[#0f2410] transition-colors cursor-pointer disabled:opacity-50"
-                aria-label="Increase quantity"
-              >
-                <Plus className="w-3 h-3 stroke-[2.5]" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={(e) =>
-                handleAddToCart(
-                  e,
-                  product,
-                  product.hasVariants ? product.variants?.[0] : null
-                )
-              }
-              disabled={isUpdating}
-              className="bg-[#1e4620] hover:bg-[#153216] active:scale-95 text-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center justify-center gap-1 text-[10px] sm:text-[11px] font-semibold shadow-xs hover:shadow transition-all disabled:opacity-50 flex-shrink-0 cursor-pointer"
-            >
-              {isUpdating ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <>
-                  <ShoppingCart className="w-3 h-3" />
-                  <span>Add</span>
-                </>
-              )}
-            </button>
-          )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 };
@@ -535,7 +239,7 @@ const ProductGrid = ({
   loadingMore,
   error,
   onProductClick,
-  gridClassName = "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4.5",
+  gridClassName = "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-x-4 gap-y-6 sm:gap-x-5 sm:gap-y-7",
 }) => {
   // Show initial skeletons when loading and no products are rendered yet
   if (loading && (!products || products.length === 0)) {
@@ -565,7 +269,7 @@ const ProductGrid = ({
           ))
         ) : (
           <div className="col-span-full">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-2xl mx-auto">
+            <div className="bg-white rounded-2xl p-12 text-center max-w-2xl mx-auto">
               <ShieldCheck className="w-16 h-16 mx-auto text-gray-300 mb-4" />
               <h2 className="text-xl font-bold text-gray-900 mb-2">
                 No Products Found
@@ -576,7 +280,7 @@ const ProductGrid = ({
               </p>
               <Link
                 to="/collections/all"
-                className="inline-block px-5 py-2.5 bg-[#1e4620] text-white rounded-xl hover:bg-[#153216] transition-colors font-semibold text-sm shadow-sm"
+                className="inline-block px-5 py-2.5 bg-[#022824] text-white rounded-xl hover:bg-[#046559] transition-colors font-semibold text-sm shadow-sm"
               >
                 Browse All Products
               </Link>
@@ -598,4 +302,4 @@ const ProductGrid = ({
 };
 
 export { ProductCard };
-export default ProductGrid;
+export default ProductGrid;
