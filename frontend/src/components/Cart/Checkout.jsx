@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createCheckout, setCheckoutData } from "../../redux/slices/checkoutSlice";
-import { mergeCart, fetchCart, updateLocalCartItemQuantity, removeLocalCartItem } from "../../redux/slices/cartSlice";
+import { mergeCart, fetchCart, updateCartItemQuantity, removeFromCart, updateLocalCartItemQuantity, removeLocalCartItem } from "../../redux/slices/cartSlice";
 import { Minus, Plus, Trash2, MapPin } from "lucide-react";
 import { fetchUserOrders } from "../../redux/slices/orderSlice";
 import { fetchAddresses, addAddress } from "../../redux/slices/addressSlice";
@@ -18,22 +18,11 @@ import {
   getReferralForCartItems,
 } from "../../services/referralStorage";
 
-const handleQtyChange = (dispatch, user, productId, delta, quantity, size, color) => {
-  const newQty = quantity + delta;
-  if (newQty > 0) {
-    dispatch(updateLocalCartItemQuantity({ productId, quantity: newQty, size, color }));
-  }
-};
-
-const handleRemove = (dispatch, user, productId, size, color) => {
-  dispatch(removeLocalCartItem({ productId, size, color }));
-};
-
 const CheckOut = () => {
   const dispatch = useDispatch();
 
   const { cart, loading, error } = useSelector((state) => state.cart);
-  const { user } = useSelector((state) => state.auth);
+  const { user, guestId } = useSelector((state) => state.auth || {});
   const { addresses, saving: addressSaving } = useSelector((state) => state.address || { addresses: [], saving: false });
   
   const [isCartLoaded, setIsCartLoaded] = useState(false);
@@ -231,6 +220,32 @@ const CheckOut = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const referralContext = getReferralForCartItems(cart?.products || []);
 
+  const handleItemQtyChange = (productId, delta, currentQty, size, color) => {
+    const newQty = currentQty + delta;
+    if (newQty < 1) return;
+
+    const gId = guestId || localStorage.getItem("guestId");
+    const uId = user ? user._id : null;
+
+    dispatch(updateLocalCartItemQuantity({ productId, quantity: newQty, size, color }));
+
+    if (uId || gId) {
+      dispatch(updateCartItemQuantity({ productId, quantity: newQty, guestId: gId, userId: uId, size, color }));
+    }
+  };
+
+  const handleItemRemove = (productId, size, color) => {
+    const gId = guestId || localStorage.getItem("guestId");
+    const uId = user ? user._id : null;
+
+    dispatch(removeLocalCartItem({ productId, size, color }));
+
+    if (uId || gId) {
+      dispatch(removeFromCart({ productId, userId: uId, guestId: gId, size, color }));
+    }
+    toast.success("Item removed from cart");
+  };
+
   const deliveryCharge = cart?.products?.reduce((acc, item) => {
     let itemShipping = Number(item.shippingCharge ?? 100);
     if (shippingAddress.city && item.freeShippingCities && item.freeShippingCities.length > 0) {
@@ -243,7 +258,10 @@ const CheckOut = () => {
     }
     return acc + itemShipping;
   }, 0) ?? 0;
-  const subtotal = cart?.totalPrice ?? 0;
+  const subtotal = cart?.products?.reduce(
+    (acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 1)),
+    0
+  ) ?? cart?.totalPrice ?? 0;
   const serviceCharge = Math.round(subtotal * 0.03);
   const totalWithDelivery = subtotal + serviceCharge + deliveryCharge;
   const finalTotal = Math.round(Math.max(totalWithDelivery - couponDiscount, 0));
@@ -579,7 +597,7 @@ const CheckOut = () => {
           customerEmail: user?.email || email,
           shippingAddress,
           paymentMethod: "Razorpay",
-          totalPrice: cart.totalPrice,
+          totalPrice: finalTotal,
           couponCode: appliedCoupon,
           orderItems: cart.products.map((product) => ({
             productId: product.productId,
@@ -627,7 +645,21 @@ const CheckOut = () => {
 
   if (error) return <p> Error: {error}</p>;
   if (!cart || !cart.products || cart.products.length === 0) {
-    return <p>Your cart is empty</p>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 font-sans">
+        <div className="w-16 h-16 bg-[#FFF8E7] rounded-full flex items-center justify-center mb-4 border border-[#D4A017]/30">
+          <Trash2 className="h-8 w-8 text-[#D4A017]" />
+        </div>
+        <h2 className="text-2xl font-bold text-[#3A0610] mb-2">Your cart is empty</h2>
+        <p className="text-gray-500 text-sm mb-6 max-w-sm">Items added to your cart will appear here for checkout.</p>
+        <Link
+          to="/collections/all"
+          className="px-6 py-3 bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] font-extrabold rounded-xl transition-all shadow-md text-sm cursor-pointer inline-block"
+        >
+          Explore Products
+        </Link>
+      </div>
+    );
   }
 
   return (
@@ -886,19 +918,99 @@ const CheckOut = () => {
           <h3 className="text-xl font-extrabold uppercase tracking-tight text-[#4A0712]">Order Summary</h3>
 
           {/* Cart items list */}
-          <div className="space-y-3 divide-y divide-gray-200">
-            {cart.products.map((item, idx) => (
-              <div key={idx} className="pt-3 first:pt-0 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <img src={item.image} alt={item.name} className="w-14 h-14 object-contain rounded-lg border border-gray-200 bg-white p-1" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-[#3A0610] truncate">{item.name}</p>
-                    <p className="text-xs text-gray-500">Qty: {item.quantity} × ₹{item.price?.toLocaleString()}</p>
+          <div className="space-y-4 divide-y divide-gray-200/80">
+            {cart.products.map((item, idx) => {
+              const pId = item.productId || item._id || item.id;
+              const mrp = Number(item.mrp || item.originalPrice || 0);
+              const sellingPrice = Number(item.price || 0);
+              const hasMrp = mrp > sellingPrice;
+
+              return (
+                <div key={idx} className="pt-3.5 first:pt-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <img
+                      src={item.image || "https://via.placeholder.com/150"}
+                      alt={item.name}
+                      className="w-14 h-14 object-contain rounded-lg border border-gray-200 bg-white p-1 flex-shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-[#3A0610] line-clamp-2 leading-snug">{item.name}</p>
+
+                      {/* Variant / Size / Color */}
+                      {(item.size || item.color || item.variant) && (
+                        <p className="text-[11px] text-gray-500 mt-0.5 space-x-1.5">
+                          {item.variant?.label && (
+                            <span className="font-medium text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded">
+                              {item.variant.label}
+                            </span>
+                          )}
+                          {item.size && <span>Size: {item.size.split(":")[0]}</span>}
+                          {item.color && <span>Color: {item.color}</span>}
+                        </p>
+                      )}
+
+                      {/* Price & MRP */}
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs font-bold text-[#650B18]">
+                          ₹{sellingPrice.toLocaleString()}
+                        </span>
+                        {hasMrp && (
+                          <span className="text-[11px] text-gray-400 line-through">
+                            MRP ₹{mrp.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Quantity & Remove controls */}
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
+                        {/* Quantity Controls */}
+                        <div className="inline-flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white shadow-2xs">
+                          <button
+                            type="button"
+                            onClick={() => handleItemQtyChange(pId, -1, item.quantity, item.size, item.color)}
+                            disabled={item.quantity <= 1}
+                            aria-label="Decrease quantity"
+                            className="px-2 py-1 text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="px-2.5 py-0.5 font-semibold text-xs text-gray-900 min-w-[24px] text-center select-none border-x border-gray-200">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleItemQtyChange(pId, 1, item.quantity, item.size, item.color)}
+                            aria-label="Increase quantity"
+                            className="px-2 py-1 text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
+
+                        {/* Remove Option */}
+                        <button
+                          type="button"
+                          onClick={() => handleItemRemove(pId, item.size, item.color)}
+                          className="text-[11px] font-semibold text-red-600 hover:text-red-800 flex items-center gap-1 transition-colors py-0.5 cursor-pointer"
+                          aria-label={`Remove ${item.name} from cart`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Line Total */}
+                  <div className="flex sm:flex-col justify-between sm:justify-center items-end flex-shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+                    <span className="sm:hidden text-xs text-gray-500 font-medium">Line Total:</span>
+                    <p className="text-xs sm:text-sm font-extrabold text-[#650B18]">
+                      ₹{(sellingPrice * item.quantity).toLocaleString()}
+                    </p>
                   </div>
                 </div>
-                <p className="text-xs font-bold text-[#650B18]">₹{(item.price * item.quantity).toLocaleString()}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Coupon Code Box */}
