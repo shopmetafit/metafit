@@ -155,7 +155,7 @@ const Navbar = () => {
           AMAZON STYLE CATEGORY NAV BAR - NAVRATRI BURGUNDY THEME
       ====================================================== */}
 
-      <nav className="bg-gradient-to-r from-[#3A0610] via-[#4A0712] to-[#650B18] text-[#FFF8E7] shadow-xs relative overflow-hidden">
+      <nav className="bg-gradient-to-r from-[#3A0610] via-[#4A0712] to-[#650B18] text-[#FFF8E7] shadow-xs relative z-20 overflow-hidden">
         {/* Subtle Festive Golden Particle Overlay Layer */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-40">
           <div className="absolute top-1 left-[20%] w-1 h-1 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-2" />
@@ -285,7 +285,7 @@ const Navbar = () => {
       ====================================================== */}
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[100] flex">
+        <div className="fixed inset-0 z-[9999] flex">
 
           {/* Sidebar Panel */}
 

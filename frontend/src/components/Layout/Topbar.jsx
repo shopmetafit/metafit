@@ -616,7 +616,7 @@ const Topbar = () => {
           AMAZON STYLE MAIN HEADER - NAVRATRI BURGUNDY THEME
       ====================================================== */}
 
-      <div className="bg-gradient-to-r from-[#3A0610] via-[#650B18] to-[#4A0712] text-[#FFF8E7] border-b border-[#D4A017]/30 shadow-md relative overflow-hidden">
+      <div className="bg-gradient-to-r from-[#3A0610] via-[#650B18] to-[#4A0712] text-[#FFF8E7] border-b border-[#D4A017]/30 shadow-md relative z-30">
         {/* Subtle Festive Golden Particle Overlay Layer */}
         <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden opacity-50">
           <div className="absolute top-2 left-[12%] w-1.5 h-1.5 rounded-full bg-[#F2C94C] blur-[0.5px] animate-navratri-sparkle-1" />
@@ -1040,7 +1040,7 @@ const Topbar = () => {
 
             {user ? (
               <div
-                className="hidden md:block relative"
+                className="hidden md:block relative z-50"
                 ref={accountMenuRef}
               >
                 <button
@@ -1082,7 +1082,7 @@ const Topbar = () => {
 
                 {/* Desktop Account Dropdown */}
                 {accountMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[100] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[9999] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
 
                     <div className="px-3.5 py-2.5 border-b border-gray-100 bg-[#FFF8E7]">
                       <p className="text-xs font-bold text-[#4A0712] truncate">
@@ -1553,7 +1553,7 @@ const Topbar = () => {
 
       {mobileAccountMenuOpen && user && (
         <div
-          className="fixed inset-0 z-[120] flex flex-col justify-start pt-16 px-4 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] flex flex-col justify-start pt-16 px-4 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-200"
           onClick={() =>
             setMobileAccountMenuOpen(false)
           }
@@ -1742,7 +1742,7 @@ const Topbar = () => {
 
       {showLogoutModal && (
         <div
-          className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
           onClick={() =>
             setShowLogoutModal(false)
           }
