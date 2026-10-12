@@ -141,7 +141,14 @@ const ProductRequestsList = () => {
                       </div>
                       <p className="text-gray-600 text-sm mb-2">{request.description}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
-                        <span>SKU: {request.sku}</span>
+                        <span>
+                          SKU:{' '}
+                          {request.sku && String(request.sku).trim() ? (
+                            <span className="font-mono">{String(request.sku).trim()}</span>
+                          ) : (
+                            <span className="text-amber-600 font-medium">Missing (Edit to add SKU)</span>
+                          )}
+                        </span>
                         <span>Category: {request.category}</span>
                         <span>Brand: {request.brand}</span>
                         <span>Collection: {request.collection}</span>

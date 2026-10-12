@@ -45,19 +45,23 @@ const createProductRequest = async (req, res) => {
       freeShippingCities,
     } = req.body;
 
+    // Normalize SKU
+    const rawSku = sku !== undefined && sku !== null ? sku : "";
+    const normalizedSku = typeof rawSku === "string" ? rawSku.trim() : String(rawSku).trim();
+
     // Validate required fields
-    if (!name || !description || !price || !countInStock || !sku || !category || !brand || !collection) {
-      return res.status(400).json({ message: "Please fill in all required fields" });
+    if (!name || !description || !price || countInStock === undefined || countInStock === null || !normalizedSku || !category || !brand || !collection) {
+      return res.status(400).json({ message: "Please fill in all required fields. SKU is required and cannot be empty." });
     }
 
     // Check if SKU already exists in product requests
-    const existingRequest = await ProductRequest.findOne({ sku });
+    const existingRequest = await ProductRequest.findOne({ sku: normalizedSku });
     if (existingRequest) {
       return res.status(400).json({ message: "SKU already exists in product requests" });
     }
 
     // Check if SKU already exists in products
-    const existingProduct = await Product.findOne({ sku });
+    const existingProduct = await Product.findOne({ sku: normalizedSku });
     if (existingProduct) {
       return res.status(400).json({ message: "SKU already exists in products" });
     }
@@ -72,7 +76,7 @@ const createProductRequest = async (req, res) => {
       shippingCharge: shippingCharge ? Number(shippingCharge) : 0,
       localShippingCharge: localShippingCharge ? Number(localShippingCharge) : 0,
       countInStock: Number(countInStock),
-      sku,
+      sku: normalizedSku,
       category,
       brand,
       sizes: sizes || [],
@@ -98,12 +102,25 @@ const createProductRequest = async (req, res) => {
     });
 
     const createdRequest = await productRequest.save();
+    console.log(`[ProductRequest Create] Created request ID: ${createdRequest._id} with SKU: ${normalizedSku} by vendor: ${req.user._id}`);
     res.status(201).json({
       message: "Product request created successfully",
       request: createdRequest,
     });
   } catch (error) {
-    console.error("Error creating product request:", error);
+    console.error("Error creating product request:", error.message);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "A product request or product with this SKU already exists",
+        error: "Duplicate SKU",
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message,
+        error: error.message,
+      });
+    }
     res.status(500).json({
       message: "Error creating product request",
       error: error.message,
@@ -156,7 +173,10 @@ const getProductRequestById = async (req, res) => {
       return res.status(403).json({ message: "Access denied. Not your product request." });
     }
 
-    res.json(request);
+    res.json({
+      request,
+      ...(request.toObject ? request.toObject() : request),
+    });
   } catch (error) {
     console.error("Error fetching product request:", error);
     res.status(500).json({
@@ -222,6 +242,33 @@ const updateProductRequest = async (req, res) => {
       freeShippingCities,
     } = req.body;
 
+    // Validate and update SKU if provided
+    if (sku !== undefined) {
+      const normalizedSku = typeof sku === "string" ? sku.trim() : (sku !== null ? String(sku).trim() : "");
+      if (!normalizedSku) {
+        return res.status(400).json({ message: "SKU cannot be empty" });
+      }
+
+      if (normalizedSku !== request.sku) {
+        const existingRequest = await ProductRequest.findOne({
+          sku: normalizedSku,
+          _id: { $ne: request._id },
+        });
+        if (existingRequest) {
+          return res.status(400).json({ message: "SKU already exists in product requests" });
+        }
+
+        const existingProduct = await Product.findOne({ sku: normalizedSku });
+        if (existingProduct) {
+          return res.status(400).json({ message: "SKU already exists in products" });
+        }
+      }
+
+      request.sku = normalizedSku;
+    } else if (request.sku) {
+      request.sku = request.sku.trim();
+    }
+
     // Update fields
     request.name = name || request.name;
     request.description = description || request.description;
@@ -231,7 +278,6 @@ const updateProductRequest = async (req, res) => {
     request.localShippingCharge = localShippingCharge !== undefined ? Number(localShippingCharge) : request.localShippingCharge;
     if (freeShippingCities !== undefined) request.freeShippingCities = freeShippingCities;
     request.countInStock = countInStock ? Number(countInStock) : request.countInStock;
-    request.sku = sku || request.sku;
     request.category = category || request.category;
     request.brand = brand || request.brand;
     request.sizes = sizes || request.sizes;
@@ -256,12 +302,25 @@ const updateProductRequest = async (req, res) => {
     request.freeShippingCities = freeShippingCities || request.freeShippingCities;
 
     const updatedRequest = await request.save();
+    console.log(`[ProductRequest Update] Updated request ID: ${updatedRequest._id} with SKU: ${updatedRequest.sku}`);
     res.json({
       message: "Product request updated successfully",
       request: updatedRequest,
     });
   } catch (error) {
-    console.error("Error updating product request:", error);
+    console.error("Error updating product request:", error.message);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "A product request or product with this SKU already exists",
+        error: "Duplicate SKU",
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message,
+        error: error.message,
+      });
+    }
     res.status(500).json({
       message: "Error updating product request",
       error: error.message,
@@ -388,7 +447,10 @@ const getProductRequestByIdAdmin = async (req, res) => {
       return res.status(404).json({ message: "Product request not found" });
     }
 
-    res.json(request);
+    res.json({
+      request,
+      ...(request.toObject ? request.toObject() : request),
+    });
   } catch (error) {
     console.error("Error fetching product request:", error);
     res.status(500).json({
@@ -399,7 +461,7 @@ const getProductRequestByIdAdmin = async (req, res) => {
 };
 
 // @desc    Approve a product request (admin only)
-// @route   PUT /api/admin/product-requests/:id/approve
+// @route   PUT /api/vendor/product-requests/admin/:id/approve
 // @access  Private (admin)
 const approveProductRequest = async (req, res) => {
   try {
@@ -414,11 +476,52 @@ const approveProductRequest = async (req, res) => {
       return res.status(400).json({ message: "Cannot approve request that is not pending" });
     }
 
-    // Check if SKU already exists in products
-    const existingProduct = await Product.findOne({ sku: request.sku });
-    if (existingProduct) {
-      return res.status(400).json({ message: "SKU already exists in products" });
+    // Determine SKU: prioritize admin-provided SKU if present in req.body, otherwise use request.sku
+    const rawProvidedSku = req.body && req.body.sku !== undefined ? req.body.sku : undefined;
+    const providedSku = rawProvidedSku !== undefined
+      ? (typeof rawProvidedSku === "string" ? rawProvidedSku.trim() : String(rawProvidedSku).trim())
+      : undefined;
+
+    const requestSku = request.sku
+      ? (typeof request.sku === "string" ? request.sku.trim() : String(request.sku).trim())
+      : "";
+
+    const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : requestSku;
+
+    // Validate that effective SKU is non-empty
+    if (!effectiveSku) {
+      console.warn(`[ProductRequest Approval Failed] Request ID ${request._id} has no valid SKU and none was provided`);
+      return res.status(400).json({
+        message: "SKU is required to approve this product request. Please provide a valid SKU before approval.",
+        code: "SKU_REQUIRED",
+        requestId: request._id,
+      });
     }
+
+    // Check if SKU already exists in products
+    const existingProduct = await Product.findOne({ sku: effectiveSku });
+    if (existingProduct) {
+      console.warn(`[ProductRequest Approval Failed] SKU '${effectiveSku}' already exists in products (Product ID: ${existingProduct._id})`);
+      return res.status(400).json({
+        message: `SKU '${effectiveSku}' already exists in products. Please choose a unique SKU.`,
+        code: "DUPLICATE_SKU",
+      });
+    }
+
+    // Check if SKU already exists in other product requests
+    const existingRequest = await ProductRequest.findOne({
+      sku: effectiveSku,
+      _id: { $ne: request._id },
+    });
+    if (existingRequest) {
+      console.warn(`[ProductRequest Approval Failed] SKU '${effectiveSku}' is already used in request ID: ${existingRequest._id}`);
+      return res.status(400).json({
+        message: `SKU '${effectiveSku}' already exists in another product request`,
+        code: "DUPLICATE_SKU",
+      });
+    }
+
+    console.log(`[ProductRequest Approval] Approving request ID: ${request._id} with SKU: ${effectiveSku}`);
 
     // Create the actual product
     const product = new Product({
@@ -430,34 +533,33 @@ const approveProductRequest = async (req, res) => {
       localShippingCharge: request.localShippingCharge || 0,
       freeShippingCities: request.freeShippingCities || [],
       countInStock: request.countInStock,
-      sku: request.sku,
+      sku: effectiveSku,
       category: request.category,
       brand: request.brand,
-      sizes: request.sizes,
-      colors: request.colors,
+      sizes: request.sizes || [],
+      colors: request.colors || [],
       collection: request.collection,
       material: request.material,
       location: request.location,
       videoUrl: request.videoUrl,
       gender: request.gender,
-      images: request.images,
-      extraImages: request.extraImages,
-      variants: request.variants,
-      hasVariants: request.hasVariants,
+      images: request.images || [],
+      extraImages: request.extraImages || [],
+      variants: request.variants || [],
+      hasVariants: request.hasVariants || false,
       dimensions: request.dimensions,
       weight: request.weight,
-      tags: request.tags,
+      tags: request.tags || [],
       metaTitle: request.metaTitle,
       metaDescription: request.metaDescription,
       metaKeywords: request.metaKeywords,
-      isFeatured: request.isFeatured,
+      isFeatured: request.isFeatured !== false,
       isPublished: true,
-      priority: request.priority,
-      freeShippingCities: request.freeShippingCities || [],
+      priority: request.priority || 0,
       rating: 0,
       numReviews: 0,
-      user: request.vendorId._id, // Vendor as the user
-      vendorId: request.vendorId._id, // Explicit vendor reference
+      user: request.vendorId?._id || request.vendorId, // Vendor as the user
+      vendorId: request.vendorId?._id || request.vendorId, // Explicit vendor reference
       createdBy: "VENDOR", // Mark as vendor product
       productApprovalStatus: "approved", // Auto-approve since admin approved the request
       approvedBy: req.user._id,
@@ -466,7 +568,8 @@ const approveProductRequest = async (req, res) => {
 
     const createdProduct = await product.save();
 
-    // Update the request status
+    // Update the request status and persist the normalized/updated SKU
+    request.sku = effectiveSku;
     request.status = "approved";
     request.approvedBy = req.user._id;
     request.approvedAt = new Date();
@@ -475,13 +578,28 @@ const approveProductRequest = async (req, res) => {
 
     await request.save();
 
+    console.log(`[ProductRequest Approval Success] Request ${request._id} approved. Created product ID: ${createdProduct._id}`);
+
     res.json({
       message: "Product request approved and product created successfully",
       request,
       product: createdProduct,
     });
   } catch (error) {
-    console.error("Error approving product request:", error);
+    console.error(`[ProductRequest Approval Error] Request ID: ${req.params?.id}:`, error.message);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "A product with this SKU already exists",
+        error: "Duplicate SKU",
+        code: "DUPLICATE_SKU",
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message,
+        error: error.message,
+      });
+    }
     res.status(500).json({
       message: "Error approving product request",
       error: error.message,
@@ -554,6 +672,136 @@ const getProductRequestStats = async (req, res) => {
   }
 };
 
+// @desc    Update a product request (admin only)
+// @route   PUT /api/vendor/product-requests/admin/:id
+// @access  Private (admin)
+const updateProductRequestAdmin = async (req, res) => {
+  try {
+    const request = await ProductRequest.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: "Product request not found" });
+    }
+
+    if (request.status !== "pending") {
+      return res.status(400).json({ message: "Cannot update request that is not pending" });
+    }
+
+    const {
+      name,
+      description,
+      price,
+      discountPrice,
+      shippingCharge,
+      localShippingCharge,
+      countInStock,
+      sku,
+      category,
+      brand,
+      sizes,
+      colors,
+      collection,
+      material,
+      location,
+      videoUrl,
+      gender,
+      images,
+      extraImages,
+      variants,
+      hasVariants,
+      dimensions,
+      weight,
+      tags,
+      metaTitle,
+      metaDescription,
+      metaKeywords,
+      isFeatured,
+      priority,
+      freeShippingCities,
+    } = req.body;
+
+    if (sku !== undefined) {
+      const normalizedSku = typeof sku === "string" ? sku.trim() : (sku !== null ? String(sku).trim() : "");
+      if (!normalizedSku) {
+        return res.status(400).json({ message: "SKU cannot be empty" });
+      }
+
+      if (normalizedSku !== request.sku) {
+        const existingRequest = await ProductRequest.findOne({
+          sku: normalizedSku,
+          _id: { $ne: request._id },
+        });
+        if (existingRequest) {
+          return res.status(400).json({ message: "SKU already exists in product requests" });
+        }
+
+        const existingProduct = await Product.findOne({ sku: normalizedSku });
+        if (existingProduct) {
+          return res.status(400).json({ message: "SKU already exists in products" });
+        }
+      }
+
+      request.sku = normalizedSku;
+    } else if (request.sku) {
+      request.sku = request.sku.trim();
+    }
+
+    request.name = name || request.name;
+    request.description = description || request.description;
+    request.price = price ? Number(price) : request.price;
+    request.discountPrice = discountPrice ? Number(discountPrice) : request.discountPrice;
+    request.shippingCharge = shippingCharge !== undefined ? Number(shippingCharge) : request.shippingCharge;
+    request.localShippingCharge = localShippingCharge !== undefined ? Number(localShippingCharge) : request.localShippingCharge;
+    if (freeShippingCities !== undefined) request.freeShippingCities = freeShippingCities;
+    request.countInStock = countInStock ? Number(countInStock) : request.countInStock;
+    request.category = category || request.category;
+    request.brand = brand || request.brand;
+    request.sizes = sizes || request.sizes;
+    request.colors = colors || request.colors;
+    request.collection = collection || request.collection;
+    request.material = material || request.material;
+    request.location = location !== undefined ? location : request.location;
+    request.videoUrl = videoUrl || request.videoUrl;
+    request.gender = gender || request.gender;
+    request.images = images || request.images;
+    request.extraImages = extraImages || request.extraImages;
+    request.variants = hasVariants && variants ? variants : request.variants;
+    request.hasVariants = hasVariants !== undefined ? hasVariants : request.hasVariants;
+    request.dimensions = dimensions || request.dimensions;
+    request.weight = weight || request.weight;
+    request.tags = tags || request.tags;
+    request.metaTitle = metaTitle || request.metaTitle;
+    request.metaDescription = metaDescription || request.metaDescription;
+    request.metaKeywords = metaKeywords || request.metaKeywords;
+    request.isFeatured = isFeatured !== undefined ? isFeatured : request.isFeatured;
+    request.priority = priority || request.priority;
+
+    const updatedRequest = await request.save();
+    console.log(`[ProductRequest Admin Update] Request ${request._id} updated by admin ${req.user._id}`);
+    res.json({
+      message: "Product request updated successfully",
+      request: updatedRequest,
+    });
+  } catch (error) {
+    console.error("Error updating product request by admin:", error.message);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "A product request or product with this SKU already exists",
+        error: "Duplicate SKU",
+      });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        message: error.message,
+        error: error.message,
+      });
+    }
+    res.status(500).json({
+      message: "Error updating product request",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   // Vendor functions
   createProductRequest,
@@ -569,4 +817,5 @@ module.exports = {
   approveProductRequest,
   rejectProductRequest,
   getProductRequestStats,
+  updateProductRequestAdmin,
 };

@@ -11,6 +11,7 @@ const {
   approveProductRequest,
   rejectProductRequest,
   getProductRequestStats,
+  updateProductRequestAdmin,
 } = require("../controllers/productRequestController");
 const { protect, admin } = require("../middleware/authMiddleware");
 const { protectVendor, vendorApproved } = require("../middleware/vendorAuthMiddleware");
@@ -26,9 +27,10 @@ router.delete("/:id", protectVendor, vendorApproved, deleteProductRequest);
 
 // Admin Routes (Protected - Admin Only)
 router.get("/admin/all", protect, admin, getAllProductRequests);
+router.get("/admin/stats", protect, admin, getProductRequestStats);
 router.get("/admin/:id", protect, admin, getProductRequestByIdAdmin);
 router.put("/admin/:id/approve", protect, admin, approveProductRequest);
 router.put("/admin/:id/reject", protect, admin, rejectProductRequest);
-router.get("/admin/stats", protect, admin, getProductRequestStats);
+router.put("/admin/:id", protect, admin, updateProductRequestAdmin);
 
 module.exports = router;

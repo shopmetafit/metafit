@@ -64,7 +64,7 @@ const ProductRequestForm = () => {
         try {
           setIsLoading(true);
           const response = await vendorApiService.getProductRequestById(requestId);
-          const request = response.request;
+          const request = response.request || response;
           
           setForm({
             name: request.name || '',
@@ -229,7 +229,7 @@ const ProductRequestForm = () => {
         shippingCharge: form.shippingCharge || 0,
         localShippingCharge: form.localShippingCharge || 0,
         countInStock: form.countInStock,
-        sku: form.sku,
+        sku: form.sku ? form.sku.trim() : '',
         category: form.category,
         brand: form.brand,
         collection: form.collection,

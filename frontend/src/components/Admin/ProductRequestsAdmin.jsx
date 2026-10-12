@@ -38,14 +38,29 @@ const ProductRequestsAdmin = () => {
     }
   };
 
-  const handleApprove = async (requestId) => {
-    if (!window.confirm('Are you sure you want to approve this product request? This will create the product automatically.')) {
-      return;
+  const handleApprove = async (requestId, existingSku) => {
+    let skuToSubmit = undefined;
+    const trimmedSku = existingSku ? String(existingSku).trim() : '';
+
+    if (!trimmedSku) {
+      const inputSku = window.prompt(
+        'This product request is missing a SKU. Please enter a valid unique SKU to approve this product:'
+      );
+      if (!inputSku || !inputSku.trim()) {
+        toast.error('SKU is required to approve this product request');
+        return;
+      }
+      skuToSubmit = inputSku.trim();
+    } else {
+      if (!window.confirm('Are you sure you want to approve this product request? This will create the product automatically.')) {
+        return;
+      }
     }
 
     try {
-      const response = await vendorApiService.approveProductRequest(requestId);
-      toast.success('Product request approved and product created successfully');
+      const payload = skuToSubmit ? { sku: skuToSubmit } : {};
+      const response = await vendorApiService.approveProductRequest(requestId, payload);
+      toast.success(response.message || 'Product request approved and product created successfully');
       
       // Update stats in real-time
       setStats(prevStats => ({
@@ -59,13 +74,23 @@ const ProductRequestsAdmin = () => {
       setRequests(prevRequests => 
         prevRequests.map(request => 
           request._id === requestId 
-            ? { ...request, status: 'approved' }
+            ? { ...request, status: 'approved', sku: skuToSubmit || request.sku }
             : request
         )
       );
     } catch (error) {
       console.error('Error approving product request:', error);
-      toast.error('Failed to approve product request');
+      const errorMessage = error.message || error.error || 'Failed to approve product request';
+      toast.error(errorMessage);
+
+      if (error.code === 'SKU_REQUIRED' || (typeof errorMessage === 'string' && errorMessage.toLowerCase().includes('sku is required'))) {
+        const retrySku = window.prompt(
+          'SKU is required. Please provide a valid unique SKU to approve this product:'
+        );
+        if (retrySku && retrySku.trim()) {
+          handleApprove(requestId, retrySku.trim());
+        }
+      }
     }
   };
 
@@ -248,7 +273,16 @@ const ProductRequestsAdmin = () => {
                       </div>
                       <p className="text-gray-600 text-sm mb-2">{request.description}</p>
                       <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
-                        <span>SKU: {request.sku}</span>
+                        <span>
+                          SKU:{' '}
+                          {request.sku && String(request.sku).trim() ? (
+                            <span className="font-mono font-medium text-gray-800">{String(request.sku).trim()}</span>
+                          ) : (
+                            <span className="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                              Missing SKU (Required)
+                            </span>
+                          )}
+                        </span>
                         <span>Category: {request.category}</span>
                         <span>Brand: {request.brand}</span>
                         <span>Collection: {request.collection}</span>
@@ -328,7 +362,7 @@ const ProductRequestsAdmin = () => {
                     {request.status === 'pending' && (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleApprove(request._id)}
+                          onClick={() => handleApprove(request._id, request.sku)}
                           className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
                         >
                           Approve

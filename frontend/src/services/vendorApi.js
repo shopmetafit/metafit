@@ -241,12 +241,21 @@ export const vendorApiService = {
     }
   },
 
-  approveProductRequest: async (requestId) => {
+  approveProductRequest: async (requestId, data = {}) => {
     try {
-      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/approve`);
+      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/approve`, data);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error approving product request' };
+    }
+  },
+
+  updateProductRequestAdmin: async (requestId, productData) => {
+    try {
+      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}`, productData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating product request' };
     }
   },
 

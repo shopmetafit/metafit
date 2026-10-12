@@ -29,7 +29,14 @@ const productRequestSchema = new mongoose.Schema(
     localShippingCharge: { type: Number, default: 0 },
     freeShippingCities: { type: [String], default: [] },
     countInStock: { type: Number, required: true, default: 0 },
-    sku: { type: String, required: true },
+    sku: {
+      type: String,
+      required: function () {
+        return this.status === "approved" || this.isNew;
+      },
+      trim: true,
+      index: true,
+    },
     category: { type: String, required: true },
     brand: { type: String, required: true },
     sizes: { type: [String], default: [] },
