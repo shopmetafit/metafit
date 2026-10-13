@@ -101,7 +101,7 @@ const approveProduct = async (req, res) => {
     product.productApprovalStatus = "approved";
     product.approvedBy = req.user ? req.user._id : undefined; // Admin user
     product.approvedAt = new Date();
-    product.isPublished = true; // Make visible to customers
+    product.isPublished = req.body && req.body.isPublished !== undefined ? Boolean(req.body.isPublished) : true;
 
     // Safeguard schema required fields for legacy vendor products
     if (!product.collection) {

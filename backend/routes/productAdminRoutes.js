@@ -247,7 +247,13 @@ router.put("/:id", protect, admin, async (req, res) => {
     // Check SKU if provided
     if (sku !== undefined && sku !== null) {
       const trimmedSku = String(sku).trim();
-      if (trimmedSku !== "" && trimmedSku !== product.sku) {
+      if (trimmedSku === "") {
+        return res.status(400).json({
+          message: "SKU cannot be empty",
+          code: "SKU_REQUIRED",
+        });
+      }
+      if (trimmedSku !== product.sku) {
         const duplicateProduct = await Product.findOne({
           sku: trimmedSku,
           _id: { $ne: product._id },

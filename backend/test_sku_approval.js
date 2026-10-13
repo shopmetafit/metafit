@@ -1045,6 +1045,39 @@ async function testPartnerDashboardRouting() {
     console.log("✓ Case 3.5: Normal product edit rejects duplicate SKU with HTTP 400 and DUPLICATE_SKU code");
   }
 
+  // Case 3.5b: Normal product edit rejects explicitly empty or whitespace-only SKU
+  {
+    const mockProduct = {
+      _id: "prod_edit_empty_sku",
+      sku: "ORIGINAL-SKU",
+      name: "Item",
+      productApprovalStatus: "approved",
+    };
+
+    const origProdFindById = Product.findById;
+    Product.findById = async () => mockProduct;
+
+    const putHandler = getRouteHandler(productAdminRoutes, "PUT", "/:id");
+
+    const req = {
+      user: { _id: "admin_user_01" },
+      params: { id: "prod_edit_empty_sku" },
+      body: {
+        name: "Updated Name",
+        sku: "   ", // whitespace only
+      },
+    };
+    const res = createMockRes();
+    await putHandler(req, res);
+
+    Product.findById = origProdFindById;
+
+    assert.strictEqual(res.statusCode, 400);
+    assert.strictEqual(res.jsonData.code, "SKU_REQUIRED");
+    assert.strictEqual(res.jsonData.message, "SKU cannot be empty");
+    console.log("✓ Case 3.5b: Normal product edit rejects empty/whitespace SKU with HTTP 400 and SKU_REQUIRED");
+  }
+
   // Case 3.6: Pending-request lookup by product ID via GET /api/admin/product-requests?productId=...&status=pending
   {
     const mockRequests = [
