@@ -422,9 +422,17 @@ const getAllProductRequests = async (req, res) => {
       .populate("vendorId", "businessName vendorName email phone")
       .sort({ createdAt: -1 });
 
+    const normalizedRequests = requests.map((item) => {
+      const doc = item.toObject ? item.toObject() : { ...item };
+      if (!doc.sku) {
+        doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
+      }
+      return doc;
+    });
+
     res.json({
-      count: requests.length,
-      requests,
+      count: normalizedRequests.length,
+      requests: normalizedRequests,
     });
   } catch (error) {
     console.error("Error fetching product requests:", error);
@@ -447,9 +455,14 @@ const getProductRequestByIdAdmin = async (req, res) => {
       return res.status(404).json({ message: "Product request not found" });
     }
 
+    const doc = request.toObject ? request.toObject() : { ...request };
+    if (!doc.sku) {
+      doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
+    }
+
     res.json({
-      request,
-      ...(request.toObject ? request.toObject() : request),
+      request: doc,
+      ...doc,
     });
   } catch (error) {
     console.error("Error fetching product request:", error);
@@ -465,10 +478,71 @@ const getProductRequestByIdAdmin = async (req, res) => {
 // @access  Private (admin)
 const approveProductRequest = async (req, res) => {
   try {
-    const request = await ProductRequest.findById(req.params.id)
+    let request = await ProductRequest.findById(req.params.id)
       .populate("vendorId", "businessName vendorName email phone");
 
+    // If not found in ProductRequest, check if this ID is a direct Product document
     if (!request) {
+      const directProduct = await Product.findById(req.params.id)
+        .populate("vendorId", "businessName vendorName email phone");
+
+      if (directProduct) {
+        const rawProvidedSku = req.body && (
+          req.body.sku !== undefined ? req.body.sku : (
+            req.body.SKU !== undefined ? req.body.SKU : req.body.productSku
+          )
+        );
+        const providedSku = rawProvidedSku !== undefined
+          ? (typeof rawProvidedSku === "string" ? rawProvidedSku.trim() : String(rawProvidedSku).trim())
+          : undefined;
+
+        const prodSku = directProduct.sku
+          ? (typeof directProduct.sku === "string" ? directProduct.sku.trim() : String(directProduct.sku).trim())
+          : "";
+
+        const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : prodSku;
+
+        if (!effectiveSku) {
+          return res.status(400).json({
+            message: "SKU is required to approve this product request. Please provide a valid SKU before approval.",
+            code: "SKU_REQUIRED",
+            productId: directProduct._id,
+          });
+        }
+
+        const duplicateProduct = await Product.findOne({
+          sku: effectiveSku,
+          _id: { $ne: directProduct._id },
+        });
+        if (duplicateProduct) {
+          return res.status(400).json({
+            message: `SKU '${effectiveSku}' already exists in products. Please choose a unique SKU.`,
+            code: "DUPLICATE_SKU",
+          });
+        }
+
+        directProduct.sku = effectiveSku;
+        directProduct.productApprovalStatus = "approved";
+        directProduct.approvedBy = req.user._id;
+        directProduct.approvedAt = new Date();
+        directProduct.isPublished = true;
+
+        if (!directProduct.collection) {
+          directProduct.collection = directProduct.category || "General";
+        }
+        if (!directProduct.user) {
+          directProduct.user = directProduct.vendorUserId || directProduct.vendorId?._id || directProduct.vendorId || req.user._id;
+        }
+
+        const savedProduct = await directProduct.save();
+
+        return res.json({
+          message: "Product request approved and product created successfully",
+          request: directProduct,
+          product: savedProduct,
+        });
+      }
+
       return res.status(404).json({ message: "Product request not found" });
     }
 
@@ -476,15 +550,33 @@ const approveProductRequest = async (req, res) => {
       return res.status(400).json({ message: "Cannot approve request that is not pending" });
     }
 
-    // Determine SKU: prioritize admin-provided SKU if present in req.body, otherwise use request.sku
-    const rawProvidedSku = req.body && req.body.sku !== undefined ? req.body.sku : undefined;
+    // Determine SKU: prioritize admin-provided SKU in req.body (sku, SKU, productSku), otherwise use request SKU sources
+    const rawProvidedSku = req.body && (
+      req.body.sku !== undefined ? req.body.sku : (
+        req.body.SKU !== undefined ? req.body.SKU : req.body.productSku
+      )
+    );
     const providedSku = rawProvidedSku !== undefined
       ? (typeof rawProvidedSku === "string" ? rawProvidedSku.trim() : String(rawProvidedSku).trim())
       : undefined;
 
-    const requestSku = request.sku
-      ? (typeof request.sku === "string" ? request.sku.trim() : String(request.sku).trim())
+    const docSkuRaw = request.sku ||
+      request.payload?.sku ||
+      request.productSku ||
+      request.SKU ||
+      request.payload?.productSku ||
+      request.payload?.SKU ||
+      "";
+    let requestSku = docSkuRaw
+      ? (typeof docSkuRaw === "string" ? docSkuRaw.trim() : String(docSkuRaw).trim())
       : "";
+
+    if (!requestSku && request.productId) {
+      const linkedProd = await Product.findById(request.productId);
+      if (linkedProd && linkedProd.sku) {
+        requestSku = String(linkedProd.sku).trim();
+      }
+    }
 
     const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : requestSku;
 
@@ -498,8 +590,12 @@ const approveProductRequest = async (req, res) => {
       });
     }
 
-    // Check if SKU already exists in products
-    const existingProduct = await Product.findOne({ sku: effectiveSku });
+    // Check if SKU already exists in other products (excluding request.productId if updating)
+    const existingProductQuery = { sku: effectiveSku };
+    if (request.productId) {
+      existingProductQuery._id = { $ne: request.productId };
+    }
+    const existingProduct = await Product.findOne(existingProductQuery);
     if (existingProduct) {
       console.warn(`[ProductRequest Approval Failed] SKU '${effectiveSku}' already exists in products (Product ID: ${existingProduct._id})`);
       return res.status(400).json({
@@ -523,67 +619,115 @@ const approveProductRequest = async (req, res) => {
 
     console.log(`[ProductRequest Approval] Approving request ID: ${request._id} with SKU: ${effectiveSku}`);
 
-    // Create the actual product
-    const product = new Product({
-      name: request.name,
-      description: request.description,
-      price: request.price,
-      discountPrice: request.discountPrice,
-      shippingCharge: request.shippingCharge || 0,
-      localShippingCharge: request.localShippingCharge || 0,
-      freeShippingCities: request.freeShippingCities || [],
-      countInStock: request.countInStock,
-      sku: effectiveSku,
-      category: request.category,
-      brand: request.brand,
-      sizes: request.sizes || [],
-      colors: request.colors || [],
-      collection: request.collection,
-      material: request.material,
-      location: request.location,
-      videoUrl: request.videoUrl,
-      gender: request.gender,
-      images: request.images || [],
-      extraImages: request.extraImages || [],
-      variants: request.variants || [],
-      hasVariants: request.hasVariants || false,
-      dimensions: request.dimensions,
-      weight: request.weight,
-      tags: request.tags || [],
-      metaTitle: request.metaTitle,
-      metaDescription: request.metaDescription,
-      metaKeywords: request.metaKeywords,
-      isFeatured: request.isFeatured !== false,
-      isPublished: true,
-      priority: request.priority || 0,
-      rating: 0,
-      numReviews: 0,
-      user: request.vendorId?._id || request.vendorId, // Vendor as the user
-      vendorId: request.vendorId?._id || request.vendorId, // Explicit vendor reference
-      createdBy: "VENDOR", // Mark as vendor product
-      productApprovalStatus: "approved", // Auto-approve since admin approved the request
-      approvedBy: req.user._id,
-      approvedAt: new Date(),
-    });
+    // Create or update the product (preserving product ID if productId already exists)
+    let targetProduct = null;
+    if (request.productId) {
+      targetProduct = await Product.findById(request.productId);
+    }
 
-    const createdProduct = await product.save();
+    if (targetProduct) {
+      targetProduct.name = request.name || targetProduct.name;
+      targetProduct.description = request.description || targetProduct.description;
+      targetProduct.price = request.price ?? targetProduct.price;
+      targetProduct.discountPrice = request.discountPrice ?? targetProduct.discountPrice;
+      targetProduct.shippingCharge = request.shippingCharge ?? targetProduct.shippingCharge;
+      targetProduct.localShippingCharge = request.localShippingCharge ?? targetProduct.localShippingCharge;
+      targetProduct.freeShippingCities = request.freeShippingCities || targetProduct.freeShippingCities;
+      targetProduct.countInStock = request.countInStock ?? targetProduct.countInStock;
+      targetProduct.sku = effectiveSku;
+      targetProduct.category = request.category || targetProduct.category;
+      targetProduct.brand = request.brand || targetProduct.brand;
+      targetProduct.sizes = request.sizes || targetProduct.sizes;
+      targetProduct.colors = request.colors || targetProduct.colors;
+      targetProduct.collection = request.collection || targetProduct.collection || request.category || "General";
+      targetProduct.material = request.material || targetProduct.material;
+      targetProduct.location = request.location || targetProduct.location;
+      targetProduct.videoUrl = request.videoUrl || targetProduct.videoUrl;
+      targetProduct.gender = request.gender || targetProduct.gender;
+      if (request.images && request.images.length > 0) targetProduct.images = request.images;
+      if (request.extraImages && request.extraImages.length > 0) targetProduct.extraImages = request.extraImages;
+      if (request.variants && request.variants.length > 0) targetProduct.variants = request.variants;
+      targetProduct.hasVariants = request.hasVariants !== undefined ? request.hasVariants : targetProduct.hasVariants;
+      targetProduct.dimensions = request.dimensions || targetProduct.dimensions;
+      targetProduct.weight = request.weight ?? targetProduct.weight;
+      targetProduct.tags = request.tags || targetProduct.tags;
+      targetProduct.metaTitle = request.metaTitle || targetProduct.metaTitle;
+      targetProduct.metaDescription = request.metaDescription || targetProduct.metaDescription;
+      targetProduct.metaKeywords = request.metaKeywords || targetProduct.metaKeywords;
+      targetProduct.isFeatured = request.isFeatured !== false;
+      targetProduct.isPublished = true;
+      targetProduct.priority = request.priority ?? targetProduct.priority;
+      targetProduct.productApprovalStatus = "approved";
+      targetProduct.approvedBy = req.user._id;
+      targetProduct.approvedAt = new Date();
+      if (!targetProduct.collection) {
+        targetProduct.collection = request.category || "General";
+      }
+      if (!targetProduct.user) {
+        targetProduct.user = targetProduct.vendorUserId || targetProduct.vendorId || request.vendorId?._id || request.vendorId || req.user._id;
+      }
+    } else {
+      targetProduct = new Product({
+        name: request.name,
+        description: request.description,
+        price: request.price,
+        discountPrice: request.discountPrice,
+        shippingCharge: request.shippingCharge || 0,
+        localShippingCharge: request.localShippingCharge || 0,
+        freeShippingCities: request.freeShippingCities || [],
+        countInStock: request.countInStock,
+        sku: effectiveSku,
+        category: request.category,
+        brand: request.brand,
+        sizes: request.sizes || [],
+        colors: request.colors || [],
+        collection: request.collection || request.category || "General",
+        material: request.material,
+        location: request.location,
+        videoUrl: request.videoUrl,
+        gender: request.gender,
+        images: request.images || [],
+        extraImages: request.extraImages || [],
+        variants: request.variants || [],
+        hasVariants: request.hasVariants || false,
+        dimensions: request.dimensions,
+        weight: request.weight,
+        tags: request.tags || [],
+        metaTitle: request.metaTitle,
+        metaDescription: request.metaDescription,
+        metaKeywords: request.metaKeywords,
+        isFeatured: request.isFeatured !== false,
+        isPublished: true,
+        priority: request.priority || 0,
+        rating: 0,
+        numReviews: 0,
+        user: request.vendorId?._id || request.vendorId || req.user._id,
+        vendorId: request.vendorId?._id || request.vendorId,
+        createdBy: "VENDOR",
+        productApprovalStatus: "approved",
+        approvedBy: req.user._id,
+        approvedAt: new Date(),
+      });
+    }
+
+    const savedProduct = await targetProduct.save();
 
     // Update the request status and persist the normalized/updated SKU
     request.sku = effectiveSku;
     request.status = "approved";
     request.approvedBy = req.user._id;
     request.approvedAt = new Date();
-    request.productId = createdProduct._id;
+    request.productId = savedProduct._id;
     request.isPublished = true;
 
     await request.save();
 
-    console.log(`[ProductRequest Approval Success] Request ${request._id} approved. Created product ID: ${createdProduct._id}`);
+    console.log(`[ProductRequest Approval Success] Request ${request._id} approved. Product ID: ${savedProduct._id}`);
 
     res.json({
       message: "Product request approved and product created successfully",
       request,
-      product: createdProduct,
+      product: savedProduct,
     });
   } catch (error) {
     console.error(`[ProductRequest Approval Error] Request ID: ${req.params?.id}:`, error.message);
@@ -612,15 +756,36 @@ const approveProductRequest = async (req, res) => {
 // @access  Private (admin)
 const rejectProductRequest = async (req, res) => {
   try {
-    const { rejectionReason } = req.body;
+    const { rejectionReason, reason } = req.body;
+    const effectiveReason = rejectionReason || reason;
 
-    if (!rejectionReason) {
+    if (!effectiveReason) {
       return res.status(400).json({ message: "Rejection reason is required" });
     }
 
-    const request = await ProductRequest.findById(req.params.id);
+    let request = await ProductRequest.findById(req.params.id);
 
     if (!request) {
+      const directProduct = await Product.findById(req.params.id);
+      if (directProduct) {
+        directProduct.productApprovalStatus = "rejected";
+        directProduct.rejectionReason = effectiveReason;
+        directProduct.isPublished = false;
+
+        if (!directProduct.collection) {
+          directProduct.collection = directProduct.category || "General";
+        }
+        if (!directProduct.user) {
+          directProduct.user = directProduct.vendorUserId || directProduct.vendorId?._id || directProduct.vendorId || req.user._id;
+        }
+
+        await directProduct.save();
+
+        return res.json({
+          message: "Product rejected",
+          product: directProduct,
+        });
+      }
       return res.status(404).json({ message: "Product request not found" });
     }
 
@@ -631,7 +796,7 @@ const rejectProductRequest = async (req, res) => {
     request.status = "rejected";
     request.rejectedBy = req.user._id;
     request.rejectedAt = new Date();
-    request.rejectionReason = rejectionReason;
+    request.rejectionReason = effectiveReason;
     request.isPublished = false;
 
     await request.save();

@@ -243,7 +243,15 @@ export const vendorApiService = {
 
   approveProductRequest: async (requestId, data = {}) => {
     try {
-      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/approve`, data);
+      const payload = typeof data === 'string'
+        ? { sku: data, SKU: data, productSku: data }
+        : {
+            ...data,
+            sku: data?.sku || data?.SKU || data?.productSku,
+            SKU: data?.SKU || data?.sku || data?.productSku,
+            productSku: data?.productSku || data?.sku || data?.SKU,
+          };
+      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/approve`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error approving product request' };
@@ -261,7 +269,16 @@ export const vendorApiService = {
 
   rejectProductRequest: async (requestId, reason) => {
     try {
-      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/reject`, { reason });
+      const payload = typeof reason === 'object' && reason !== null
+        ? {
+            reason: reason.reason || reason.rejectionReason,
+            rejectionReason: reason.rejectionReason || reason.reason,
+          }
+        : {
+            reason: String(reason || ''),
+            rejectionReason: String(reason || ''),
+          };
+      const response = await vendorApi.put(`/api/vendor/product-requests/admin/${requestId}/reject`, payload);
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Error rejecting product request' };

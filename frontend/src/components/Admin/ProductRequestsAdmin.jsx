@@ -38,6 +38,18 @@ const ProductRequestsAdmin = () => {
     }
   };
 
+  const getRequestSku = (request) => {
+    if (!request) return '';
+    const raw = request.sku ||
+      request.payload?.sku ||
+      request.productSku ||
+      request.SKU ||
+      request.payload?.productSku ||
+      request.payload?.SKU ||
+      '';
+    return raw ? String(raw).trim() : '';
+  };
+
   const handleApprove = async (requestId, existingSku) => {
     let skuToSubmit = undefined;
     const trimmedSku = existingSku ? String(existingSku).trim() : '';
@@ -55,10 +67,15 @@ const ProductRequestsAdmin = () => {
       if (!window.confirm('Are you sure you want to approve this product request? This will create the product automatically.')) {
         return;
       }
+      skuToSubmit = trimmedSku;
     }
 
     try {
-      const payload = skuToSubmit ? { sku: skuToSubmit } : {};
+      const payload = {
+        sku: skuToSubmit,
+        SKU: skuToSubmit,
+        productSku: skuToSubmit,
+      };
       const response = await vendorApiService.approveProductRequest(requestId, payload);
       toast.success(response.message || 'Product request approved and product created successfully');
       
@@ -74,7 +91,7 @@ const ProductRequestsAdmin = () => {
       setRequests(prevRequests => 
         prevRequests.map(request => 
           request._id === requestId 
-            ? { ...request, status: 'approved', sku: skuToSubmit || request.sku }
+            ? { ...request, status: 'approved', sku: skuToSubmit || getRequestSku(request) }
             : request
         )
       );
@@ -275,8 +292,8 @@ const ProductRequestsAdmin = () => {
                       <div className="flex items-center space-x-4 text-sm text-gray-500 mb-4">
                         <span>
                           SKU:{' '}
-                          {request.sku && String(request.sku).trim() ? (
-                            <span className="font-mono font-medium text-gray-800">{String(request.sku).trim()}</span>
+                          {getRequestSku(request) ? (
+                            <span className="font-mono font-medium text-gray-800">{getRequestSku(request)}</span>
                           ) : (
                             <span className="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded border border-red-200">
                               Missing SKU (Required)
@@ -329,7 +346,7 @@ const ProductRequestsAdmin = () => {
                   )}
                     </div>
                     {/* <div className="flex items-center space-x-2">
-                      <span className="text-2xl">{request.images[0]?.url ? '📸' : '📷'}</span>
+                       <span className="text-2xl">{request.images[0]?.url ? '📸' : '📷'}</span>
                     </div> */}
                   </div>
 
@@ -362,7 +379,7 @@ const ProductRequestsAdmin = () => {
                     {request.status === 'pending' && (
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleApprove(request._id, request.sku)}
+                          onClick={() => handleApprove(request._id, getRequestSku(request))}
                           className="px-3 py-1 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm"
                         >
                           Approve

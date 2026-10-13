@@ -54,10 +54,55 @@ const approveProduct = async (req, res) => {
         .json({ message: "Only vendor products need approval" });
     }
 
+    // Determine SKU: prioritize admin-provided SKU in req.body, otherwise use existing product.sku
+    const rawProvidedSku = req.body && (
+      req.body.sku !== undefined ? req.body.sku : (
+        req.body.SKU !== undefined ? req.body.SKU : req.body.productSku
+      )
+    );
+    const providedSku = rawProvidedSku !== undefined
+      ? (typeof rawProvidedSku === "string" ? rawProvidedSku.trim() : String(rawProvidedSku).trim())
+      : undefined;
+
+    const existingProductSku = product.sku
+      ? (typeof product.sku === "string" ? product.sku.trim() : String(product.sku).trim())
+      : "";
+
+    const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : existingProductSku;
+
+    if (!effectiveSku) {
+      return res.status(400).json({
+        message: "SKU is required to approve this product. Please provide a valid SKU.",
+        code: "SKU_REQUIRED",
+        productId: product._id,
+      });
+    }
+
+    // Check duplicate SKU in products
+    const duplicateProduct = await Product.findOne({
+      sku: effectiveSku,
+      _id: { $ne: product._id },
+    });
+    if (duplicateProduct) {
+      return res.status(400).json({
+        message: `SKU '${effectiveSku}' already exists in products. Please choose a unique SKU.`,
+        code: "DUPLICATE_SKU",
+      });
+    }
+
+    product.sku = effectiveSku;
     product.productApprovalStatus = "approved";
     product.approvedBy = req.user._id; // Admin user
     product.approvedAt = new Date();
     product.isPublished = true; // Make visible to customers
+
+    // Safeguard schema required fields for legacy vendor products
+    if (!product.collection) {
+      product.collection = product.category || "General";
+    }
+    if (!product.user) {
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+    }
 
     await product.save();
 
@@ -101,9 +146,10 @@ const approveProduct = async (req, res) => {
 const rejectProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rejectionReason } = req.body;
+    const { rejectionReason, reason } = req.body;
+    const effectiveReason = rejectionReason || reason;
 
-    if (!rejectionReason) {
+    if (!effectiveReason) {
       return res
         .status(400)
         .json({ message: "Rejection reason is required" });
@@ -122,8 +168,16 @@ const rejectProduct = async (req, res) => {
     }
 
     product.productApprovalStatus = "rejected";
-    product.rejectionReason = rejectionReason;
+    product.rejectionReason = effectiveReason;
     product.isPublished = false; // Hide from customers
+
+    // Safeguard schema required fields for legacy vendor products
+    if (!product.collection) {
+      product.collection = product.category || "General";
+    }
+    if (!product.user) {
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+    }
 
     await product.save();
 
