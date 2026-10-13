@@ -27,6 +27,7 @@ const referralAdminRoutes = require("../routes/referralAdminRoutes");
 const referralStoreRoutes = require("../routes/referralStoreRoutes");
 const referralRoutes = require("../routes/referralRoutes");
 const adminCompatRoutes = require("../routes/adminCompatRoutes");
+const adminProductRequestRoutes = require("../routes/adminProductRequestRoutes");
 const sitemapRoutes = require("../routes/sitemapRoutes");
 const reviewRoutes = require("../routes/reviewRoutes");
 const addressRoutes = require("../routes/addressRoutes");
@@ -120,6 +121,7 @@ app.use("/api/ai", aiRoutineRoutes);
 //Admin
 app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
+app.use("/api/admin/product-requests", adminProductRequestRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
 app.use("/api/admin/shipment", adminShipmentRoutes);
 app.use("/api/admin", referralAdminRoutes);

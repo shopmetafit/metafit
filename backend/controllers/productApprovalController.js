@@ -1,4 +1,5 @@
 const Product = require("../models/Product");
+const ProductRequest = require("../models/ProductRequest");
 const { sellerTransporter } = require("../utils/email");
 const { generateVendorApprovalEmail } = require("../utils/emailTemplate");
 
@@ -47,8 +48,14 @@ const approveProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Only vendor products need approval
-    if (product.createdBy !== "VENDOR") {
+    // Only vendor products need approval (accept VENDOR, vendorId, vendorUserId, or pending status)
+    const isVendorProduct =
+      (product.createdBy && product.createdBy.toUpperCase() === "VENDOR") ||
+      Boolean(product.vendorId) ||
+      Boolean(product.vendorUserId) ||
+      product.productApprovalStatus === "pending";
+
+    if (!isVendorProduct) {
       return res
         .status(400)
         .json({ message: "Only vendor products need approval" });
@@ -92,7 +99,7 @@ const approveProduct = async (req, res) => {
 
     product.sku = effectiveSku;
     product.productApprovalStatus = "approved";
-    product.approvedBy = req.user._id; // Admin user
+    product.approvedBy = req.user ? req.user._id : undefined; // Admin user
     product.approvedAt = new Date();
     product.isPublished = true; // Make visible to customers
 
@@ -101,10 +108,31 @@ const approveProduct = async (req, res) => {
       product.collection = product.category || "General";
     }
     if (!product.user) {
-      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || (req.user ? req.user._id : undefined);
     }
 
     await product.save();
+
+    // Sync any pending ProductRequest records matching productId: product._id
+    try {
+      const mongoose = require("mongoose");
+      if (mongoose.Types.ObjectId.isValid(product._id)) {
+        await ProductRequest.updateMany(
+          { productId: product._id, status: "pending" },
+          {
+            $set: {
+              status: "approved",
+              approvedBy: req.user ? req.user._id : undefined,
+              approvedAt: new Date(),
+              isPublished: true,
+              sku: effectiveSku,
+            },
+          }
+        );
+      }
+    } catch (syncErr) {
+      console.warn("Failed to sync ProductRequest status during product approval:", syncErr.message);
+    }
 
     // Send vendor approval email notification
     try {
@@ -127,9 +155,11 @@ const approveProduct = async (req, res) => {
       // Don't throw - continue processing even if email fails
     }
 
+    const productDoc = product.toObject ? product.toObject() : product;
     res.json({
       message: "Product approved successfully",
       product,
+      ...productDoc,
     });
   } catch (error) {
     console.error("Error approving product:", error);
@@ -146,14 +176,8 @@ const approveProduct = async (req, res) => {
 const rejectProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rejectionReason, reason } = req.body;
-    const effectiveReason = rejectionReason || reason;
-
-    if (!effectiveReason) {
-      return res
-        .status(400)
-        .json({ message: "Rejection reason is required" });
-    }
+    const { rejectionReason, reason } = req.body || {};
+    const effectiveReason = rejectionReason || reason || "Rejected by administrator";
 
     const product = await Product.findById(id);
 
@@ -161,7 +185,13 @@ const rejectProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (product.createdBy !== "VENDOR") {
+    const isVendorProduct =
+      (product.createdBy && product.createdBy.toUpperCase() === "VENDOR") ||
+      Boolean(product.vendorId) ||
+      Boolean(product.vendorUserId) ||
+      product.productApprovalStatus === "pending";
+
+    if (!isVendorProduct) {
       return res
         .status(400)
         .json({ message: "Only vendor products can be rejected" });
@@ -176,14 +206,37 @@ const rejectProduct = async (req, res) => {
       product.collection = product.category || "General";
     }
     if (!product.user) {
-      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || (req.user ? req.user._id : undefined);
     }
 
     await product.save();
 
+    // Sync any pending ProductRequest records matching productId: product._id
+    try {
+      const mongoose = require("mongoose");
+      if (mongoose.Types.ObjectId.isValid(product._id)) {
+        await ProductRequest.updateMany(
+          { productId: product._id, status: "pending" },
+          {
+            $set: {
+              status: "rejected",
+              rejectedBy: req.user ? req.user._id : undefined,
+              rejectedAt: new Date(),
+              rejectionReason: effectiveReason,
+              isPublished: false,
+            },
+          }
+        );
+      }
+    } catch (syncErr) {
+      console.warn("Failed to sync ProductRequest status during product rejection:", syncErr.message);
+    }
+
+    const productDoc = product.toObject ? product.toObject() : product;
     res.json({
       message: "Product rejected",
       product,
+      ...productDoc,
     });
   } catch (error) {
     console.error("Error rejecting product:", error);

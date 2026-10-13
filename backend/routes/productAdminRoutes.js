@@ -1,5 +1,6 @@
 const express = require("express");
 const Product = require("../models/Product");
+const ProductRequest = require("../models/ProductRequest");
 const { protect, admin } = require("../middleware/authMiddleware");
 const { getProductReadModel } = require("../utils/productDataAccess");
 const {
@@ -12,10 +13,10 @@ const {
 } = require("../controllers/productApprovalController");
 
 const router = express.Router();
+
 //@ GET / api/admin/products
 //desc get all products (Admin only)
 // access private/Admin
-
 router.get("/", protect, admin, async (req, res) => {
   try {
     const ProductReadModel = await getProductReadModel();
@@ -87,9 +88,133 @@ router.post("/", protect, admin, async (req, res) => {
   }
 });
 
-// to update an existing product
+// ========================
+// Product Approval Routes
+// ========================
+
+// Get pending products
+router.get("/pending", protect, admin, getPendingProducts);
+
+// Get approval stats
+router.get("/approval/stats", protect, admin, getApprovalStats);
+
+// Get vendor's products (admin view)
+router.get("/vendor/:vendorId/products", protect, admin, getVendorProductsAdmin);
+
+// Bulk approve products
+router.put("/bulk/approve", protect, admin, bulkApproveProducts);
+
+// Approve single product
+router.put("/:id/approve", protect, admin, approveProduct);
+
+// Reject single product
+router.put("/:id/reject", protect, admin, rejectProduct);
+
+// Get single product details (Admin view / Partner Dashboard modal)
+router.get("/:id", protect, admin, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate("vendorId", "businessName vendorName email phone")
+      .populate("user", "name email");
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const doc = product.toObject ? product.toObject() : product;
+    res.json({
+      product: doc,
+      ...doc,
+    });
+  } catch (error) {
+    console.error("Error fetching admin product by ID:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Toggle product publish status (Partner Dashboard quick action)
+router.patch("/:id/toggle-status", protect, admin, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (req.body && req.body.isPublished !== undefined) {
+      product.isPublished = Boolean(req.body.isPublished);
+    } else {
+      product.isPublished = !product.isPublished;
+    }
+
+    // Safeguard schema required fields
+    if (!product.collection) {
+      product.collection = product.category || "General";
+    }
+    if (!product.user) {
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+    }
+
+    const updated = await product.save();
+    res.json({
+      message: "Product status toggled successfully",
+      isPublished: updated.isPublished,
+      product: updated,
+    });
+  } catch (error) {
+    console.error("Error toggling product status:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Cancel update request for a product
+router.post("/:id/cancel-update-request", protect, admin, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    await ProductRequest.updateMany(
+      { productId: product._id, status: "pending" },
+      { $set: { status: "cancelled", rejectionReason: "Cancelled by admin" } }
+    );
+
+    res.json({
+      message: "Update request cancelled successfully",
+      product,
+    });
+  } catch (error) {
+    console.error("Error cancelling update request:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// to update an existing product (or approve/reject via status payload)
 router.put("/:id", protect, admin, async (req, res) => {
   try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    const requestedApprovalStatus = req.body && (req.body.productApprovalStatus || req.body.status);
+    const isApprovalAction =
+      requestedApprovalStatus === "approved" &&
+      (product.productApprovalStatus !== "approved" || (!req.body.name && !req.body.description));
+    const isRejectionAction =
+      requestedApprovalStatus === "rejected" &&
+      (product.productApprovalStatus !== "rejected" || (!req.body.name && !req.body.description));
+
+    if (isApprovalAction) {
+      return approveProduct(req, res);
+    }
+
+    if (isRejectionAction) {
+      return rejectProduct(req, res);
+    }
+
+    // Normal product edit
     const {
       name,
       description,
@@ -115,61 +240,85 @@ router.put("/:id", protect, admin, async (req, res) => {
       variants,
       priority,
       isBestSeller,
+      isPublished,
+      productApprovalStatus,
     } = req.body;
 
-    const product = await Product.findById(req.params.id);
-
-    if (product) {
-      // update product fields
-      product.name = name || product.name;
-      product.description = description || product.description;
-      product.price = price ?? product.price;
-      product.discountPrice = discountPrice || product.discountPrice;
-      product.shippingCharge = shippingCharge ?? product.shippingCharge;
-      product.localShippingCharge = localShippingCharge ?? product.localShippingCharge;
-      if (freeShippingCities !== undefined) {
-        product.freeShippingCities = freeShippingCities;
+    // Check SKU if provided
+    if (sku !== undefined && sku !== null) {
+      const trimmedSku = String(sku).trim();
+      if (trimmedSku !== "" && trimmedSku !== product.sku) {
+        const duplicateProduct = await Product.findOne({
+          sku: trimmedSku,
+          _id: { $ne: product._id },
+        });
+        if (duplicateProduct) {
+          return res.status(400).json({
+            message: `SKU '${trimmedSku}' already exists in products. Please choose a unique SKU.`,
+            code: "DUPLICATE_SKU",
+          });
+        }
+        product.sku = trimmedSku;
       }
-      product.countInStock = countInStock || product.countInStock;
-      product.category = category || product.category;
-      product.brand = brand || product.brand;
-      product.sizes = sizes || product.sizes;
-      product.colors = colors || product.colors;
-      product.collection = collection || product.collection;
-      product.material = material || product.material;
-      product.location = location !== undefined ? location : product.location;
-      product.videoUrl = videoUrl || product.videoUrl;
-      product.gender = gender || product.gender;
-      product.images = images || product.images;
-      product.extraImages = extraImages || product.extraImages;
-      product.sku = sku || product.sku;
-      product.hasVariants = hasVariants !== undefined ? hasVariants : product.hasVariants;
-      product.variants = variants !== undefined ? variants : product.variants;
-
-      product.priority = priority ?? product.priority; // <-- update priority here
-      if (isBestSeller !== undefined) {
-        product.isBestSeller = Boolean(isBestSeller);
-      }
-
-      const updatedProduct = await product.save();
-      res.json(updatedProduct);
-    } else {
-      res.status(404).json({ message: "Product not found" });
     }
+
+    // Update product fields
+    product.name = name || product.name;
+    product.description = description || product.description;
+    product.price = price ?? product.price;
+    product.discountPrice = discountPrice || product.discountPrice;
+    product.shippingCharge = shippingCharge ?? product.shippingCharge;
+    product.localShippingCharge = localShippingCharge ?? product.localShippingCharge;
+    if (freeShippingCities !== undefined) {
+      product.freeShippingCities = freeShippingCities;
+    }
+    product.countInStock = countInStock !== undefined ? countInStock : product.countInStock;
+    product.category = category || product.category;
+    product.brand = brand || product.brand;
+    product.sizes = sizes || product.sizes;
+    product.colors = colors || product.colors;
+    product.collection = collection || product.collection;
+    product.material = material || product.material;
+    product.location = location !== undefined ? location : product.location;
+    product.videoUrl = videoUrl || product.videoUrl;
+    product.gender = gender || product.gender;
+    product.images = images || product.images;
+    product.extraImages = extraImages || product.extraImages;
+    product.hasVariants = hasVariants !== undefined ? hasVariants : product.hasVariants;
+    product.variants = variants !== undefined ? variants : product.variants;
+    product.priority = priority ?? product.priority;
+
+    if (isBestSeller !== undefined) {
+      product.isBestSeller = Boolean(isBestSeller);
+    }
+    if (isPublished !== undefined) {
+      product.isPublished = Boolean(isPublished);
+    }
+    if (productApprovalStatus !== undefined) {
+      product.productApprovalStatus = productApprovalStatus;
+    }
+
+    // Safeguard schema required fields
+    if (!product.collection) {
+      product.collection = product.category || "General";
+    }
+    if (!product.user) {
+      product.user = product.vendorUserId || product.vendorId?._id || product.vendorId || req.user._id;
+    }
+
+    const updatedProduct = await product.save();
+    res.json(updatedProduct);
   } catch (error) {
-    console.log(error);
-    res.status(500).send("Server Error");
+    console.error("Error updating admin product:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 // delete admin product
-
 router.delete("/:id", protect, admin, async (req, res) => {
   try {
-    // Find the product by ID
     const product = await Product.findById(req.params.id);
     if (product) {
-      // Remove the product from DB
       await product.deleteOne();
       res.json({ message: "Product removed" });
     } else {
@@ -177,30 +326,8 @@ router.delete("/:id", protect, admin, async (req, res) => {
     }
   } catch (error) {
     console.log(error);
-    res.status(500).send("Server Error");
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
-// ========================
-// Product Approval Routes
-// ========================
-
-// Get pending products
-router.get("/pending", protect, admin, getPendingProducts);
-
-// Get approval stats
-router.get("/approval/stats", protect, admin, getApprovalStats);
-
-// Get vendor's products (admin view)
-router.get("/vendor/:vendorId/products", protect, admin, getVendorProductsAdmin);
-
-// Approve single product
-router.put("/:id/approve", protect, admin, approveProduct);
-
-// Reject single product
-router.put("/:id/reject", protect, admin, rejectProduct);
-
-// Bulk approve products
-router.put("/bulk/approve", protect, admin, bulkApproveProducts);
 
 module.exports = router;

@@ -408,7 +408,7 @@ const deleteProductRequest = async (req, res) => {
 // @access  Private (admin)
 const getAllProductRequests = async (req, res) => {
   try {
-    const { status, vendorId } = req.query;
+    const { status, vendorId, productId } = req.query;
 
     let query = {};
     if (status) {
@@ -416,6 +416,17 @@ const getAllProductRequests = async (req, res) => {
     }
     if (vendorId) {
       query.vendorId = vendorId;
+    }
+    if (productId) {
+      const mongoose = require("mongoose");
+      if (mongoose.Types.ObjectId.isValid(productId)) {
+        query.$or = [
+          { productId: productId },
+          { _id: productId },
+        ];
+      } else {
+        query.productId = productId;
+      }
     }
 
     const requests = await ProductRequest.find(query)
@@ -427,6 +438,7 @@ const getAllProductRequests = async (req, res) => {
       if (!doc.sku) {
         doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
       }
+      doc.id = (doc._id || "").toString();
       return doc;
     });
 
@@ -756,12 +768,8 @@ const approveProductRequest = async (req, res) => {
 // @access  Private (admin)
 const rejectProductRequest = async (req, res) => {
   try {
-    const { rejectionReason, reason } = req.body;
-    const effectiveReason = rejectionReason || reason;
-
-    if (!effectiveReason) {
-      return res.status(400).json({ message: "Rejection reason is required" });
-    }
+    const { rejectionReason, reason } = req.body || {};
+    const effectiveReason = rejectionReason || reason || "Rejected by administrator";
 
     let request = await ProductRequest.findById(req.params.id);
 
@@ -776,7 +784,7 @@ const rejectProductRequest = async (req, res) => {
           directProduct.collection = directProduct.category || "General";
         }
         if (!directProduct.user) {
-          directProduct.user = directProduct.vendorUserId || directProduct.vendorId?._id || directProduct.vendorId || req.user._id;
+          directProduct.user = directProduct.vendorUserId || directProduct.vendorId?._id || directProduct.vendorId || (req.user ? req.user._id : undefined);
         }
 
         await directProduct.save();
@@ -794,12 +802,23 @@ const rejectProductRequest = async (req, res) => {
     }
 
     request.status = "rejected";
-    request.rejectedBy = req.user._id;
+    request.rejectedBy = req.user ? req.user._id : undefined;
     request.rejectedAt = new Date();
     request.rejectionReason = effectiveReason;
     request.isPublished = false;
 
     await request.save();
+
+    // If request has a linked productId, also reject that product
+    if (request.productId) {
+      const linkedProduct = await Product.findById(request.productId);
+      if (linkedProduct) {
+        linkedProduct.productApprovalStatus = "rejected";
+        linkedProduct.rejectionReason = effectiveReason;
+        linkedProduct.isPublished = false;
+        await linkedProduct.save();
+      }
+    }
 
     res.json({
       message: "Product request rejected",
