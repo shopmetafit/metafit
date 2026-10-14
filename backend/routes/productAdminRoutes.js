@@ -244,12 +244,8 @@ router.put("/:id", protect, admin, async (req, res) => {
     }
 
     const requestedApprovalStatus = req.body && (req.body.productApprovalStatus || req.body.status);
-    const isApprovalAction =
-      requestedApprovalStatus === "approved" &&
-      (product.productApprovalStatus !== "approved" || (!req.body.name && !req.body.description));
-    const isRejectionAction =
-      requestedApprovalStatus === "rejected" &&
-      (product.productApprovalStatus !== "rejected" || (!req.body.name && !req.body.description));
+    const isApprovalAction = requestedApprovalStatus === "approved";
+    const isRejectionAction = requestedApprovalStatus === "rejected";
 
     if (isApprovalAction) {
       return approveProduct(req, res);

@@ -70,17 +70,12 @@ const approveProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Only vendor products need approval (accept VENDOR, vendorId, vendorUserId, or pending status)
-    const isVendorProduct =
-      (product.createdBy && product.createdBy.toUpperCase() === "VENDOR") ||
-      Boolean(product.vendorId) ||
-      Boolean(product.vendorUserId) ||
-      product.productApprovalStatus === "pending";
-
-    if (!isVendorProduct) {
-      return res
-        .status(400)
-        .json({ message: "Only vendor products need approval" });
+    // Ensure product can be approved smoothly
+    if (product.productApprovalStatus === "approved" && (!req.body || (!req.body.sku && !req.body.isPublished))) {
+      return res.json({
+        message: "Product is already approved",
+        product,
+      });
     }
 
     // Determine SKU: prioritize admin-provided SKU in req.body, otherwise use existing product.sku
