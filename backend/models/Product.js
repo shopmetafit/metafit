@@ -107,7 +107,7 @@ const productSchema = new mongoose.Schema(
     productApprovalStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      default: "approved",
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -177,6 +177,18 @@ async function generateUniqueSlug(ProductModel, name, docId) {
 
 // Pre-save middleware for new products and document updates
 productSchema.pre("save", async function (next) {
+  if (this.isNew) {
+    if (!this.productApprovalStatus || this.productApprovalStatus === "pending") {
+      this.productApprovalStatus = "approved";
+    }
+    if (this.isPublished === undefined || this.isPublished === false) {
+      this.isPublished = true;
+    }
+    if (!this.approvedAt) {
+      this.approvedAt = new Date();
+    }
+  }
+
   if (this.name) {
     this.searchName = String(this.name).toLowerCase().trim().replace(/\s+/g, " ");
     if (!this.slug || this.isModified("name")) {

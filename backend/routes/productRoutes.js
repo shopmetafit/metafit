@@ -625,6 +625,10 @@ router.post("/", protect, admin, async (req, res) => {
       dimensions,
       weight,
       sku,
+      productApprovalStatus: "approved",
+      isPublished: isPublished !== undefined ? isPublished : true,
+      approvedBy: req.user._id,
+      approvedAt: new Date(),
       user: req.user._id, //Refrence to the admin user who created it
     });
 
