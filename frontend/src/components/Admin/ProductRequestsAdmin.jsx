@@ -20,7 +20,27 @@ const ProductRequestsAdmin = () => {
     try {
       setIsLoading(true);
       const response = await vendorApiService.getAllProductRequests(selectedStatus);
-      setRequests(response.requests);
+      const list = (response?.requests || []).map((r) => {
+        const payload = r.payload || {};
+        return {
+          ...payload,
+          ...r,
+          name: r.name || payload.name || '',
+          description: r.description || payload.description || '',
+          price: (r.price !== undefined && r.price !== null && r.price !== '') ? r.price : (payload.price ?? 0),
+          discountPrice: r.discountPrice ?? payload.discountPrice,
+          countInStock: (r.countInStock !== undefined && r.countInStock !== null && r.countInStock > 0) ? r.countInStock : (payload.countInStock || 0),
+          category: r.category || payload.category || '',
+          brand: r.brand || payload.brand || '',
+          collection: r.collection || payload.collection || r.category || payload.category || 'General',
+          images: (Array.isArray(r.images) && r.images.length > 0) ? r.images : (Array.isArray(payload.images) ? payload.images : []),
+          sku: r.sku || payload.sku || r.productSku || r.SKU || '',
+          vendorName: r.vendorName || payload.vendorName || r.vendorId?.vendorName || r.vendorId?.businessName || r.vendorId?.name || 'Vendor',
+          vendorEmail: r.vendorEmail || payload.vendorEmail || r.vendorId?.email || 'N/A',
+          vendorPhone: r.vendorPhone || payload.vendorPhone || r.vendorId?.phone || 'N/A',
+        };
+      });
+      setRequests(list);
     } catch (error) {
       console.error('Error fetching product requests:', error);
       toast.error('Failed to fetch product requests');
@@ -300,22 +320,22 @@ const ProductRequestsAdmin = () => {
                             </span>
                           )}
                         </span>
-                        <span>Category: {request.category}</span>
-                        <span>Brand: {request.brand}</span>
-                        <span>Collection: {request.collection}</span>
+                        <span>Category: {request.category || request.payload?.category || 'General'}</span>
+                        <span>Brand: {request.brand || request.payload?.brand || 'General'}</span>
+                        <span>Collection: {request.collection || request.payload?.collection || request.category || request.payload?.category || 'General'}</span>
                       </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <span>Vendor: {request.vendorName}</span>
-                    <span>Email: {request.vendorEmail}</span>
-                    <span>Phone: {request.vendorPhone}</span>
+                    <span>Vendor: {request.vendorName || request.payload?.vendorName}</span>
+                    <span>Email: {request.vendorEmail || request.payload?.vendorEmail}</span>
+                    <span>Phone: {request.vendorPhone || request.payload?.vendorPhone}</span>
                   </div>
                   
                   {/* Product Images Preview */}
-                  {request.images && request.images.length > 0 && (
+                  {((request.images && request.images.length > 0) || (request.payload?.images && request.payload.images.length > 0)) && (
                     <div className="mt-4">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">Product Images</h4>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {request.images.slice(0, 4).map((image, index) => (
+                        {((request.images && request.images.length > 0) ? request.images : (request.payload?.images || [])).slice(0, 4).map((image, index) => (
                           <div 
                             key={index} 
                             className="relative group cursor-pointer"
@@ -334,10 +354,10 @@ const ProductRequestsAdmin = () => {
                             </div>
                           </div>
                         ))}
-                        {request.images.length > 4 && (
+                        {((request.images && request.images.length > 0) ? request.images : (request.payload?.images || [])).length > 4 && (
                           <div className="flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200">
                             <span className="text-gray-600 text-sm font-medium">
-                              +{request.images.length - 4} more
+                              +{((request.images && request.images.length > 0) ? request.images : (request.payload?.images || [])).length - 4} more
                             </span>
                           </div>
                         )}
@@ -347,17 +367,17 @@ const ProductRequestsAdmin = () => {
                     </div>
                     {/* <div className="flex items-center space-x-2">
                        <span className="text-2xl">{request.images[0]?.url ? '📸' : '📷'}</span>
-                    </div> */}
+                     </div> */}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                       <span className="text-sm text-gray-500">Price</span>
-                      <p className="font-semibold">₹{request.price}</p>
+                      <p className="font-semibold">₹{(request.price !== undefined && request.price !== null && request.price !== '') ? request.price : (request.payload?.price !== undefined ? request.payload.price : 0)}</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Stock</span>
-                      <p className="font-semibold">{request.countInStock}</p>
+                      <p className="font-semibold">{(request.countInStock !== undefined && request.countInStock !== null && request.countInStock > 0) ? request.countInStock : (request.payload?.countInStock ?? 0)}</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Created</span>

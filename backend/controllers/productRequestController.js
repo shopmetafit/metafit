@@ -4,6 +4,129 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const Vendor = require("../models/Vendor");
 
+const extractRequestData = (reqDoc) => {
+  if (!reqDoc) return null;
+  const doc = reqDoc.toObject ? reqDoc.toObject() : { ...reqDoc };
+  const rawDoc = reqDoc._doc || {};
+  const payload = doc.payload || rawDoc.payload || {};
+  const vendorObj = doc.vendorId || {};
+
+  const effectiveSku = String(
+    doc.sku || payload.sku || doc.productSku || doc.SKU || payload.productSku || payload.SKU || ""
+  ).trim();
+
+  const priceVal = (doc.price !== undefined && doc.price !== null && doc.price !== "")
+    ? Number(doc.price)
+    : ((payload.price !== undefined && payload.price !== null && payload.price !== "") ? Number(payload.price) : 0);
+
+  const discountPriceVal = (doc.discountPrice !== undefined && doc.discountPrice !== null)
+    ? Number(doc.discountPrice)
+    : ((payload.discountPrice !== undefined && payload.discountPrice !== null) ? Number(payload.discountPrice) : undefined);
+
+  const countVal = (doc.countInStock !== undefined && doc.countInStock !== null && doc.countInStock > 0)
+    ? Number(doc.countInStock)
+    : (Number(payload.countInStock) || 0);
+
+  const rawImages = (Array.isArray(doc.images) && doc.images.length > 0)
+    ? doc.images
+    : (Array.isArray(payload.images) && payload.images.length > 0 ? payload.images : []);
+
+  const rawExtraImages = (Array.isArray(doc.extraImages) && doc.extraImages.length > 0)
+    ? doc.extraImages
+    : (Array.isArray(payload.extraImages) ? payload.extraImages : []);
+
+  const rawSizes = (Array.isArray(doc.sizes) && doc.sizes.length > 0)
+    ? doc.sizes
+    : (Array.isArray(payload.sizes) ? payload.sizes : []);
+
+  const rawColors = (Array.isArray(doc.colors) && doc.colors.length > 0)
+    ? doc.colors
+    : (Array.isArray(payload.colors) ? payload.colors : []);
+
+  const rawVariants = (Array.isArray(doc.variants) && doc.variants.length > 0)
+    ? doc.variants
+    : (Array.isArray(payload.variants) ? payload.variants : []);
+
+  const rawTags = (Array.isArray(doc.tags) && doc.tags.length > 0)
+    ? doc.tags
+    : (Array.isArray(payload.tags) ? payload.tags : []);
+
+  const rawWellnessGoal = (Array.isArray(doc.wellnessGoal) && doc.wellnessGoal.length > 0)
+    ? doc.wellnessGoal
+    : (Array.isArray(payload.wellnessGoal) ? payload.wellnessGoal : []);
+
+  const rawFreeShippingCities = (Array.isArray(doc.freeShippingCities) && doc.freeShippingCities.length > 0)
+    ? doc.freeShippingCities
+    : (Array.isArray(payload.freeShippingCities) ? payload.freeShippingCities : []);
+
+  const vName =
+    doc.vendorName ||
+    payload.vendorName ||
+    vendorObj.vendorName ||
+    vendorObj.businessName ||
+    vendorObj.name ||
+    "Vendor";
+  const vEmail = doc.vendorEmail || payload.vendorEmail || vendorObj.email || "N/A";
+  const vPhone = doc.vendorPhone || payload.vendorPhone || vendorObj.phone || "N/A";
+
+  const effectiveCategory = doc.category || payload.category || "General";
+  const effectiveBrand = doc.brand || payload.brand || "General";
+  const effectiveCollection = doc.collection || payload.collection || effectiveCategory || "General";
+
+  return {
+    ...doc,
+    payload,
+    _id: doc._id,
+    id: (doc._id || "").toString(),
+    productId: doc.productId || payload.productId,
+    name: doc.name || payload.name || "",
+    description: doc.description || payload.description || doc.name || "No description",
+    price: priceVal,
+    discountPrice: discountPriceVal,
+    countInStock: countVal,
+    sku: effectiveSku,
+    category: effectiveCategory,
+    subCategory: doc.subCategory || payload.subCategory || "",
+    wellnessGoal: rawWellnessGoal,
+    brand: effectiveBrand,
+    collection: effectiveCollection,
+    material: doc.material || payload.material || "",
+    location: doc.location || payload.location || "",
+    videoUrl: doc.videoUrl || payload.videoUrl || "",
+    gender: doc.gender || payload.gender || "Unisex",
+    images: rawImages,
+    extraImages: rawExtraImages,
+    variants: rawVariants,
+    hasVariants: doc.hasVariants ?? payload.hasVariants ?? (rawVariants.length > 0),
+    sizes: rawSizes,
+    colors: rawColors,
+    dimensions: doc.dimensions || payload.dimensions || { length: "", width: "", height: "" },
+    weight: doc.weight ?? payload.weight ?? 0,
+    tags: rawTags,
+    shippingCharge: doc.shippingCharge ?? payload.shippingCharge ?? 0,
+    localShippingCharge: doc.localShippingCharge ?? payload.localShippingCharge ?? 0,
+    freeShippingCities: rawFreeShippingCities,
+    warranty: doc.warranty || payload.warranty || "",
+    certifications: doc.certifications || payload.certifications || "",
+    countryOfOrigin: doc.countryOfOrigin || payload.countryOfOrigin || "",
+    manufacturer: doc.manufacturer || payload.manufacturer || "",
+    couponCodes: doc.couponCodes || payload.couponCodes || [],
+    metaTitle: doc.metaTitle || payload.metaTitle || "",
+    metaDescription: doc.metaDescription || payload.metaDescription || "",
+    metaKeywords: doc.metaKeywords || payload.metaKeywords || "",
+    isFeatured: doc.isFeatured ?? payload.isFeatured ?? false,
+    priority: doc.priority ?? payload.priority ?? 0,
+    platformCommission: doc.platformCommission ?? payload.platformCommission,
+    isReferralEnabled: doc.isReferralEnabled ?? payload.isReferralEnabled,
+    referralCommissionPercentage: doc.referralCommissionPercentage ?? payload.referralCommissionPercentage,
+    status: doc.status || "pending",
+    vendorId: doc.vendorId?._id || doc.vendorId,
+    vendorName: vName,
+    vendorEmail: vEmail,
+    vendorPhone: vPhone,
+  };
+};
+
 // @desc    Create a new product request (vendor only)
 // @route   POST /api/vendor/product-requests
 // @access  Private (vendor)
@@ -145,9 +268,11 @@ const getVendorProductRequests = async (req, res) => {
     const requests = await ProductRequest.find({ vendorId: req.user._id })
       .sort({ createdAt: -1 });
 
+    const normalizedRequests = requests.map((item) => extractRequestData(item));
+
     res.json({
-      count: requests.length,
-      requests,
+      count: normalizedRequests.length,
+      requests: normalizedRequests,
     });
   } catch (error) {
     console.error("Error fetching vendor product requests:", error);
@@ -177,9 +302,11 @@ const getProductRequestById = async (req, res) => {
       return res.status(403).json({ message: "Access denied. Not your product request." });
     }
 
+    const normalized = extractRequestData(request);
+
     res.json({
-      request,
-      ...(request.toObject ? request.toObject() : request),
+      request: normalized,
+      ...normalized,
     });
   } catch (error) {
     console.error("Error fetching product request:", error);
@@ -437,18 +564,7 @@ const getAllProductRequests = async (req, res) => {
       .populate("vendorId", "businessName vendorName email phone name")
       .sort({ createdAt: -1 });
 
-    const normalizedRequests = requests.map((item) => {
-      const doc = item.toObject ? item.toObject() : { ...item };
-      if (!doc.sku) {
-        doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
-      }
-      doc.id = (doc._id || "").toString();
-      const vendorObj = doc.vendorId || {};
-      doc.vendorName = doc.vendorName || vendorObj.vendorName || vendorObj.businessName || vendorObj.name || "Vendor";
-      doc.vendorEmail = doc.vendorEmail || vendorObj.email || "N/A";
-      doc.vendorPhone = doc.vendorPhone || vendorObj.phone || "N/A";
-      return doc;
-    });
+    const normalizedRequests = requests.map((item) => extractRequestData(item));
 
     // Also include direct Product documents needing approval or matching status
     let normalizedDirectProducts = [];
@@ -636,14 +752,11 @@ const getProductRequestByIdAdmin = async (req, res) => {
       return res.status(404).json({ message: "Product request not found" });
     }
 
-    const doc = request.toObject ? request.toObject() : { ...request };
-    if (!doc.sku) {
-      doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
-    }
+    const normalized = extractRequestData(request);
 
     res.json({
-      request: doc,
-      ...doc,
+      request: normalized,
+      ...normalized,
     });
   } catch (error) {
     console.error("Error fetching product request:", error);
@@ -731,6 +844,8 @@ const approveProductRequest = async (req, res) => {
       return res.status(400).json({ message: "Cannot approve request that is not pending" });
     }
 
+    const reqData = extractRequestData(request);
+
     // Determine SKU: prioritize admin-provided SKU in req.body (sku, SKU, productSku), otherwise use request SKU sources
     const rawProvidedSku = req.body && (
       req.body.sku !== undefined ? req.body.sku : (
@@ -741,16 +856,8 @@ const approveProductRequest = async (req, res) => {
       ? (typeof rawProvidedSku === "string" ? rawProvidedSku.trim() : String(rawProvidedSku).trim())
       : undefined;
 
-    const docSkuRaw = request.sku ||
-      request.payload?.sku ||
-      request.productSku ||
-      request.SKU ||
-      request.payload?.productSku ||
-      request.payload?.SKU ||
-      "";
-    let requestSku = docSkuRaw
-      ? (typeof docSkuRaw === "string" ? docSkuRaw.trim() : String(docSkuRaw).trim())
-      : "";
+    const docSkuRaw = reqData.sku || "";
+    let requestSku = docSkuRaw ? String(docSkuRaw).trim() : "";
 
     if (!requestSku && request.productId) {
       const linkedProd = await Product.findById(request.productId);
@@ -807,79 +914,83 @@ const approveProductRequest = async (req, res) => {
     }
 
     if (targetProduct) {
-      targetProduct.name = request.name || targetProduct.name;
-      targetProduct.description = request.description || targetProduct.description;
-      targetProduct.price = request.price ?? targetProduct.price;
-      targetProduct.discountPrice = request.discountPrice ?? targetProduct.discountPrice;
-      targetProduct.shippingCharge = request.shippingCharge ?? targetProduct.shippingCharge;
-      targetProduct.localShippingCharge = request.localShippingCharge ?? targetProduct.localShippingCharge;
-      targetProduct.freeShippingCities = request.freeShippingCities || targetProduct.freeShippingCities;
-      targetProduct.countInStock = request.countInStock ?? targetProduct.countInStock;
+      targetProduct.name = reqData.name || targetProduct.name;
+      targetProduct.description = reqData.description || targetProduct.description;
+      targetProduct.price = reqData.price !== undefined ? reqData.price : targetProduct.price;
+      targetProduct.discountPrice = reqData.discountPrice !== undefined ? reqData.discountPrice : targetProduct.discountPrice;
+      targetProduct.shippingCharge = reqData.shippingCharge ?? targetProduct.shippingCharge;
+      targetProduct.localShippingCharge = reqData.localShippingCharge ?? targetProduct.localShippingCharge;
+      targetProduct.freeShippingCities = reqData.freeShippingCities || targetProduct.freeShippingCities;
+      targetProduct.countInStock = reqData.countInStock ?? targetProduct.countInStock;
       targetProduct.sku = effectiveSku;
-      targetProduct.category = request.category || targetProduct.category;
-      targetProduct.brand = request.brand || targetProduct.brand;
-      targetProduct.sizes = request.sizes || targetProduct.sizes;
-      targetProduct.colors = request.colors || targetProduct.colors;
-      targetProduct.collection = request.collection || targetProduct.collection || request.category || "General";
-      targetProduct.material = request.material || targetProduct.material;
-      targetProduct.location = request.location || targetProduct.location;
-      targetProduct.videoUrl = request.videoUrl || targetProduct.videoUrl;
-      targetProduct.gender = request.gender || targetProduct.gender;
-      if (request.images && request.images.length > 0) targetProduct.images = request.images;
-      if (request.extraImages && request.extraImages.length > 0) targetProduct.extraImages = request.extraImages;
-      if (request.variants && request.variants.length > 0) targetProduct.variants = request.variants;
-      targetProduct.hasVariants = request.hasVariants !== undefined ? request.hasVariants : targetProduct.hasVariants;
-      targetProduct.dimensions = request.dimensions || targetProduct.dimensions;
-      targetProduct.weight = request.weight ?? targetProduct.weight;
-      targetProduct.tags = request.tags || targetProduct.tags;
-      targetProduct.metaTitle = request.metaTitle || targetProduct.metaTitle;
-      targetProduct.metaDescription = request.metaDescription || targetProduct.metaDescription;
-      targetProduct.metaKeywords = request.metaKeywords || targetProduct.metaKeywords;
-      targetProduct.isFeatured = request.isFeatured !== false;
+      targetProduct.category = reqData.category || targetProduct.category;
+      targetProduct.subCategory = reqData.subCategory || targetProduct.subCategory;
+      targetProduct.wellnessGoal = (reqData.wellnessGoal && reqData.wellnessGoal.length > 0) ? reqData.wellnessGoal : targetProduct.wellnessGoal;
+      targetProduct.brand = reqData.brand || targetProduct.brand;
+      targetProduct.sizes = reqData.sizes || targetProduct.sizes;
+      targetProduct.colors = reqData.colors || targetProduct.colors;
+      targetProduct.collection = reqData.collection || targetProduct.collection || reqData.category || "General";
+      targetProduct.material = reqData.material || targetProduct.material;
+      targetProduct.location = reqData.location || targetProduct.location;
+      targetProduct.videoUrl = reqData.videoUrl || targetProduct.videoUrl;
+      targetProduct.gender = reqData.gender || targetProduct.gender;
+      if (reqData.images && reqData.images.length > 0) targetProduct.images = reqData.images;
+      if (reqData.extraImages && reqData.extraImages.length > 0) targetProduct.extraImages = reqData.extraImages;
+      if (reqData.variants && reqData.variants.length > 0) targetProduct.variants = reqData.variants;
+      targetProduct.hasVariants = reqData.hasVariants !== undefined ? reqData.hasVariants : targetProduct.hasVariants;
+      targetProduct.dimensions = reqData.dimensions || targetProduct.dimensions;
+      targetProduct.weight = reqData.weight ?? targetProduct.weight;
+      targetProduct.tags = reqData.tags || targetProduct.tags;
+      targetProduct.metaTitle = reqData.metaTitle || targetProduct.metaTitle;
+      targetProduct.metaDescription = reqData.metaDescription || targetProduct.metaDescription;
+      targetProduct.metaKeywords = reqData.metaKeywords || targetProduct.metaKeywords;
+      targetProduct.isFeatured = reqData.isFeatured !== false;
       targetProduct.isPublished = true;
-      targetProduct.priority = request.priority ?? targetProduct.priority;
+      targetProduct.priority = reqData.priority ?? targetProduct.priority;
       targetProduct.productApprovalStatus = "approved";
       targetProduct.approvedBy = req.user._id;
       targetProduct.approvedAt = new Date();
       if (!targetProduct.collection) {
-        targetProduct.collection = request.category || "General";
+        targetProduct.collection = reqData.category || "General";
       }
       if (!targetProduct.user) {
         targetProduct.user = targetProduct.vendorUserId || targetProduct.vendorId || request.vendorId?._id || request.vendorId || req.user._id;
       }
     } else {
       targetProduct = new Product({
-        name: request.name,
-        description: request.description,
-        price: request.price,
-        discountPrice: request.discountPrice,
-        shippingCharge: request.shippingCharge || 0,
-        localShippingCharge: request.localShippingCharge || 0,
-        freeShippingCities: request.freeShippingCities || [],
-        countInStock: request.countInStock,
+        name: reqData.name,
+        description: reqData.description,
+        price: reqData.price,
+        discountPrice: reqData.discountPrice,
+        shippingCharge: reqData.shippingCharge || 0,
+        localShippingCharge: reqData.localShippingCharge || 0,
+        freeShippingCities: reqData.freeShippingCities || [],
+        countInStock: reqData.countInStock,
         sku: effectiveSku,
-        category: request.category,
-        brand: request.brand,
-        sizes: request.sizes || [],
-        colors: request.colors || [],
-        collection: request.collection || request.category || "General",
-        material: request.material,
-        location: request.location,
-        videoUrl: request.videoUrl,
-        gender: request.gender,
-        images: request.images || [],
-        extraImages: request.extraImages || [],
-        variants: request.variants || [],
-        hasVariants: request.hasVariants || false,
-        dimensions: request.dimensions,
-        weight: request.weight,
-        tags: request.tags || [],
-        metaTitle: request.metaTitle,
-        metaDescription: request.metaDescription,
-        metaKeywords: request.metaKeywords,
-        isFeatured: request.isFeatured !== false,
+        category: reqData.category,
+        subCategory: reqData.subCategory,
+        wellnessGoal: reqData.wellnessGoal || [],
+        brand: reqData.brand,
+        sizes: reqData.sizes || [],
+        colors: reqData.colors || [],
+        collection: reqData.collection || reqData.category || "General",
+        material: reqData.material,
+        location: reqData.location,
+        videoUrl: reqData.videoUrl,
+        gender: reqData.gender,
+        images: reqData.images || [],
+        extraImages: reqData.extraImages || [],
+        variants: reqData.variants || [],
+        hasVariants: reqData.hasVariants || false,
+        dimensions: reqData.dimensions,
+        weight: reqData.weight,
+        tags: reqData.tags || [],
+        metaTitle: reqData.metaTitle,
+        metaDescription: reqData.metaDescription,
+        metaKeywords: reqData.metaKeywords,
+        isFeatured: reqData.isFeatured !== false,
         isPublished: true,
-        priority: request.priority || 0,
+        priority: reqData.priority || 0,
         rating: 0,
         numReviews: 0,
         user: request.vendorId?._id || request.vendorId || req.user._id,
@@ -900,6 +1011,14 @@ const approveProductRequest = async (req, res) => {
     request.approvedAt = new Date();
     request.productId = savedProduct._id;
     request.isPublished = true;
+    if (!request.name) request.name = reqData.name;
+    if (!request.description) request.description = reqData.description;
+    if (request.price === undefined || request.price === null) request.price = reqData.price;
+    if (!request.category) request.category = reqData.category;
+    if (!request.brand) request.brand = reqData.brand;
+    if (!request.collection) request.collection = reqData.collection;
+    if (request.countInStock === undefined || request.countInStock === null) request.countInStock = reqData.countInStock;
+    if (!request.images || request.images.length === 0) request.images = reqData.images;
 
     await request.save();
 

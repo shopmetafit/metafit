@@ -19,29 +19,63 @@ const productRequestSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    type: {
+      type: String,
+      default: "create",
+    },
+    payload: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
     
     // Product Details
     name: { type: String, required: true, trim: true },
-    description: { type: String, required: true },
-    price: { type: Number, required: true },
+    description: {
+      type: String,
+      required: function () {
+        return !(this.payload && this.payload.description);
+      },
+    },
+    price: {
+      type: Number,
+      required: function () {
+        return !(this.payload && (this.payload.price !== undefined && this.payload.price !== null));
+      },
+    },
     discountPrice: { type: Number },
     shippingCharge: { type: Number, default: 0 },
     localShippingCharge: { type: Number, default: 0 },
     freeShippingCities: { type: [String], default: [] },
-    countInStock: { type: Number, required: true, default: 0 },
+    countInStock: { type: Number, default: 0 },
     sku: {
       type: String,
       required: function () {
+        if (this.payload && (this.payload.sku || this.payload.productSku || this.payload.SKU)) return false;
         return this.status === "approved" || this.isNew;
       },
       trim: true,
       index: true,
     },
-    category: { type: String, required: true },
-    brand: { type: String, required: true },
+    category: {
+      type: String,
+      required: function () {
+        return !(this.payload && this.payload.category);
+      },
+    },
+    brand: {
+      type: String,
+      required: function () {
+        return !(this.payload && this.payload.brand);
+      },
+    },
     sizes: { type: [String], default: [] },
     colors: { type: [String], default: [] },
-    collection: { type: String, required: true },
+    collection: {
+      type: String,
+      required: function () {
+        return !(this.payload && (this.payload.collection || this.payload.category));
+      },
+    },
     material: { type: String },
     location: { type: String, trim: true },
     videoUrl: { type: String },
@@ -158,7 +192,7 @@ const productRequestSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true, suppressReservedKeysWarning: true }
+  { timestamps: true, suppressReservedKeysWarning: true, strict: false }
 );
 
-module.exports = mongoose.model("ProductRequest", productRequestSchema);
+module.exports = mongoose.models.ProductRequest || mongoose.model("ProductRequest", productRequestSchema);
