@@ -116,6 +116,10 @@ router.post("/", protect, admin, async (req, res) => {
       hasVariants: hasVariants || false,
       variants: variants || [],
       isBestSeller: Boolean(isBestSeller),
+      productApprovalStatus: req.body.productApprovalStatus || "approved",
+      isPublished: req.body.isPublished !== undefined ? Boolean(req.body.isPublished) : true,
+      approvedBy: req.user._id,
+      approvedAt: new Date(),
       user: req.user._id,
     });
 
