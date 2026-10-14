@@ -194,9 +194,17 @@ const NewProductPage = () => {
       }
     }
 
+    let finalSku = form.sku ? form.sku.trim() : "";
+    if (!finalSku) {
+      const prefix = (form.name || "PRD").replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "MWB";
+      const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+      finalSku = `MWB-${prefix}-${random}`;
+    }
+
     // ---------- FINAL PRODUCT DATA ----------
     const productData = {
       ...form,
+      sku: finalSku,
       price: Number(form.price),
       discountPrice: form.discountPrice ? Number(form.discountPrice) : undefined,
       shippingCharge: form.shippingCharge ? Number(form.shippingCharge) : 0,
@@ -331,15 +339,29 @@ const NewProductPage = () => {
 
         {/* SKU */}
         <div className="mb-4">
-          <label className="block text-gray-700">SKU</label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="block text-gray-700 font-medium">SKU</label>
+            <button
+              type="button"
+              onClick={() => {
+                const prefix = (form.name || "PRD").replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "MWB";
+                const random = Math.random().toString(36).substring(2, 7).toUpperCase();
+                setForm((prev) => ({ ...prev, sku: `MWB-${prefix}-${random}` }));
+              }}
+              className="text-xs text-blue-600 font-semibold hover:underline bg-blue-50 px-2 py-0.5 rounded cursor-pointer"
+            >
+              Generate SKU
+            </button>
+          </div>
           <input
             type="text"
             name="sku"
             value={form.sku}
             onChange={handleChange}
+            placeholder="e.g. MWB-001 (or leave empty to auto-generate)"
             className="w-full px-4 py-2 border rounded"
-            required
           />
+          <p className="text-xs text-gray-500 mt-1">Leave empty to auto-generate a unique SKU</p>
         </div>
 
         {/* Category */}

@@ -3,6 +3,28 @@ const ProductRequest = require("../models/ProductRequest");
 const { sellerTransporter } = require("../utils/email");
 const { generateVendorApprovalEmail } = require("../utils/emailTemplate");
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+async function generateUniqueSku(name) {
+  const cleanName = String(name || "").trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const prefix = cleanName.length >= 2 ? cleanName.substring(0, 4) : "MWB";
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const randomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const candidateSku = `MWB-${prefix}-${randomCode}`;
+
+    const existingProduct = await Product.findOne({
+      sku: { $regex: new RegExp(`^${escapeRegex(candidateSku)}$`, "i") },
+    }).select("_id").lean();
+
+    if (!existingProduct) {
+      return candidateSku;
+    }
+  }
+
+  return `MWB-${prefix}-${Date.now().toString(36).toUpperCase()}`;
+}
+
 // @desc    Get all pending/unapproved products (admin only)
 // @route   GET /api/admin/products/pending
 // @access  Private (admin)
@@ -75,26 +97,22 @@ const approveProduct = async (req, res) => {
       ? (typeof product.sku === "string" ? product.sku.trim() : String(product.sku).trim())
       : "";
 
-    const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : existingProductSku;
-
-    if (!effectiveSku) {
-      return res.status(400).json({
-        message: "SKU is required to approve this product. Please provide a valid SKU.",
-        code: "SKU_REQUIRED",
-        productId: product._id,
-      });
-    }
+    const effectiveSku = providedSku !== undefined && providedSku !== ""
+      ? providedSku
+      : (existingProductSku || await generateUniqueSku(product.name));
 
     // Check duplicate SKU in products
-    const duplicateProduct = await Product.findOne({
-      sku: effectiveSku,
-      _id: { $ne: product._id },
-    });
-    if (duplicateProduct) {
-      return res.status(400).json({
-        message: `SKU '${effectiveSku}' already exists in products. Please choose a unique SKU.`,
-        code: "DUPLICATE_SKU",
+    if (effectiveSku !== product.sku) {
+      const duplicateProduct = await Product.findOne({
+        sku: { $regex: new RegExp(`^${escapeRegex(effectiveSku)}$`, "i") },
+        _id: { $ne: product._id },
       });
+      if (duplicateProduct) {
+        return res.status(400).json({
+          message: `SKU '${effectiveSku}' already exists in products. Please choose a unique SKU.`,
+          code: "DUPLICATE_SKU",
+        });
+      }
     }
 
     product.sku = effectiveSku;

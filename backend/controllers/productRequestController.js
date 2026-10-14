@@ -4,6 +4,28 @@ const Product = require("../models/Product");
 const User = require("../models/User");
 const Vendor = require("../models/Vendor");
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+async function generateUniqueSku(name) {
+  const cleanName = String(name || "").trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const prefix = cleanName.length >= 2 ? cleanName.substring(0, 4) : "MWB";
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const randomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const candidateSku = `MWB-${prefix}-${randomCode}`;
+
+    const existingProduct = await Product.findOne({
+      sku: { $regex: new RegExp(`^${escapeRegex(candidateSku)}$`, "i") },
+    }).select("_id").lean();
+
+    if (!existingProduct) {
+      return candidateSku;
+    }
+  }
+
+  return `MWB-${prefix}-${Date.now().toString(36).toUpperCase()}`;
+}
+
 const extractRequestData = (reqDoc) => {
   if (!reqDoc) return null;
   const doc = reqDoc.toObject ? reqDoc.toObject() : { ...reqDoc };
@@ -170,23 +192,30 @@ const createProductRequest = async (req, res) => {
       freeShippingCities,
     } = req.body;
 
-    // Normalize SKU
+    // Normalize SKU (auto-generate if omitted or empty)
     const rawSku = sku !== undefined && sku !== null ? sku : "";
-    const normalizedSku = typeof rawSku === "string" ? rawSku.trim() : String(rawSku).trim();
+    let normalizedSku = typeof rawSku === "string" ? rawSku.trim() : String(rawSku).trim();
+    if (!normalizedSku) {
+      normalizedSku = await generateUniqueSku(name);
+    }
 
     // Validate required fields
-    if (!name || !description || !price || countInStock === undefined || countInStock === null || !normalizedSku || !category || !brand || !collection) {
-      return res.status(400).json({ message: "Please fill in all required fields. SKU is required and cannot be empty." });
+    if (!name || !description || !price || countInStock === undefined || countInStock === null || !category || !brand || !collection) {
+      return res.status(400).json({ message: "Please fill in all required fields." });
     }
 
     // Check if SKU already exists in product requests
-    const existingRequest = await ProductRequest.findOne({ sku: normalizedSku });
+    const existingRequest = await ProductRequest.findOne({
+      sku: { $regex: new RegExp(`^${escapeRegex(normalizedSku)}$`, "i") },
+    });
     if (existingRequest) {
       return res.status(400).json({ message: "SKU already exists in product requests" });
     }
 
     // Check if SKU already exists in products
-    const existingProduct = await Product.findOne({ sku: normalizedSku });
+    const existingProduct = await Product.findOne({
+      sku: { $regex: new RegExp(`^${escapeRegex(normalizedSku)}$`, "i") },
+    });
     if (existingProduct) {
       return res.status(400).json({ message: "SKU already exists in products" });
     }
@@ -794,18 +823,14 @@ const approveProductRequest = async (req, res) => {
           ? (typeof directProduct.sku === "string" ? directProduct.sku.trim() : String(directProduct.sku).trim())
           : "";
 
-        const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : prodSku;
+        let effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : prodSku;
 
         if (!effectiveSku) {
-          return res.status(400).json({
-            message: "SKU is required to approve this product request. Please provide a valid SKU before approval.",
-            code: "SKU_REQUIRED",
-            productId: directProduct._id,
-          });
+          effectiveSku = await generateUniqueSku(directProduct.name);
         }
 
         const duplicateProduct = await Product.findOne({
-          sku: effectiveSku,
+          sku: { $regex: new RegExp(`^${escapeRegex(effectiveSku)}$`, "i") },
           _id: { $ne: directProduct._id },
         });
         if (duplicateProduct) {
@@ -866,20 +891,16 @@ const approveProductRequest = async (req, res) => {
       }
     }
 
-    const effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : requestSku;
+    let effectiveSku = providedSku !== undefined && providedSku !== "" ? providedSku : requestSku;
 
-    // Validate that effective SKU is non-empty
     if (!effectiveSku) {
-      console.warn(`[ProductRequest Approval Failed] Request ID ${request._id} has no valid SKU and none was provided`);
-      return res.status(400).json({
-        message: "SKU is required to approve this product request. Please provide a valid SKU before approval.",
-        code: "SKU_REQUIRED",
-        requestId: request._id,
-      });
+      effectiveSku = await generateUniqueSku(reqData.name || request.name);
     }
 
     // Check if SKU already exists in other products (excluding request.productId if updating)
-    const existingProductQuery = { sku: effectiveSku };
+    const existingProductQuery = {
+      sku: { $regex: new RegExp(`^${escapeRegex(effectiveSku)}$`, "i") },
+    };
     if (request.productId) {
       existingProductQuery._id = { $ne: request.productId };
     }
@@ -894,7 +915,7 @@ const approveProductRequest = async (req, res) => {
 
     // Check if SKU already exists in other product requests
     const existingRequest = await ProductRequest.findOne({
-      sku: effectiveSku,
+      sku: { $regex: new RegExp(`^${escapeRegex(effectiveSku)}$`, "i") },
       _id: { $ne: request._id },
     });
     if (existingRequest) {

@@ -28,6 +28,28 @@ router.get("/", protect, admin, async (req, res) => {
   }
 });
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+async function generateUniqueSku(name) {
+  const cleanName = String(name || "").trim().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const prefix = cleanName.length >= 2 ? cleanName.substring(0, 4) : "MWB";
+
+  for (let attempt = 0; attempt < 10; attempt++) {
+    const randomCode = Math.random().toString(36).substring(2, 7).toUpperCase();
+    const candidateSku = `MWB-${prefix}-${randomCode}`;
+
+    const existingProduct = await Product.findOne({
+      sku: { $regex: new RegExp(`^${escapeRegex(candidateSku)}$`, "i") },
+    }).select("_id").lean();
+
+    if (!existingProduct) {
+      return candidateSku;
+    }
+  }
+
+  return `MWB-${prefix}-${Date.now().toString(36).toUpperCase()}`;
+}
+
 // to create a new product
 router.post("/", protect, admin, async (req, res) => {
   try {
@@ -55,6 +77,22 @@ router.post("/", protect, admin, async (req, res) => {
       variants,
       isBestSeller,
     } = req.body;
+
+    let finalSku = sku && String(sku).trim() ? String(sku).trim() : "";
+    if (!finalSku) {
+      finalSku = await generateUniqueSku(name);
+    } else {
+      const existingProduct = await Product.findOne({
+        sku: { $regex: new RegExp(`^${escapeRegex(finalSku)}$`, "i") },
+      });
+      if (existingProduct) {
+        return res.status(400).json({
+          message: `SKU '${finalSku}' already exists. Please choose a unique SKU or leave blank to auto-generate.`,
+          code: "DUPLICATE_SKU",
+        });
+      }
+    }
+
     const newProducts = await Product.create({
       name,
       description,
@@ -64,12 +102,12 @@ router.post("/", protect, admin, async (req, res) => {
       localShippingCharge: localShippingCharge || 0,
       freeShippingCities: freeShippingCities || [],
       countInStock,
-      sku,
+      sku: finalSku,
       category,
       brand,
       sizes,
       colors,
-      collection,
+      collection: collection || category || "General",
       location,
       gender,
       images,
@@ -84,7 +122,14 @@ router.post("/", protect, admin, async (req, res) => {
     res.status(201).json(newProducts);
   } catch (error) {
     console.error("Error creating product", error);
-    res.status(500).json({ message: "Server error" });
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern || {})[0] || "SKU";
+      return res.status(400).json({ message: `A product with this ${field} already exists.` });
+    }
+    if (error.name === "ValidationError") {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: error.message || "Server error" });
   }
 });
 
