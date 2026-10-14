@@ -1,6 +1,8 @@
+const mongoose = require("mongoose");
 const ProductRequest = require("../models/ProductRequest");
 const Product = require("../models/Product");
 const User = require("../models/User");
+const Vendor = require("../models/Vendor");
 
 // @desc    Create a new product request (vendor only)
 // @route   POST /api/vendor/product-requests
@@ -68,7 +70,9 @@ const createProductRequest = async (req, res) => {
 
     const productRequest = new ProductRequest({
       vendorId: req.user._id,
-      vendorName: req.user.vendorName || req.user.name,
+      vendorName: req.user.vendorName || req.user.name || "Vendor",
+      vendorEmail: req.user.email || req.body.vendorEmail || "",
+      vendorPhone: req.user.phone || req.body.vendorPhone || "",
       name,
       description,
       price: Number(price),
@@ -430,7 +434,7 @@ const getAllProductRequests = async (req, res) => {
     }
 
     const requests = await ProductRequest.find(query)
-      .populate("vendorId", "businessName vendorName email phone")
+      .populate("vendorId", "businessName vendorName email phone name")
       .sort({ createdAt: -1 });
 
     const normalizedRequests = requests.map((item) => {
@@ -439,12 +443,115 @@ const getAllProductRequests = async (req, res) => {
         doc.sku = doc.payload?.sku || doc.productSku || doc.SKU || doc.payload?.productSku || doc.payload?.SKU || doc.sku;
       }
       doc.id = (doc._id || "").toString();
+      const vendorObj = doc.vendorId || {};
+      doc.vendorName = doc.vendorName || vendorObj.vendorName || vendorObj.businessName || vendorObj.name || "Vendor";
+      doc.vendorEmail = doc.vendorEmail || vendorObj.email || "N/A";
+      doc.vendorPhone = doc.vendorPhone || vendorObj.phone || "N/A";
       return doc;
     });
 
+    // Also include direct Product documents needing approval or matching status
+    let normalizedDirectProducts = [];
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const linkedProductIds = await ProductRequest.distinct("productId", {
+          productId: { $exists: true, $ne: null },
+        });
+
+        let productQuery = {};
+        if (status) {
+          productQuery.productApprovalStatus = status;
+        } else {
+          productQuery.productApprovalStatus = { $in: ["pending", "approved", "rejected"] };
+        }
+
+        if (linkedProductIds && linkedProductIds.length > 0) {
+          productQuery._id = { $nin: linkedProductIds };
+        }
+
+        if (vendorId) {
+          productQuery.$or = [
+            { vendorId: vendorId },
+            { user: vendorId },
+            { vendorUserId: vendorId },
+          ];
+        }
+
+        if (productId) {
+          if (mongoose.Types.ObjectId.isValid(productId)) {
+            productQuery._id = productId;
+          }
+        }
+
+        const directProducts = await Product.find(productQuery)
+          .populate("vendorId", "businessName vendorName email phone name")
+          .populate("user", "businessName vendorName email phone name")
+          .sort({ createdAt: -1 });
+
+        normalizedDirectProducts = directProducts.map((p) => {
+          const doc = p.toObject ? p.toObject() : { ...p };
+          const vendorObj = doc.vendorId || doc.user || {};
+          const vName =
+            doc.vendorName ||
+            vendorObj.vendorName ||
+            vendorObj.businessName ||
+            vendorObj.name ||
+            (doc.createdBy === "VENDOR" ? "Vendor Partner" : "Admin");
+          const vEmail = doc.vendorEmail || vendorObj.email || "N/A";
+          const vPhone = doc.vendorPhone || vendorObj.phone || "N/A";
+
+          const effectiveSku = doc.sku || doc.productSku || doc.SKU || doc.payload?.sku || "";
+
+          return {
+            ...doc,
+            _id: doc._id,
+            id: (doc._id || "").toString(),
+            productId: doc._id,
+            name: doc.name || "",
+            description: doc.description || "",
+            status: doc.productApprovalStatus || "pending",
+            sku: effectiveSku,
+            category: doc.category || "",
+            brand: doc.brand || "",
+            collection: doc.collection || doc.category || "General",
+            vendorId: doc.vendorId?._id || doc.vendorId || doc.user?._id || doc.user,
+            vendorName: vName,
+            vendorEmail: vEmail,
+            vendorPhone: vPhone,
+            images: Array.isArray(doc.images) ? doc.images : [],
+            price: doc.price || 0,
+            discountPrice: doc.discountPrice,
+            countInStock: doc.countInStock ?? 0,
+            createdAt: doc.createdAt || new Date(),
+            rejectionReason: doc.rejectionReason || "",
+            material: doc.material || "",
+            weight: doc.weight || 0,
+            videoUrl: doc.videoUrl || "",
+            sizes: Array.isArray(doc.sizes) ? doc.sizes : [],
+            colors: Array.isArray(doc.colors) ? doc.colors : [],
+            tags: Array.isArray(doc.tags) ? doc.tags : [],
+            isFeatured: Boolean(doc.isFeatured),
+            priority: doc.priority || 0,
+            variants: Array.isArray(doc.variants) ? doc.variants : [],
+            dimensions: doc.dimensions || { length: "", width: "", height: "" },
+            metaTitle: doc.metaTitle || "",
+            metaDescription: doc.metaDescription || "",
+            metaKeywords: doc.metaKeywords || "",
+            isDirectProduct: true,
+          };
+        });
+      } catch (directErr) {
+        console.warn("Direct product lookup skipped:", directErr.message);
+      }
+    }
+
+    const allRequests = [...normalizedRequests, ...normalizedDirectProducts].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
     res.json({
-      count: normalizedRequests.length,
-      requests: normalizedRequests,
+      count: allRequests.length,
+      requests: allRequests,
     });
   } catch (error) {
     console.error("Error fetching product requests:", error);
@@ -460,10 +567,72 @@ const getAllProductRequests = async (req, res) => {
 // @access  Private (admin)
 const getProductRequestByIdAdmin = async (req, res) => {
   try {
-    const request = await ProductRequest.findById(req.params.id)
-      .populate("vendorId", "businessName vendorName email phone");
+    let request = await ProductRequest.findById(req.params.id)
+      .populate("vendorId", "businessName vendorName email phone name");
 
     if (!request) {
+      // Check direct Product document
+      const directProduct = await Product.findById(req.params.id)
+        .populate("vendorId", "businessName vendorName email phone name")
+        .populate("user", "businessName vendorName email phone name");
+
+      if (directProduct) {
+        const doc = directProduct.toObject ? directProduct.toObject() : { ...directProduct };
+        const vendorObj = doc.vendorId || doc.user || {};
+        const vName =
+          doc.vendorName ||
+          vendorObj.vendorName ||
+          vendorObj.businessName ||
+          vendorObj.name ||
+          (doc.createdBy === "VENDOR" ? "Vendor Partner" : "Admin");
+        const vEmail = doc.vendorEmail || vendorObj.email || "N/A";
+        const vPhone = doc.vendorPhone || vendorObj.phone || "N/A";
+        const effectiveSku = doc.sku || doc.productSku || doc.SKU || "";
+
+        const normalized = {
+          ...doc,
+          _id: doc._id,
+          id: (doc._id || "").toString(),
+          productId: doc._id,
+          name: doc.name || "",
+          description: doc.description || "",
+          status: doc.productApprovalStatus || "pending",
+          sku: effectiveSku,
+          category: doc.category || "",
+          brand: doc.brand || "",
+          collection: doc.collection || doc.category || "General",
+          vendorId: doc.vendorId?._id || doc.vendorId || doc.user?._id || doc.user,
+          vendorName: vName,
+          vendorEmail: vEmail,
+          vendorPhone: vPhone,
+          images: Array.isArray(doc.images) ? doc.images : [],
+          price: doc.price || 0,
+          discountPrice: doc.discountPrice,
+          countInStock: doc.countInStock ?? 0,
+          createdAt: doc.createdAt || new Date(),
+          rejectionReason: doc.rejectionReason || "",
+          material: doc.material || "",
+          weight: doc.weight || 0,
+          videoUrl: doc.videoUrl || "",
+          sizes: Array.isArray(doc.sizes) ? doc.sizes : [],
+          colors: Array.isArray(doc.colors) ? doc.colors : [],
+          tags: Array.isArray(doc.tags) ? doc.tags : [],
+          isFeatured: Boolean(doc.isFeatured),
+          priority: doc.priority || 0,
+          variants: Array.isArray(doc.variants) ? doc.variants : [],
+          dimensions: doc.dimensions || { length: "", width: "", height: "" },
+          metaTitle: doc.metaTitle || "",
+          metaDescription: doc.metaDescription || "",
+          metaKeywords: doc.metaKeywords || "",
+          isDirectProduct: true,
+        };
+
+        return res.json({
+          request: normalized,
+          ...normalized,
+        });
+      }
+
       return res.status(404).json({ message: "Product request not found" });
     }
 
@@ -838,11 +1007,28 @@ const rejectProductRequest = async (req, res) => {
 // @access  Private (admin)
 const getProductRequestStats = async (req, res) => {
   try {
+    const linkedProductIds = await ProductRequest.distinct("productId", {
+      productId: { $exists: true, $ne: null },
+    });
+
+    const directProductPending = await Product.countDocuments({
+      productApprovalStatus: "pending",
+      _id: { $nin: linkedProductIds },
+    });
+    const directProductApproved = await Product.countDocuments({
+      productApprovalStatus: "approved",
+      _id: { $nin: linkedProductIds },
+    });
+    const directProductRejected = await Product.countDocuments({
+      productApprovalStatus: "rejected",
+      _id: { $nin: linkedProductIds },
+    });
+
     const stats = {
-      totalRequests: await ProductRequest.countDocuments(),
-      pendingRequests: await ProductRequest.countDocuments({ status: "pending" }),
-      approvedRequests: await ProductRequest.countDocuments({ status: "approved" }),
-      rejectedRequests: await ProductRequest.countDocuments({ status: "rejected" }),
+      totalRequests: (await ProductRequest.countDocuments()) + directProductPending + directProductApproved + directProductRejected,
+      pendingRequests: (await ProductRequest.countDocuments({ status: "pending" })) + directProductPending,
+      approvedRequests: (await ProductRequest.countDocuments({ status: "approved" })) + directProductApproved,
+      rejectedRequests: (await ProductRequest.countDocuments({ status: "rejected" })) + directProductRejected,
       cancelledRequests: await ProductRequest.countDocuments({ status: "cancelled" }),
     };
 

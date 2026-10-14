@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
   greetingTimeout: 10000,
   socketTimeout: 10000,
 });
-console.log(process.env.EMAIL_USER);
-console.log(process.env.EMAIL_PASS);
+// console.log(process.env.EMAIL_USER);
+// console.log(process.env.EMAIL_PASS);
 transporter.verify((error, success) => {
   if (error) {
     console.error("SMTP Error:", error);

@@ -13,11 +13,11 @@ const productRequestSchema = new mongoose.Schema(
     },
     vendorEmail: {
       type: String,
-      required: true,
+      default: "",
     },
     vendorPhone: {
       type: String,
-      required: true,
+      default: "",
     },
     
     // Product Details
