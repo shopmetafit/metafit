@@ -25,11 +25,33 @@ const OrderDetailsPage = () => {
     dispatch(fetchOrderDetails(id));
   }, [dispatch, id]);
 
+  const isOrderPaid = Boolean(
+    orderDetails?.isPaid ||
+    (orderDetails?.paymentStatus && String(orderDetails.paymentStatus).toLowerCase() === "paid")
+  );
+  const isOrderDelivered = Boolean(
+    orderDetails?.isDelivered ||
+    String(orderDetails?.status).toLowerCase() === "delivered" ||
+    String(orderDetails?.shippingStatus).toLowerCase() === "delivered"
+  );
+  const canDownloadInvoice = isOrderPaid && isOrderDelivered;
+
   const handleDownloadInvoice = async () => {
     if (!orderDetails) return;
     const token = localStorage.getItem("userToken");
     if (!token) {
       toast.error("Please log in to download invoice");
+      return;
+    }
+
+    if (!canDownloadInvoice) {
+      if (!isOrderPaid && !isOrderDelivered) {
+        toast.info("Invoice will be available after payment and delivery are completed.");
+      } else if (!isOrderPaid) {
+        toast.info("Invoice will be available after payment is completed.");
+      } else {
+        toast.info("Invoice will be available after the product is delivered.");
+      }
       return;
     }
 
@@ -62,7 +84,19 @@ const OrderDetailsPage = () => {
       toast.success("Invoice downloaded successfully!");
     } catch (err) {
       console.error("Invoice download error:", err);
-      toast.error("Unable to generate invoice. Please try again.");
+      let errorMsg = "Unable to generate invoice. Please try again.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) errorMsg = json.message;
+        } catch (e) {
+          // ignore
+        }
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      toast.error(errorMsg);
     } finally {
       setIsDownloadingInvoice(false);
     }
@@ -272,22 +306,54 @@ const OrderDetailsPage = () => {
         </div>
 
         {/* Top Header Download Invoice Button */}
-        <button
-          type="button"
-          disabled={isDownloadingInvoice}
-          onClick={handleDownloadInvoice}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#047ca8] hover:bg-[#036e96] text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
-        >
-          {isDownloadingInvoice ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Generating Invoice...
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4" /> Download Invoice
-            </>
-          )}
-        </button>
+        {canDownloadInvoice ? (
+          <button
+            type="button"
+            disabled={isDownloadingInvoice}
+            onClick={handleDownloadInvoice}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#047ca8] hover:bg-[#036e96] text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+          >
+            {isDownloadingInvoice ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Generating Invoice...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" /> Download Invoice
+              </>
+            )}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              if (!isOrderPaid && !isOrderDelivered) {
+                toast.info("Invoice will be available after payment and delivery are completed.");
+              } else if (!isOrderPaid) {
+                toast.info("Invoice will be available after payment is completed.");
+              } else {
+                toast.info("Invoice will be available after the product is delivered.");
+              }
+            }}
+            title={
+              !isOrderPaid && !isOrderDelivered
+                ? "Invoice will be available after payment and delivery are completed"
+                : !isOrderPaid
+                ? "Invoice will be available after payment confirmation"
+                : "Invoice will be available after delivery is completed"
+            }
+            className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-150 text-gray-500 font-semibold text-xs sm:text-sm rounded-xl border border-gray-200 cursor-not-allowed transition-colors select-none"
+          >
+            <Download className="h-4 w-4 text-gray-400" />
+            <span>
+              {!isOrderPaid && !isOrderDelivered
+                ? "Invoice Available After Delivery"
+                : !isOrderPaid
+                ? "Invoice Available After Payment"
+                : "Invoice Available After Delivery"}
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Current Status Card */}
@@ -575,22 +641,54 @@ const OrderDetailsPage = () => {
         <div className="bg-gray-50/70 px-6 py-6 border-t border-gray-200">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
             
-            <button
-              type="button"
-              disabled={isDownloadingInvoice}
-              onClick={handleDownloadInvoice}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl transition-all border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
-            >
-              {isDownloadingInvoice ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Generating Invoice...
-                </>
-              ) : (
-                <>
-                  <Download className="h-4 w-4" /> Download Official PDF Invoice
-                </>
-              )}
-            </button>
+            {canDownloadInvoice ? (
+              <button
+                type="button"
+                disabled={isDownloadingInvoice}
+                onClick={handleDownloadInvoice}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl transition-all border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
+              >
+                {isDownloadingInvoice ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Generating Invoice...
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" /> Download Official PDF Invoice
+                  </>
+                )}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isOrderPaid && !isOrderDelivered) {
+                    toast.info("Invoice will be available after payment and delivery are completed.");
+                  } else if (!isOrderPaid) {
+                    toast.info("Invoice will be available after payment is completed.");
+                  } else {
+                    toast.info("Invoice will be available after the product is delivered.");
+                  }
+                }}
+                title={
+                  !isOrderPaid && !isOrderDelivered
+                    ? "Invoice will be available after payment and delivery are completed"
+                    : !isOrderPaid
+                    ? "Invoice will be available after payment is completed"
+                    : "Invoice will be available once the order is delivered"
+                }
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-100 hover:bg-gray-150 text-gray-500 text-xs font-semibold rounded-xl border border-gray-200 cursor-not-allowed transition-colors select-none"
+              >
+                <Download className="h-4 w-4 text-gray-400" />
+                <span>
+                  {!isOrderPaid && !isOrderDelivered
+                    ? "Invoice Available After Delivery"
+                    : !isOrderPaid
+                    ? "Invoice Available After Payment"
+                    : "Invoice Available After Delivery"}
+                </span>
+              </button>
+            )}
 
             <div className="w-full sm:w-80 space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between text-gray-600">

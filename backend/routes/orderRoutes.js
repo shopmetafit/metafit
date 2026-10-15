@@ -44,6 +44,28 @@ router.get("/:id/invoice", protect, async (req, res) => {
       return res.status(403).json({ message: "Not authorized to access this invoice" });
     }
 
+    const isPaymentDone = Boolean(
+      order.isPaid ||
+      (order.paymentStatus && String(order.paymentStatus).toLowerCase() === "paid")
+    );
+    const isDeliveryDone = Boolean(
+      order.isDelivered ||
+      String(order.status).toLowerCase() === "delivered" ||
+      String(order.shippingStatus).toLowerCase() === "delivered"
+    );
+
+    if (!isAdmin && (!isPaymentDone || !isDeliveryDone)) {
+      let message = "Invoice can only be downloaded after payment and delivery are completed.";
+      if (!isPaymentDone && !isDeliveryDone) {
+        message = "Invoice will be available after payment and delivery are completed.";
+      } else if (!isPaymentDone) {
+        message = "Invoice will be available after payment is completed.";
+      } else if (!isDeliveryDone) {
+        message = "Invoice will be available after the order is delivered.";
+      }
+      return res.status(400).json({ message });
+    }
+
     const pdfBuffer = generateInvoicePdfBuffer(order);
     const fileName = `M-Wellness-Bazaar-Invoice-${order.orderNumber || order._id}.pdf`;
 

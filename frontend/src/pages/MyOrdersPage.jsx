@@ -49,7 +49,7 @@ const MyOrdersPage = () => {
     navigate(`/order/${orderId}`);
   };
 
-  const handleDownloadInvoice = async (e, orderId, orderNumber) => {
+  const handleDownloadInvoice = async (e, order) => {
     e.stopPropagation();
     const token = localStorage.getItem("userToken");
     if (!token) {
@@ -57,12 +57,33 @@ const MyOrdersPage = () => {
       return;
     }
 
+    const isOrderPaid = Boolean(
+      order.isPaid ||
+      (order.paymentStatus && String(order.paymentStatus).toLowerCase() === "paid")
+    );
+    const isOrderDelivered = Boolean(
+      order.isDelivered ||
+      String(order.status).toLowerCase() === "delivered" ||
+      String(order.shippingStatus).toLowerCase() === "delivered"
+    );
+
+    if (!isOrderPaid || !isOrderDelivered) {
+      if (!isOrderPaid && !isOrderDelivered) {
+        toast.info("Invoice will be available after payment and delivery are completed.");
+      } else if (!isOrderPaid) {
+        toast.info("Invoice will be available after payment is completed.");
+      } else {
+        toast.info("Invoice will be available after the product is delivered.");
+      }
+      return;
+    }
+
     try {
-      setDownloadingInvoiceId(orderId);
+      setDownloadingInvoiceId(order._id);
       toast.info("Generating Invoice...");
 
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/invoice`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/orders/${order._id}/invoice`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -77,7 +98,7 @@ const MyOrdersPage = () => {
       link.href = url;
       link.setAttribute(
         "download",
-        `M-Wellness-Bazaar-Invoice-${orderNumber || orderId.slice(-8)}.pdf`
+        `M-Wellness-Bazaar-Invoice-${order.orderNumber || order._id.slice(-8)}.pdf`
       );
       document.body.appendChild(link);
       link.click();
@@ -86,7 +107,19 @@ const MyOrdersPage = () => {
       toast.success("Invoice downloaded successfully!");
     } catch (err) {
       console.error("Invoice download error:", err);
-      toast.error("Unable to generate invoice. Please try again.");
+      let errorMsg = "Unable to generate invoice. Please try again.";
+      if (err.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) errorMsg = json.message;
+        } catch (e) {
+          // ignore parsing error
+        }
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      }
+      toast.error(errorMsg);
     } finally {
       setDownloadingInvoiceId(null);
     }
@@ -188,6 +221,17 @@ const MyOrdersPage = () => {
                 "Customer";
 
               const isDownloading = downloadingInvoiceId === order._id;
+
+              const isOrderPaid = Boolean(
+                order.isPaid ||
+                (order.paymentStatus && String(order.paymentStatus).toLowerCase() === "paid")
+              );
+              const isOrderDelivered = Boolean(
+                order.isDelivered ||
+                String(order.status).toLowerCase() === "delivered" ||
+                String(order.shippingStatus).toLowerCase() === "delivered"
+              );
+              const canDownloadInvoice = isOrderPaid && isOrderDelivered;
 
               return (
                 <div
@@ -335,24 +379,55 @@ const MyOrdersPage = () => {
                           <Eye className="h-3.5 w-3.5" /> View Order
                         </button>
 
-                        <button
-                          type="button"
-                          disabled={isDownloading}
-                          onClick={(e) =>
-                            handleDownloadInvoice(e, order._id, order.orderNumber)
-                          }
-                          className="w-full py-2 px-3 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
-                        >
-                          {isDownloading ? (
-                            <>
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating Invoice...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="h-3.5 w-3.5" /> Download Invoice
-                            </>
-                          )}
-                        </button>
+                        {canDownloadInvoice ? (
+                          <button
+                            type="button"
+                            disabled={isDownloading}
+                            onClick={(e) => handleDownloadInvoice(e, order)}
+                            className="w-full py-2 px-3 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
+                          >
+                            {isDownloading ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Generating Invoice...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="h-3.5 w-3.5" /> Download Invoice
+                              </>
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!isOrderPaid && !isOrderDelivered) {
+                                toast.info("Invoice will be available after payment & delivery are completed.");
+                              } else if (!isOrderPaid) {
+                                toast.info("Invoice will be available after payment is completed.");
+                              } else {
+                                toast.info("Invoice will be available after the product is delivered.");
+                              }
+                            }}
+                            title={
+                              !isOrderPaid && !isOrderDelivered
+                                ? "Invoice will be available after payment and delivery are completed"
+                                : !isOrderPaid
+                                ? "Invoice will be available after payment is completed"
+                                : "Invoice will be available once the order is delivered"
+                            }
+                            className="w-full py-2 px-2.5 bg-gray-100 hover:bg-gray-150 text-gray-500 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-gray-200 cursor-not-allowed select-none"
+                          >
+                            <Download className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                            <span className="truncate">
+                              {!isOrderPaid && !isOrderDelivered
+                                ? "Invoice Available After Delivery"
+                                : !isOrderPaid
+                                ? "Invoice Available After Payment"
+                                : "Invoice Available After Delivery"}
+                            </span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
