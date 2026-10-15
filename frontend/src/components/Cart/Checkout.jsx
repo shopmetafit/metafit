@@ -36,31 +36,6 @@ const CheckOut = () => {
     const nameParts = (user?.name || "").trim().split(" ");
     const firstName = nameParts[0] || "";
     const lastName = nameParts.slice(1).join(" ") || "";
-    const currentEmail = user?.email || "";
-    const saved = currentEmail ? localStorage.getItem(`shippingAddress_${currentEmail}`) : null;
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return {
-          firstName: parsed.firstName || firstName,
-          lastName: parsed.lastName || lastName,
-          fullName: parsed.fullName || `${firstName} ${lastName}`.trim(),
-          address: parsed.address || "",
-          house: parsed.house || "",
-          area: parsed.area || "",
-          landmark: parsed.landmark || "",
-          city: parsed.city || "",
-          district: parsed.district || "",
-          state: parsed.state || "",
-          postalCode: parsed.postalCode || "",
-          country: parsed.country || "INDIA",
-          phone: parsed.phone || user?.phone || "",
-          addressType: parsed.addressType || "Home",
-        };
-      } catch (e) {
-        console.warn("Saved address parse error:", e);
-      }
-    }
     return {
       firstName,
       lastName,
@@ -122,25 +97,9 @@ const CheckOut = () => {
     }
   }, [user, addresses, selectedAddressId, selectAddress]);
 
-  // Pre-fill user data (phone, name, email) whenever user object loads
+  // Pre-fill user contact data (phone, name) whenever user object loads
   useEffect(() => {
     if (user && !selectedAddressId) {
-      const currentEmail = user.email || email;
-      const saved = localStorage.getItem(`shippingAddress_${currentEmail}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setShippingAddress((prev) => ({
-            ...prev,
-            ...parsed,
-            phone: prev.phone || parsed.phone || user.phone || "",
-          }));
-          return;
-        } catch (e) {
-          console.warn("Saved address parse error:", e);
-        }
-      }
-
       const nameParts = (user.name || "").trim().split(" ");
       const firstName = nameParts[0] || "";
       const lastName = nameParts.slice(1).join(" ") || "";
@@ -152,7 +111,7 @@ const CheckOut = () => {
         phone: prev.phone || user.phone || "",
       }));
     }
-  }, [user, email, selectedAddressId]);
+  }, [user, selectedAddressId]);
 
   const [isPincodeLoading, setIsPincodeLoading] = useState(false);
 
@@ -246,35 +205,6 @@ const CheckOut = () => {
     toast.success("Item removed from cart");
   };
 
-  const deliveryCharge = cart?.products?.reduce((acc, item) => {
-    let itemShipping = Number(item.shippingCharge ?? 100);
-    if (shippingAddress.city && item.freeShippingCities && item.freeShippingCities.length > 0) {
-      const match = item.freeShippingCities.some(
-        city => city.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
-      );
-      if (match) {
-        itemShipping = Number(item.localShippingCharge ?? 0);
-      }
-    }
-    return acc + itemShipping;
-  }, 0) ?? 0;
-  const subtotal = cart?.products?.reduce(
-    (acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 1)),
-    0
-  ) ?? cart?.totalPrice ?? 0;
-  const serviceCharge = Math.round(subtotal * 0.03);
-  const totalWithDelivery = subtotal + serviceCharge + deliveryCharge;
-  const finalTotal = Math.round(Math.max(totalWithDelivery - couponDiscount, 0));
-
-  const localShippingItems = cart?.products?.filter((item) => {
-    return shippingAddress.city && item.freeShippingCities && item.freeShippingCities.some(
-      c => c.trim().toLowerCase() === shippingAddress.city.trim().toLowerCase()
-    );
-  }) || [];
-
-  const hasFreeShippingItem = localShippingItems.some(item => Number(item.localShippingCharge ?? 0) === 0);
-  const hasLocalShippingItem = localShippingItems.length > 0;
-
   const countryClean = shippingAddress.country?.trim().toLowerCase() || "";
   const phoneClean = shippingAddress.phone?.replace(/\D/g, "") || "";
   const isIndia = Boolean(
@@ -285,6 +215,51 @@ const CheckOut = () => {
     (countryClean === "india" && /^[6-9]\d{9}$/.test(phoneClean)) ||
     (phoneClean.length === 10 && /^[6-9]\d{9}$/.test(phoneClean) && countryClean !== "usa" && countryClean !== "us")
   );
+
+  const cleanCity = (shippingAddress.city || "").trim();
+  const cleanState = (shippingAddress.state || "").trim();
+  const cleanPostal = (shippingAddress.postalCode || "").trim().replace(/\D/g, "");
+
+  const isDestinationValidated = Boolean(
+    !isPincodeLoading &&
+    cleanCity.length >= 3 &&
+    cleanState.length >= 2 &&
+    (isIndia ? cleanPostal.length === 6 : (shippingAddress.postalCode || "").trim().length >= 3)
+  );
+
+  const deliveryCharge = isDestinationValidated
+    ? (cart?.products?.reduce((acc, item) => {
+        let itemShipping = Number(item.shippingCharge ?? 100);
+        if (cleanCity && item.freeShippingCities && item.freeShippingCities.length > 0) {
+          const match = item.freeShippingCities.some(
+            city => city.trim().toLowerCase() === cleanCity.toLowerCase()
+          );
+          if (match) {
+            itemShipping = Number(item.localShippingCharge ?? 0);
+          }
+        }
+        return acc + itemShipping;
+      }, 0) ?? 0)
+    : 0;
+
+  const subtotal = cart?.products?.reduce(
+    (acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 1)),
+    0
+  ) ?? cart?.totalPrice ?? 0;
+  const serviceCharge = Math.round(subtotal * 0.03);
+  const totalWithDelivery = subtotal + serviceCharge + deliveryCharge;
+  const finalTotal = Math.round(Math.max(totalWithDelivery - couponDiscount, 0));
+
+  const localShippingItems = isDestinationValidated
+    ? (cart?.products?.filter((item) => {
+        return cleanCity && item.freeShippingCities && item.freeShippingCities.some(
+          c => c.trim().toLowerCase() === cleanCity.toLowerCase()
+        );
+      }) || [])
+    : [];
+
+  const hasFreeShippingItem = localShippingItems.some(item => Number(item.localShippingCharge ?? 0) === 0);
+  const hasLocalShippingItem = localShippingItems.length > 0;
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -1052,9 +1027,15 @@ const CheckOut = () => {
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Shipping Charge</span>
-              <span className={`font-semibold ${deliveryCharge === 0 ? 'text-emerald-700' : 'text-[#3A0610]'}`}>
-                {deliveryCharge > 0 ? `₹${deliveryCharge.toLocaleString()}` : "FREE"}
-              </span>
+              {isPincodeLoading ? (
+                <span className="text-teal-600 text-xs font-semibold animate-pulse">Calculating...</span>
+              ) : !isDestinationValidated ? (
+                <span className="font-semibold text-gray-600">₹0</span>
+              ) : deliveryCharge === 0 ? (
+                <span className="font-semibold text-emerald-700">FREE</span>
+              ) : (
+                <span className="font-semibold text-[#3A0610]">₹{deliveryCharge.toLocaleString()}</span>
+              )}
             </div>
             {couponDiscount > 0 && (
               <div className="flex justify-between text-emerald-700">
@@ -1065,6 +1046,21 @@ const CheckOut = () => {
             <div className="border-t border-[#D4A017]/30 pt-3 flex justify-between items-center text-base font-extrabold text-[#3A0610]">
               <span>Total Payable</span>
               <span className="text-[#650B18] text-lg font-black">₹{finalTotal.toLocaleString()}</span>
+            </div>
+
+            {/* Shipping Explanation Note */}
+            <div className="pt-2">
+              <div className="text-xs text-gray-600 leading-relaxed bg-amber-50/70 border border-amber-200/70 rounded-lg p-2.5">
+                <p>
+                  <span className="font-bold text-[#4A0712]">Note: </span>
+                  Shipping charges are calculated based on your delivery location. Enter your city and required address details to see the applicable shipping charge. Your total will update accordingly.
+                </p>
+                {isDestinationValidated && (
+                  <p className="text-emerald-700 font-semibold mt-1 flex items-center gap-1">
+                    ✓ Shipping calculated for {cleanCity}, {cleanState}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>

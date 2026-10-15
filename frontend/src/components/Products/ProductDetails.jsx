@@ -1834,16 +1834,6 @@ const ProductDetails = ({ productId }) => {
                         Inclusive of all taxes
                       </p>
 
-                      <p className="text-sm text-gray-600 mt-1">
-                        +{" "}
-                        {
-                          formatCurrency(
-                            selectedProduct.shippingCharge ||
-                            100
-                          )
-                        }{" "}
-                        delivery charge
-                      </p>
                     </div>
                   );
                 })()

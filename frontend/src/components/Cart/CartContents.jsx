@@ -86,9 +86,6 @@ const CartContents = ({ cart, userId, guestId }) => {
               <p className="text-sm font-bold text-gray-900">
                 ₹{(product.price || 0).toLocaleString()}
               </p>
-              <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                + ₹{(product.shippingCharge ?? 100).toLocaleString()} shipping
-              </span>
             </div>
 
             {product.referral?.shareCode ? (

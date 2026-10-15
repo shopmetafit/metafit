@@ -24,8 +24,7 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
   const itemCount = cart?.products?.reduce((t, p) => t + p.quantity, 0) || 0;
   const wishlistCount = wishlist?.products?.length || 0;
   const subtotal = cart?.totalPrice ?? 0;
-  const deliveryCharge = cart?.products?.reduce((acc, item) => acc + Number(item.shippingCharge ?? 100), 0) ?? 0;
-  const total = subtotal + deliveryCharge;
+  const total = subtotal;
 
   const handleCheckout = () => {
     if (cart?.products?.length > 0) {
@@ -175,16 +174,13 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
                 <span>Subtotal ({itemCount} items)</span>
                 <span className="font-medium">₹{subtotal.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-[#3A0610]">
-                <span>Delivery</span>
-                <span className={deliveryCharge === 0 ? "text-emerald-700 font-bold" : "font-medium"}>
-                  {deliveryCharge === 0 ? "FREE" : `₹${deliveryCharge}`}
-                </span>
-              </div>
               <div className="flex justify-between font-bold text-[#650B18] text-base border-t border-[#D4A017]/20 pt-2 mt-2">
                 <span>Order Total</span>
                 <span>₹{total.toLocaleString()}</span>
               </div>
+              <p className="text-[11px] text-[#7A1522] italic pt-0.5">
+                Shipping calculated at checkout
+              </p>
             </div>
 
             {/* Checkout button */}
