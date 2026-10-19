@@ -30,6 +30,7 @@ const footerColumns = [
   {
     heading: "Let Us Help You",
     links: [
+      { label: "Help & Support Tickets", href: "/support" },
       { label: "My Orders", href: "/my-orders" },
       { label: "Returns & Refunds", href: "/refund-policy" },
       { label: "Shipping Policy", href: "/shipping-policy" },

@@ -32,6 +32,8 @@ const sitemapRoutes = require("../routes/sitemapRoutes");
 const reviewRoutes = require("../routes/reviewRoutes");
 const addressRoutes = require("../routes/addressRoutes");
 const aiRoutineRoutes = require("../routes/aiRoutineRoutes");
+const ticketRoutes = require("../routes/ticketRoutes");
+const adminTicketRoutes = require("../routes/adminTicketRoutes");
 const compression = require("compression");
 
 const app = express();
@@ -116,6 +118,7 @@ app.use("/api/store", referralStoreRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api", reviewRoutes);
 app.use("/api/ai", aiRoutineRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 
 //Admin
@@ -123,6 +126,7 @@ app.use("/api/admin/users", adminRoutes);
 app.use("/api/admin/products", productAdminRoutes);
 app.use("/api/admin/product-requests", adminProductRequestRoutes);
 app.use("/api/admin/orders", adminOrderRoutes);
+app.use("/api/admin/tickets", adminTicketRoutes);
 app.use("/api/admin/shipment", adminShipmentRoutes);
 app.use("/api/admin", referralAdminRoutes);
 app.use("/api/auth", otpRoutes);

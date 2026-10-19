@@ -22,6 +22,7 @@ import {
   X,
   Save,
   CheckCircle2,
+  Headphones,
 } from "lucide-react";
 
 const Profile = () => {
@@ -202,6 +203,14 @@ const Profile = () => {
             <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="hidden sm:inline">Saved Addresses</span>
             <span className="sm:hidden font-medium">Addresses</span>
+          </Link>
+          <Link
+            to="/support"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
+          >
+            <Headphones className="w-4 h-4 text-teal-600 shrink-0" />
+            <span className="hidden sm:inline">Help & Support</span>
+            <span className="sm:hidden font-medium">Support</span>
           </Link>
         </div>
 

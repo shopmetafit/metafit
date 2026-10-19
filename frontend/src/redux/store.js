@@ -11,6 +11,7 @@ import wishlistReducer from "./slices/wishlistSlice"
 import reviewReducer from "./slices/reviewSlice"
 import addressReducer from "./slices/addressSlice"
 import compareReducer from "./slices/compareSlice";
+import ticketReducer from "./slices/ticketSlice";
 const store = configureStore({
     reducer:{
         auth: authReducer,
@@ -25,6 +26,7 @@ const store = configureStore({
         reviews: reviewReducer,
         address: addressReducer,
         compare: compareReducer,
+        tickets: ticketReducer,
     }
 });
 

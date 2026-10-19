@@ -22,6 +22,7 @@ const OrderDetailsPage = lazy(() => import("./pages/OrderDetailsPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const MyAddressesPage = lazy(() => import("./pages/MyAddressesPage"));
 const WishlistPage = lazy(() => import("./pages/WishlistPage"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
 const AboutUs = lazy(() => import("./pages/AboutUs"));
 const ContactUs = lazy(() => import("./pages/ContactUs"));
 const PrivacyPolicy = lazy(() => import("./pages/privacyPolicy"));
@@ -55,6 +56,7 @@ const VendorApprovals = lazy(() => import("./components/Admin/VendorApprovals"))
 const ProductRequestsAdmin = lazy(() => import("./components/Admin/ProductRequestsAdmin"));
 const ReferralAssignments = lazy(() => import("./components/Admin/ReferralAssignments"));
 const ReviewManagement = lazy(() => import("./components/Admin/ReviewManagement"));
+const TicketManagement = lazy(() => import("./components/Admin/TicketManagement"));
 
 // Minimalist smooth spinner fallback for lazy routes
 const PageLoader = () => (
@@ -144,6 +146,8 @@ const App = () => {
               <Route path="my-orders" element={<MyOrdersPage />} />
               <Route path="my-addresses" element={<MyAddressesPage />} />
               <Route path="wishlist" element={<WishlistPage />} />
+              <Route path="support" element={<SupportPage />} />
+              <Route path="help-support" element={<Navigate to="/support" replace />} />
 
               <Route path="blog" element={<BlogList />} />
               <Route path="blog/:slug" element={<BlogDetail />} />
@@ -172,6 +176,7 @@ const App = () => {
               <Route path="blogs/create" element={<BlogEditor />} />
               <Route path="blogs/:id" element={<BlogEditor />} />
               <Route path="reviews" element={<ReviewManagement />} />
+              <Route path="tickets" element={<TicketManagement />} />
 
             </Route>
 

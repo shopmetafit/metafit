@@ -11,6 +11,7 @@ import {
   DollarSign,
   Download,
   Loader2,
+  Headphones,
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
@@ -354,6 +355,14 @@ const OrderDetailsPage = () => {
             </span>
           </button>
         )}
+
+        <Link
+          to={`/support?tab=create&orderId=${orderDetails._id}`}
+          className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 hover:bg-teal-100 text-[#022824] font-semibold text-xs sm:text-sm rounded-xl border border-teal-200 transition-colors cursor-pointer"
+        >
+          <Headphones className="h-4 w-4 text-teal-700" />
+          <span>Need Help with this Order?</span>
+        </Link>
       </div>
 
       {/* Current Status Card */}

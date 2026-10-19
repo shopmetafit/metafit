@@ -11,7 +11,8 @@ import {
   LogOut,
   Package,
   X,
-  Sparkles
+  Sparkles,
+  Headphones,
 } from 'lucide-react';
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
@@ -1110,6 +1111,38 @@ const Topbar = () => {
                           Profile
                         </span>
                       </Link>
+
+                      <Link
+                        to="/my-orders"
+                        onClick={() =>
+                          setAccountMenuOpen(
+                            false
+                          )
+                        }
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#FFF8E7] hover:text-[#650B18] transition-colors"
+                      >
+                        <Package className="h-4 w-4 text-[#D4A017] shrink-0" />
+
+                        <span>
+                          My Orders
+                        </span>
+                      </Link>
+
+                      <Link
+                        to="/support"
+                        onClick={() =>
+                          setAccountMenuOpen(
+                            false
+                          )
+                        }
+                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#FFF8E7] hover:text-[#650B18] transition-colors"
+                      >
+                        <Headphones className="h-4 w-4 text-[#D4A017] shrink-0" />
+
+                        <span>
+                          Help & Support
+                        </span>
+                      </Link>
                     </div>
 
                     <div className="border-t border-gray-100 pt-1 mt-0.5">
@@ -1709,6 +1742,26 @@ const Topbar = () => {
 
                 <span>
                   My Addresses
+                </span>
+              </Link>
+
+              {/* =================================================
+                  HELP & SUPPORT
+              ================================================= */}
+
+              <Link
+                to="/support"
+                onClick={() =>
+                  setMobileAccountMenuOpen(
+                    false
+                  )
+                }
+                className="flex items-center gap-3 px-3.5 py-3 text-xs sm:text-sm font-semibold text-gray-700 hover:bg-teal-50 hover:text-teal-900 rounded-xl transition-colors"
+              >
+                <Headphones className="h-4 w-4 text-teal-600 shrink-0" />
+
+                <span>
+                  Help & Support
                 </span>
               </Link>
             </div>

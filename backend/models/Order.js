@@ -223,4 +223,13 @@ const orderSchema = new mongoose.Schema(
 
 
 
-module.exports = mongoose.model("order", orderSchema);
+const OrderModel = mongoose.model("order", orderSchema);
+if (!mongoose.models.Order) {
+  try {
+    mongoose.model("Order", orderSchema);
+  } catch (e) {
+    // ignore
+  }
+}
+
+module.exports = OrderModel;
