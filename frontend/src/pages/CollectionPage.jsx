@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { useNavigate, useParams, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { SlidersHorizontal, X } from "lucide-react";
 
 import FilterSidebar from "../components/Products/FilterSidebar";
 import GoalBar from "../components/Products/GoalBar";
 import ProductGrid from "../components/Products/ProductGrid";
-import NavratriBannerSection from "../components/common/NavratriBannerSection";
 
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productSlice";
@@ -127,9 +126,6 @@ const CollectionPage = () => {
   }, [loadNextBatch]);
 
 
-
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
 
   // Filter products by real discount percentage if discount query parameters exist
   const filteredProducts = useMemo(() => {
@@ -294,8 +290,6 @@ const CollectionPage = () => {
       <div className="max-w-screen-2xl mx-auto px-2 sm:px-4 pt-1 pb-4">
         {/* ── Main Content Container ── */}
         <div className="w-full space-y-2">
-          {/* ── Navratri 3-Banner Section (Homepage Only) ── */}
-          {isHomePage && <NavratriBannerSection />}
 
           {/* ── Health & Wellness Goal Bar + Refine Results Trigger ── */}
           <GoalBar
