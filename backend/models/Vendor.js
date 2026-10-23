@@ -1,5 +1,17 @@
 const mongoose = require("mongoose");
 
+const pickupAddressSchema = new mongoose.Schema(
+  {
+    street: { type: String, trim: true, default: "" },
+    city: { type: String, trim: true, default: "" },
+    state: { type: String, trim: true, default: "" },
+    pincode: { type: String, trim: true, default: "" },
+    contactPerson: { type: String, trim: true, default: "" },
+    contactPhone: { type: String, trim: true, default: "" },
+  },
+  { _id: false }
+);
+
 const vendorSchema = new mongoose.Schema({
   businessName: String,
   vendorName: String,
@@ -18,6 +30,10 @@ const vendorSchema = new mongoose.Schema({
   state: String,
   city: String,
   pincode: String,
+  pickupAddress: {
+    type: pickupAddressSchema,
+    default: null,
+  },
   platformCommission: { type: Number, default: 10 },
 
   // 🔥 IMPORTANT

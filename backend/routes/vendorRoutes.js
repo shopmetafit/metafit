@@ -1,10 +1,17 @@
 const express = require("express");
 const router = express.Router();
 
-const { registerVendor, loginVendor, loginVendorWithOTP } = require("../controllers/vendorController");
+const {
+  registerVendor,
+  loginVendor,
+  loginVendorWithOTP,
+  getVendorProfile,
+  updateVendorProfile,
+} = require("../controllers/vendorController");
 const { sendOtpController, verifyOtpController } = require("../controllers/otpController");
 const { protectVendor, vendorApproved } = require("../middleware/vendorAuthMiddleware");
 const { protect } = require("../middleware/authMiddleware");
+const { generateVendorFulfillmentAWB } = require("../controllers/bluedart.controller");
 const ReferralAssignment = require("../models/ReferralAssignment");
 const Vendor = require("../models/Vendor");
 const { fetchProductsByIds } = require("../utils/productDataAccess");
@@ -46,6 +53,10 @@ router.post("/login", loginVendor);
 
 // VENDOR OTP LOGIN ROUTE
 router.post("/login-otp", loginVendorWithOTP);
+
+// VENDOR PROFILE & PICKUP ADDRESS
+router.get("/profile", protectVendor, vendorApproved, getVendorProfile);
+router.put("/profile", protectVendor, vendorApproved, updateVendorProfile);
 
 // Check if phone number exists
 router.post("/check-vendor-phone", async (req, res) => {
@@ -278,6 +289,13 @@ const resolveAuthorizedVendorIds = (user) => {
 
 const normalizePhone = (value) => String(value || "").replace(/\D/g, "");
 
+const getSafeEmailRegex = (email) => {
+  if (typeof email !== "string") return null;
+  const trimmed = email.trim();
+  if (!trimmed) return null;
+  return new RegExp(`^${trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+};
+
 const resolveAssignmentVendorId = async (requestedVendorId, user) => {
   if (requestedVendorId && mongoose.Types.ObjectId.isValid(requestedVendorId)) {
     return requestedVendorId;
@@ -302,15 +320,136 @@ const resolveAssignmentVendorId = async (requestedVendorId, user) => {
     return queries;
   });
 
+  const emailRegex = getSafeEmailRegex(user?.email);
+  const orConditions = [
+    ...(emailRegex ? [{ email: emailRegex }] : []),
+    ...phoneQueries,
+  ];
+
+  if (orConditions.length === 0) {
+    return null;
+  }
+
   const vendor = await Vendor.findOne({
-    $or: [
-      ...(user?.email
-        ? [{ email: new RegExp(`^${String(user.email).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") }]
-        : []),
-      ...phoneQueries,
-    ],
+    $or: orConditions,
   }).select("_id");
   return vendor ? String(vendor._id) : null;
+};
+
+const getAuthorizedVendorProductIds = async (user) => {
+  if (!user || typeof user !== "object") {
+    return {
+      vendorProductIds: [],
+      vendorProductSet: new Set(),
+      authorizedVendorIds: [],
+      authorizedVendorObjectIds: [],
+    };
+  }
+
+  const Product = require("../models/Product");
+  const ProductRequest = require("../models/ProductRequest");
+
+  const rawAuthorizedIds = resolveAuthorizedVendorIds(user);
+  const authorizedVendorObjectIds = rawAuthorizedIds
+    .filter((id) => mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+
+  // Find any linked Vendor records matching user's email or phone
+  const vendorConditions = [];
+  if (authorizedVendorObjectIds.length > 0) {
+    vendorConditions.push({ _id: { $in: authorizedVendorObjectIds } });
+  }
+  const emailRegex = getSafeEmailRegex(user.email);
+  if (emailRegex) {
+    vendorConditions.push({ email: emailRegex });
+  }
+  const candidatePhone = normalizePhone(user.phone || user.mobile || user.phoneNo);
+  if (candidatePhone) {
+    vendorConditions.push({ phone: candidatePhone });
+    if (candidatePhone.length === 10) vendorConditions.push({ phone: `91${candidatePhone}` });
+    if (candidatePhone.length === 12 && candidatePhone.startsWith("91")) vendorConditions.push({ phone: candidatePhone.slice(2) });
+  }
+
+  let extraVendorIds = [];
+  if (vendorConditions.length > 0) {
+    const matchedVendors = await Vendor.find({ $or: vendorConditions }).select("_id").lean();
+    extraVendorIds = matchedVendors.map((v) => v._id);
+  }
+
+  const allVendorObjectIds = Array.from(
+    new Set([...authorizedVendorObjectIds, ...extraVendorIds].map((id) => String(id)))
+  ).map((id) => new mongoose.Types.ObjectId(id));
+
+  const allVendorStringIds = allVendorObjectIds.map((id) => String(id));
+
+  // 1. Direct products owned by this vendor:
+  // - vendorId is populated for vendor products (including legacy records where createdBy was unset or ADMIN)
+  // - user match is guarded with createdBy: "VENDOR" to prevent admin catalog products from being claimed
+  const productOrConditions = [
+    { vendorId: { $in: allVendorObjectIds } },
+    { user: { $in: allVendorObjectIds }, createdBy: "VENDOR" },
+  ];
+
+  const directProducts = await Product.find({ $or: productOrConditions }).select("_id").lean();
+  const directProductIds = directProducts.map((p) => String(p._id));
+
+  // 2. Products created via ProductRequest by this vendor (schema-backed)
+  let reqProductIds = [];
+  if (allVendorObjectIds.length > 0) {
+    const productRequests = await ProductRequest.find({
+      vendorId: { $in: allVendorObjectIds },
+      productId: { $exists: true, $ne: null },
+    })
+      .select("productId")
+      .lean();
+    reqProductIds = productRequests
+      .map((r) => (r.productId ? String(r.productId) : null))
+      .filter(Boolean);
+  }
+
+  const vendorProductIds = Array.from(new Set([...directProductIds, ...reqProductIds]));
+  const vendorProductSet = new Set(vendorProductIds);
+
+  return {
+    vendorProductIds,
+    vendorProductSet,
+    authorizedVendorIds: allVendorStringIds,
+    authorizedVendorObjectIds: allVendorObjectIds,
+  };
+};
+
+const sanitizeOrderForVendor = (orderDoc, vendorProductSet, authorizedVendorIds = []) => {
+  if (!orderDoc) return null;
+  const order = orderDoc.toObject ? orderDoc.toObject() : { ...orderDoc };
+
+  // Filter orderItems to ONLY those belonging to this vendor
+  const vendorItems = (order.orderItems || []).filter((item) => {
+    const prodId = String(item.productId?._id || item.productId || "");
+    return vendorProductSet.has(prodId);
+  });
+
+  // Calculate vendor-specific items subtotal
+  const vendorSubtotal = vendorItems.reduce(
+    (sum, item) => sum + Number(item.price || item.productId?.price || 0) * Number(item.quantity || item.qty || 1),
+    0
+  );
+
+  // Check if this vendor is the referrer
+  const isReferrer = Boolean(
+    order.referral?.vendorId &&
+    authorizedVendorIds.includes(String(order.referral.vendorId))
+  );
+
+  // If not referrer, remove referral object
+  if (!isReferrer) {
+    delete order.referral;
+  }
+
+  // Ensure only this vendor's items and total are present
+  order.orderItems = vendorItems;
+  order.totalPrice = vendorSubtotal;
+
+  return order;
 };
 
 // Get products assigned to the logged-in vendor with commission + share URL
@@ -683,22 +822,45 @@ router.get("/assigned-products", async (req, res) => {
 router.get("/orders", protectVendor, vendorApproved, async (req, res) => {
   try {
     const Order = require("../models/Order");
-    
-    // For now, return all orders since we don't have vendor association
-    // In a full implementation, this would filter by vendor ID
-    const orders = await Order.find()
-      .populate("user", "name email")
+    const {
+      vendorProductIds,
+      vendorProductSet,
+      authorizedVendorIds,
+    } = await getAuthorizedVendorProductIds(req.user);
+
+    // If vendor has no products registered, return empty orders immediately
+    if (vendorProductIds.length === 0) {
+      return res.json({
+        success: true,
+        orders: [],
+      });
+    }
+
+    const vendorProductObjectIds = vendorProductIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      .map((id) => new mongoose.Types.ObjectId(id));
+
+    // Only fetch orders that contain at least one item belonging to this vendor
+    const orders = await Order.find({
+      "orderItems.productId": { $in: vendorProductObjectIds },
+    })
+      .populate("user", "name email phone")
+      .populate("orderItems.productId", "name sku price discountPrice images vendorId")
       .sort({ createdAt: -1 });
+
+    const sanitizedOrders = orders
+      .map((orderDoc) => sanitizeOrderForVendor(orderDoc, vendorProductSet, authorizedVendorIds))
+      .filter((order) => order && order.orderItems && order.orderItems.length > 0);
 
     res.json({
       success: true,
-      orders
+      orders: sanitizedOrders,
     });
   } catch (error) {
     console.error("Error fetching vendor orders:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching vendor orders"
+      message: "Error fetching vendor orders",
     });
   }
 });
@@ -710,6 +872,16 @@ router.get("/orders/:id", protectVendor, vendorApproved, async (req, res) => {
     const ReferralPurchase = require("../models/ReferralPurchase");
     const { id } = req.params;
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
+    }
+
+    const {
+      vendorProductIds,
+      vendorProductSet,
+      authorizedVendorIds,
+    } = await getAuthorizedVendorProductIds(req.user);
+
     const [order, referralPurchase] = await Promise.all([
       Order.findById(id)
         .populate("user", "name email phone")
@@ -717,34 +889,66 @@ router.get("/orders/:id", protectVendor, vendorApproved, async (req, res) => {
         .lean(),
       ReferralPurchase.findOne({ $or: [{ orderId: id }, { orderObjectId: id }] })
         .populate("productId", "name sku price discountPrice images vendorId platformCommission")
-        .lean()
+        .lean(),
     ]);
 
     if (!order && !referralPurchase) {
       return res.status(404).json({ success: false, message: "Order not found" });
     }
 
-    const loggedVendorId = String(req.user.vendorId || req.user._id || "");
     const isReferrer = Boolean(
-      (order?.referral?.vendorId && String(order.referral.vendorId) === loggedVendorId) ||
-      (referralPurchase?.vendorId && String(referralPurchase.vendorId) === loggedVendorId)
+      (order?.referral?.vendorId && authorizedVendorIds.includes(String(order.referral.vendorId))) ||
+      (referralPurchase?.vendorId && authorizedVendorIds.includes(String(referralPurchase.vendorId)))
     );
 
-    const safeOrder = order ? { ...order } : null;
-    if (safeOrder && !isReferrer) {
-      delete safeOrder.referral;
+    // Filter order items down to this vendor's products
+    let sanitizedOrder = null;
+    let ownsAnyProduct = false;
+
+    if (order) {
+      const vendorItems = (order.orderItems || []).filter((item) => {
+        const prodId = String(item.productId?._id || item.productId || "");
+        return vendorProductSet.has(prodId);
+      });
+
+      ownsAnyProduct = vendorItems.length > 0;
+
+      if (ownsAnyProduct) {
+        const vendorSubtotal = vendorItems.reduce(
+          (sum, item) => sum + Number(item.price || item.productId?.price || 0) * Number(item.quantity || item.qty || 1),
+          0
+        );
+
+        sanitizedOrder = {
+          ...order,
+          orderItems: vendorItems,
+          totalPrice: vendorSubtotal,
+        };
+
+        if (!isReferrer) {
+          delete sanitizedOrder.referral;
+        }
+      }
+    }
+
+    // Authorization check: vendor must either own product items in the order or be the verified referrer
+    if (!ownsAnyProduct && !isReferrer) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to access this order",
+      });
     }
 
     res.json({
       success: true,
-      order: safeOrder || (isReferrer ? referralPurchase : null),
-      referralPurchase: isReferrer ? referralPurchase : null
+      order: sanitizedOrder || (isReferrer ? referralPurchase : null),
+      referralPurchase: isReferrer ? referralPurchase : null,
     });
   } catch (error) {
     console.error("Error fetching vendor order detail:", error);
     res.status(500).json({
       success: false,
-      message: "Error fetching order detail"
+      message: "Error fetching order detail",
     });
   }
 });
@@ -818,10 +1022,37 @@ router.put("/orders/:id/status", protectVendor, vendorApproved, async (req, res)
     let { status, note } = req.body;
     const Order = require("../models/Order");
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
+    }
+
     if (!status) {
       return res.status(400).json({
         success: false,
         message: "Status is required",
+      });
+    }
+
+    // Ownership check: vendor must own at least one product in this order
+    const { vendorProductSet, authorizedVendorIds } = await getAuthorizedVendorProductIds(req.user);
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const ownsAnyProduct = (order.orderItems || []).some((item) => {
+      const prodId = String(item.productId?._id || item.productId || "");
+      return vendorProductSet.has(prodId);
+    });
+
+    if (!ownsAnyProduct) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update status for this order",
       });
     }
 
@@ -852,14 +1083,6 @@ router.put("/orders/:id/status", protectVendor, vendorApproved, async (req, res)
       return res.status(400).json({
         success: false,
         message: `Invalid status option. Allowed options: ${VENDOR_STATUS_SEQUENCE.join(", ")}`,
-      });
-    }
-
-    const order = await Order.findById(id);
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
       });
     }
 
@@ -915,10 +1138,12 @@ router.put("/orders/:id/status", protectVendor, vendorApproved, async (req, res)
 
     await order.save();
 
+    const sanitizedOrder = sanitizeOrderForVendor(order, vendorProductSet, authorizedVendorIds);
+
     res.json({
       success: true,
       message: "Order status updated successfully",
-      order,
+      order: sanitizedOrder,
     });
   } catch (error) {
     console.error("Error updating order status:", error);
@@ -937,6 +1162,17 @@ router.put("/orders/:id/shipping", protectVendor, vendorApproved, async (req, re
     const { shippingStatus } = req.body;
     const Order = require("../models/Order");
 
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: "Invalid order ID" });
+    }
+
+    if (!shippingStatus) {
+      return res.status(400).json({ success: false, message: "Shipping status is required" });
+    }
+
+    // Ownership check: vendor must own at least one product in this order
+    const { vendorProductSet, authorizedVendorIds } = await getAuthorizedVendorProductIds(req.user);
+
     const order = await Order.findById(id);
     if (!order) {
       return res.status(404).json({
@@ -945,13 +1181,27 @@ router.put("/orders/:id/shipping", protectVendor, vendorApproved, async (req, re
       });
     }
 
+    const ownsAnyProduct = (order.orderItems || []).some((item) => {
+      const prodId = String(item.productId?._id || item.productId || "");
+      return vendorProductSet.has(prodId);
+    });
+
+    if (!ownsAnyProduct) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update shipping for this order",
+      });
+    }
+
     order.shippingStatus = shippingStatus;
     await order.save();
+
+    const sanitizedOrder = sanitizeOrderForVendor(order, vendorProductSet, authorizedVendorIds);
 
     res.json({
       success: true,
       message: "Shipping status updated successfully",
-      order
+      order: sanitizedOrder,
     });
   } catch (error) {
     console.error("Error updating shipping status:", error);
@@ -961,5 +1211,13 @@ router.put("/orders/:id/shipping", protectVendor, vendorApproved, async (req, re
     });
   }
 });
+
+// Phase 2.8B: Fulfillment-specific BlueDart AWB generation
+router.post(
+  "/orders/:orderId/fulfillments/:fulfillmentId/generate-awb",
+  protectVendor,
+  vendorApproved,
+  generateVendorFulfillmentAWB
+);
 
 module.exports = router;

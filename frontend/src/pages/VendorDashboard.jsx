@@ -29,14 +29,24 @@ const VendorDashboard = () => {
       setVendorInfo(parsedInfo);
       Promise.all([
         vendorApiService.getVendorReferralDashboard().catch(() => null),
+        vendorApiService.getVendorProfile().catch(() => null),
       ])
-        .then(([dashboard]) => {
+        .then(([dashboard, profileRes]) => {
           if (dashboard?.success) {
             setReferralData({
               summary: dashboard.summary || { totalSales: 0, totalCommission: 0, totalOrders: 0 },
               activeLinks: dashboard.activeLinks || 0,
               recentSales: dashboard.recentSales || [],
             });
+          }
+          if (profileRes?.success && profileRes.vendor) {
+            setVendorInfo((prev) => ({
+              ...prev,
+              ...profileRes.vendor,
+            }));
+            try {
+              localStorage.setItem('vendorInfo', JSON.stringify({ ...parsedInfo, ...profileRes.vendor }));
+            } catch {}
           }
         })
         .finally(() => setIsLoading(false));
@@ -103,8 +113,48 @@ const VendorDashboard = () => {
                 <p className="text-sm text-gray-600">Platform Charge</p>
                 <p className="font-medium text-gray-900">{vendorInfo.platformCommission ?? 10}%</p>
               </div>
+              <div className="md:col-span-2">
+                <p className="text-sm text-gray-600">Warehouse Pickup Address</p>
+                {vendorInfo.pickupAddress?.street ? (
+                  <p className="font-medium text-emerald-700 text-sm flex items-center mt-0.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2 flex-shrink-0"></span>
+                    <span className="truncate">{vendorInfo.pickupAddress.street}, {vendorInfo.pickupAddress.city} ({vendorInfo.pickupAddress.pincode})</span>
+                  </p>
+                ) : (
+                  <button
+                    onClick={() => navigate('/vendor/profile')}
+                    className="text-amber-700 hover:text-amber-800 text-sm font-semibold flex items-center mt-0.5 hover:underline"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500 mr-2 flex-shrink-0"></span>
+                    ⚠️ Not Configured — Setup Pickup Address →
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Missing Pickup Address Warning Banner */}
+          {!vendorInfo.pickupAddress?.street && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-start space-x-3">
+                <span className="text-xl">📍</span>
+                <div>
+                  <h4 className="font-semibold text-amber-900 text-sm">
+                    Action Required: Configure Courier Pickup Address
+                  </h4>
+                  <p className="text-xs text-amber-800 mt-0.5">
+                    Your physical warehouse address is required by BlueDart to schedule parcel pickups. Please provide your dispatch location to avoid fulfillment delays.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate("/vendor/profile")}
+                className="whitespace-nowrap px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-sm transition self-start sm:self-center"
+              >
+                Configure Address
+              </button>
+            </div>
+          )}
 
           {/* Actions Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -187,13 +237,13 @@ const VendorDashboard = () => {
                 </div>
                 <span className="text-gray-600 text-sm font-semibold">SETTINGS</span>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Account Settings</h3>
-              <p className="text-gray-600 mb-4">Update your vendor information</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile & Pickup Address</h3>
+              <p className="text-gray-600 mb-4">View business details and configure courier warehouse address</p>
               <button 
                 onClick={() => navigate('/vendor/profile')}
-                className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+                className="w-full px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition font-medium text-sm"
               >
-                Settings
+                Manage Profile & Address
               </button>
             </div>
 

@@ -42,6 +42,7 @@ const VendorOrdersPage = lazy(() => import("./pages/VendorOrdersPage"));
 const VendorManageProducts = lazy(() => import("./pages/VendorManageProducts"));
 const ProductRequestForm = lazy(() => import("./components/Vendor/ProductRequestForm"));
 const ProductRequestsList = lazy(() => import("./components/Vendor/ProductRequestsList"));
+const VendorProfile = lazy(() => import("./pages/VendorProfile"));
 
 const AdminLayout = lazy(() => import("./components/Admin/AdminLayout"));
 const AdminHomePage = lazy(() => import("./pages/AdminHomePage"));
@@ -116,6 +117,7 @@ const App = () => {
               <Route path="vendor/product-request/new" element={<ProductRequestForm />} />
               <Route path="vendor/product-request/:requestId" element={<ProductRequestForm />} />
               <Route path="vendor/product-requests" element={<ProductRequestsList />} />
+              <Route path="vendor/profile" element={<VendorProfile />} />
               <Route path="profile" element={<Profile />} />
               <Route path="collections/:collection" element={<Collection />} />
               <Route path="category/:categorySlug" element={<Collection />} />

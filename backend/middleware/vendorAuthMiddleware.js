@@ -23,6 +23,7 @@ const protectVendor = async (req, res, next) => {
         // Add vendor info to req.user for consistency
         req.user = {
           _id: vendor._id,
+          vendorId: vendor._id,
           email: vendor.email,
           vendorName: vendor.vendorName,
           businessName: vendor.businessName,

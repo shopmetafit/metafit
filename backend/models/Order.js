@@ -29,6 +29,144 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const pickupAddressSnapshotSchema = new mongoose.Schema(
+  {
+    vendorName: { type: String, default: "" },
+    businessName: { type: String, default: "" },
+    phone: { type: String, default: "" },
+    email: { type: String, default: "" },
+    street: { type: String, default: "" },
+    address: { type: String, default: "" },
+    city: { type: String, default: "" },
+    state: { type: String, default: "" },
+    pincode: { type: String, default: "" },
+    contactPerson: { type: String, default: "" },
+    contactPhone: { type: String, default: "" },
+    country: { type: String, default: "India" },
+  },
+  { _id: false }
+);
+
+const vendorFulfillmentItemSchema = new mongoose.Schema(
+  {
+    productId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+    },
+    name: { type: String, default: "" },
+    quantity: { type: Number, default: 1 },
+    price: { type: Number, default: 0 },
+    size: String,
+    color: String,
+    image: String,
+  },
+  { _id: false }
+);
+
+const vendorFulfillmentStatusHistorySchema = new mongoose.Schema(
+  {
+    status: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
+    updatedBy: { type: String, default: "Vendor" },
+    note: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const vendorFulfillmentSchema = new mongoose.Schema(
+  {
+    fulfillmentId: {
+      type: String,
+      default: null,
+    },
+    vendorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Vendor",
+      default: null,
+    },
+    vendorName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    items: [vendorFulfillmentItemSchema],
+    status: {
+      type: String,
+      enum: [
+        "Processing",
+        "Will be Out for Delivery in 1–2 Days",
+        "Will be Out for Delivery in 1-2 Days",
+        "Out for Delivery",
+        "Shipped",
+        "Delivered",
+        "Cancelled",
+      ],
+      default: "Processing",
+    },
+    statusHistory: [vendorFulfillmentStatusHistorySchema],
+    courier: {
+      type: String,
+      default: "standard",
+    },
+    awbNo: {
+      type: String,
+      default: null,
+    },
+    trackingId: {
+      type: String,
+      default: null,
+    },
+    shippingStatus: {
+      type: String,
+      default: "Pending", // Pending, In-Transit, Delivered, Failed, Cancelled
+    },
+    shippingError: {
+      type: String,
+      default: null,
+    },
+    error: {
+      type: String,
+      default: null,
+    },
+    pickupAddressSnapshot: {
+      type: pickupAddressSnapshotSchema,
+      default: null,
+    },
+    bluedartGeneratedAt: {
+      type: Date,
+      default: null,
+    },
+    dispatchedAt: {
+      type: Date,
+    },
+    willBeOutForDeliveryAt: {
+      type: Date,
+    },
+    outForDeliveryAt: {
+      type: Date,
+    },
+    deliveredAt: {
+      type: Date,
+    },
+    cancelledAt: {
+      type: Date,
+    },
+    cancellationReason: {
+      type: String,
+      default: "",
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     orderNumber: {
@@ -214,6 +352,10 @@ const orderSchema = new mongoose.Schema(
         trim: true,
         uppercase: true,
       },
+    },
+    vendorFulfillments: {
+      type: [vendorFulfillmentSchema],
+      default: [],
     },
   },
   {

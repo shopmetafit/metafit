@@ -56,7 +56,43 @@ class BlueDartService {
    */
   async generateWayBill(orderData) {
     try {
+      if (orderData.shipper) {
+        const s = orderData.shipper;
+        if (!s.street || !s.city || !s.state || !s.pincode || !s.contactPerson || (!s.contactPhone && !s.phone)) {
+          throw new Error("Missing required shipper details: street, city, state, pincode, contactPerson, and contactPhone are required");
+        }
+      }
+
       const token = await this.generateJWTToken();
+
+      const shipper = orderData.shipper;
+      const shipperPayload = shipper
+        ? {
+            MailingName: shipper.contactPerson || shipper.vendorName || "Vendor",
+            Street: shipper.street,
+            Area: shipper.area || shipper.city || this.originArea || "N/A",
+            City: shipper.city,
+            State: shipper.state,
+            Country: shipper.country || "IN",
+            PinCode: String(shipper.pincode),
+            PhoneNumber: String(shipper.contactPhone || shipper.phone),
+            EmailAddress: shipper.email || process.env.SHIPPER_EMAIL || "support@wellnessbazaar.com",
+          }
+        : {
+            MailingName: "Wellness Bazaar",
+            Street: process.env.SHIPPER_ADDRESS || "123 Business St",
+            Area: this.originArea,
+            City: process.env.SHIPPER_CITY || "Gurugram",
+            State: process.env.SHIPPER_STATE || "HR",
+            Country: "IN",
+            PinCode: process.env.SHIPPER_PINCODE || "122002",
+            PhoneNumber: process.env.SHIPPER_PHONE || "1234567890",
+            EmailAddress: process.env.SHIPPER_EMAIL || "support@wellnessbazaar.com",
+          };
+
+      const pickupArea = shipper
+        ? (shipper.area || shipper.city || this.originArea || "N/A")
+        : this.originArea;
 
       const waybillData = {
         Profile: {
@@ -65,17 +101,7 @@ class BlueDartService {
           LoginID: this.loginId,
           CustomerCode: this.customerCode,
         },
-        Shipper: {
-          MailingName: "Wellness Bazaar",
-          Street: process.env.SHIPPER_ADDRESS || "123 Business St",
-          Area: this.originArea,
-          City: process.env.SHIPPER_CITY || "Gurugram",
-          State: process.env.SHIPPER_STATE || "HR",
-          Country: "IN",
-          PinCode: process.env.SHIPPER_PINCODE || "122002",
-          PhoneNumber: process.env.SHIPPER_PHONE || "1234567890",
-          EmailAddress: process.env.SHIPPER_EMAIL || "support@wellnessbazaar.com",
-        },
+        Shipper: shipperPayload,
         Consignee: {
           MailingName: orderData.consigneeName,
           Street: orderData.shippingAddress.address,
@@ -102,10 +128,10 @@ class BlueDartService {
           ShipmentType: "P", // Parcel
           ShipmentWeight: orderData.weight || "1",
           ShipmentVolume: "0",
-          DeclaredValue: orderData.totalPrice.toString(),
+          DeclaredValue: (orderData.totalPrice || 0).toString(),
           DeclaredValueCurrency: "INR",
           PickupLocation: {
-            Area: this.originArea,
+            Area: pickupArea,
             Door: "N",
           },
         },

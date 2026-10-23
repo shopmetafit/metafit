@@ -12,6 +12,8 @@ const jwt = require("jsonwebtoken");
 const { protect } = require("../middleware/authMiddleware");
 const { getProductReadModel } = require("../utils/productDataAccess");
 const { validateReferral, normalizeReferralCode, processReferralPurchase } = require("../utils/referralUtils");
+const { resolveProductOwnership } = require("../utils/vendorOwnershipResolver");
+const { buildVendorFulfillments } = require("../utils/fulfillmentHelper");
 
 const router = express.Router();
 
@@ -386,8 +388,31 @@ router.post("/orders/:id/payment-success", async (req, res) => {
       order.couponCode = checkout.couponCode || "";
       order.couponDiscount = checkout.couponDiscount || 0;
       order.serviceFee = checkout.serviceFee || 0;
+
+      // Safe fulfillment reconciliation if missing from prior partial run
+      if (!order.vendorFulfillments || order.vendorFulfillments.length === 0) {
+        try {
+          const productIds = (order.orderItems || []).map((p) => p.productId?._id || p.productId).filter(Boolean);
+          const ownershipMap = await resolveProductOwnership(productIds);
+          order.vendorFulfillments = buildVendorFulfillments(order.orderItems, ownershipMap, {
+            orderNumber: order.orderNumber,
+          });
+        } catch (fErr) {
+          console.warn("⚠️ Fulfillment reconciliation warning in referralStoreRoutes:", fErr.message);
+        }
+      }
+
       await order.save();
     } else {
+      let fallbackFulfillments = [];
+      try {
+        const productIds = (checkout.checkoutItems || []).map((p) => p.productId?._id || p.productId).filter(Boolean);
+        const ownershipMap = await resolveProductOwnership(productIds);
+        fallbackFulfillments = buildVendorFulfillments(checkout.checkoutItems, ownershipMap);
+      } catch (fErr) {
+        console.warn("⚠️ Fulfillment creation warning in referralStoreRoutes fallback:", fErr.message);
+      }
+
       order = await Order.create({
         user: checkout.user,
         checkoutId: checkout._id,
@@ -409,6 +434,7 @@ router.post("/orders/:id/payment-success", async (req, res) => {
         customerPhone: checkout.customerPhone || "",
         customerEmail: checkout.customerEmail || "",
         referral: checkout.referral,
+        vendorFulfillments: fallbackFulfillments,
       });
     }
 

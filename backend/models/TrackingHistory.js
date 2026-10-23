@@ -13,6 +13,11 @@ const trackingHistorySchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    fulfillmentId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     awbNo: {
       type: String,
       required: true,
@@ -63,5 +68,6 @@ const trackingHistorySchema = new mongoose.Schema(
 // Index for fast queries
 trackingHistorySchema.index({ orderId: 1, createdAt: -1 });
 trackingHistorySchema.index({ awbNo: 1, isLatest: 1 });
+trackingHistorySchema.index({ orderId: 1, fulfillmentId: 1, isLatest: 1 });
 
 module.exports = mongoose.model("TrackingHistory", trackingHistorySchema);

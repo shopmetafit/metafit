@@ -478,6 +478,7 @@ export default function VendorRegistration() {
       bankAccNumber: formData.bankAccountNumber,
       IFSCCode: formData.ifscCode,
       accountHolderName: formData.accountHolderName,
+      streetAddress: formData.streetAddress,
       vendorState: formData.state,
       vendorCity: formData.city,
       pinCode: formData.pincode,

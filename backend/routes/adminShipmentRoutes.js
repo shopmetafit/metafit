@@ -2,6 +2,7 @@ const express = require("express");
 const { protect, admin } = require("../middleware/authMiddleware");
 const {
   generateAWB,
+  generateVendorFulfillmentAWB,
   getShippingInfo,
   trackOrder,
   cancelShipment,
@@ -42,6 +43,13 @@ router.get("/pending", protect, admin, listPendingShipments);
  * }
  */
 router.post("/:orderId/generate-awb", protect, admin, generateAWB);
+
+/**
+ * @route POST /api/admin/shipment/:orderId/fulfillments/:fulfillmentId/generate-awb
+ * @desc Admin trigger to generate AWB for a specific vendor fulfillment
+ * @access Admin only
+ */
+router.post("/:orderId/fulfillments/:fulfillmentId/generate-awb", protect, admin, generateVendorFulfillmentAWB);
 
 /**
  * @route POST /api/admin/shipment/:orderId/retry

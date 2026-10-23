@@ -352,6 +352,39 @@ export const vendorApiService = {
     }
   },
 
+  // Get vendor profile (including pickup address)
+  getVendorProfile: async () => {
+    try {
+      const response = await vendorApi.get('/api/vendor/profile');
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error fetching vendor profile' };
+    }
+  },
+
+  // Update vendor profile and pickup address
+  updateVendorProfile: async (profileData) => {
+    try {
+      const response = await vendorApi.put('/api/vendor/profile', profileData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error updating vendor profile' };
+    }
+  },
+
+  // Remove vendor pickup address
+  removeVendorPickupAddress: async () => {
+    try {
+      const response = await vendorApi.put('/api/vendor/profile', {
+        pickupAddress: null,
+        removePickupAddress: true,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Error removing pickup address' };
+    }
+  },
+
   // Image upload
   uploadImage: async (imageFile) => {
     try {

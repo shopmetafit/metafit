@@ -10,6 +10,8 @@ const User = require("../models/User");
 const Vendor = require("../models/Vendor");
 const AdminProductSale = require("../models/AdminProductSale");
 const Checkout = require("../models/Checkout");
+const { resolveProductOwnership } = require("../utils/vendorOwnershipResolver");
+const { buildVendorFulfillments } = require("../utils/fulfillmentHelper");
 
 /**
  * 1. CUSTOMER clicks "Place Order"
@@ -225,6 +227,19 @@ exports.createOrder = async (req, res) => {
       referral: referral || undefined,
     });
 
+    // Initialize vendor fulfillments for newly created pending order
+    try {
+      const productIds = (orderItems || []).map((p) => p.productId?._id || p.productId).filter(Boolean);
+      if (productIds.length > 0) {
+        const ownershipMap = await resolveProductOwnership(productIds);
+        pendingOrder.vendorFulfillments = buildVendorFulfillments(orderItems, ownershipMap, {
+          orderNumber: pendingOrder.orderNumber,
+        });
+      }
+    } catch (fErr) {
+      console.warn("⚠️ Initial fulfillment build in createOrder skipped:", fErr.message);
+    }
+
     await pendingOrder.save();
 
     return res.status(200).json({
@@ -277,8 +292,41 @@ async function processPaymentCompletion({
     throw new Error(`Pending Order not found for Razorpay Order ID: ${razorpay_order_id || razorpay_payment_id}`);
   }
 
-  // 2. Check Already Processed? (Idempotency)
+  // 2. Check Already Processed? (Idempotency with partial failure recovery)
   if (order.isPaid || order.paymentStatus === "Completed") {
+    // If order was marked paid in a prior callback/attempt but fulfillments were missing or failed
+    if (!order.vendorFulfillments || order.vendorFulfillments.length === 0) {
+      try {
+        const productIds = (order.orderItems || []).map((p) => p.productId?._id || p.productId).filter(Boolean);
+        const ownershipMap = await resolveProductOwnership(productIds);
+        const recoveredFulfillments = buildVendorFulfillments(order.orderItems, ownershipMap, {
+          orderNumber: order.orderNumber,
+        });
+
+        if (recoveredFulfillments && recoveredFulfillments.length > 0) {
+          await Order.findOneAndUpdate(
+            {
+              _id: order._id,
+              $or: [{ vendorFulfillments: { $exists: false } }, { vendorFulfillments: { $size: 0 } }],
+            },
+            {
+              $set: { vendorFulfillments: recoveredFulfillments },
+              $push: {
+                statusHistory: {
+                  status: order.status || "Processing",
+                  timestamp: new Date(),
+                  updatedBy: "System",
+                  note: "Vendor fulfillments reconciled on retry callback",
+                },
+              },
+            }
+          );
+        }
+      } catch (recoveryErr) {
+        console.warn("⚠️ Fulfillment recovery on retry did not complete:", recoveryErr.message);
+      }
+    }
+
     return {
       success: true,
       message: "Order already processed",
@@ -301,22 +349,84 @@ async function processPaymentCompletion({
     }
   }
 
-  // 4. Finalize & Save Order FIRST
-  order.isPaid = true;
-  order.paidAt = new Date();
-  order.paymentStatus = "Completed";
-  order.paymentId = razorpay_payment_id || order.paymentId;
-  if (!order.paymentDetails) order.paymentDetails = {};
-  order.paymentDetails.razorpay_payment_id = razorpay_payment_id;
-  if (signature) order.paymentDetails.razorpay_signature = signature;
-  if (razorpay_order_id) order.paymentDetails.razorpay_order_id = razorpay_order_id;
-  order.status = "Processing";
+  // 4. Resolve vendor ownership & build vendorFulfillments before finalizing order
+  let initialFulfillments = [];
+  let fulfillmentErrorMsg = null;
+  if (Array.isArray(order.vendorFulfillments) && order.vendorFulfillments.length > 0) {
+    initialFulfillments = order.vendorFulfillments;
+  } else {
+    try {
+      const productIds = (order.orderItems || []).map((p) => p.productId?._id || p.productId).filter(Boolean);
+      const ownershipMap = await resolveProductOwnership(productIds);
+      initialFulfillments = buildVendorFulfillments(order.orderItems, ownershipMap, {
+        orderNumber: order.orderNumber,
+      });
+    } catch (fErr) {
+      console.error("⚠️ Fulfillment initialization warning:", fErr.message);
+      fulfillmentErrorMsg = fErr.message;
+    }
+  }
 
-  await order.save();
+  // 5. ATOMIC TRANSITION: Update order from isPaid: false -> isPaid: true
+  // Concurrency Guard: Atomic update ensures only ONE concurrent callback (webhook or verifyPayment)
+  // completes the payment, decrements inventory, and issues customer notifications.
+  const updateDoc = {
+    isPaid: true,
+    paidAt: new Date(),
+    paymentStatus: "Completed",
+    paymentId: razorpay_payment_id || order.paymentId,
+    status: "Processing",
+  };
+  if (!order.paymentDetails) updateDoc.paymentDetails = {};
+  updateDoc["paymentDetails.razorpay_payment_id"] = razorpay_payment_id;
+  if (signature) updateDoc["paymentDetails.razorpay_signature"] = signature;
+  if (razorpay_order_id) updateDoc["paymentDetails.razorpay_order_id"] = razorpay_order_id;
+
+  if (initialFulfillments && initialFulfillments.length > 0) {
+    updateDoc.vendorFulfillments = initialFulfillments;
+  }
+
+  const pushOps = {};
+  if (fulfillmentErrorMsg) {
+    pushOps.statusHistory = {
+      status: "Processing",
+      timestamp: new Date(),
+      updatedBy: "System",
+      note: `Payment confirmed. Fulfillment reconciliation required: ${fulfillmentErrorMsg}`,
+    };
+  }
+
+  const atomicUpdate = { $set: updateDoc };
+  if (Object.keys(pushOps).length > 0) {
+    atomicUpdate.$push = pushOps;
+  }
+
+  const updatedOrder = await Order.findOneAndUpdate(
+    {
+      _id: order._id,
+      isPaid: false,
+    },
+    atomicUpdate,
+    { new: true }
+  );
+
+  // If another concurrent request won the atomic race, return idempotent success
+  if (!updatedOrder) {
+    const freshOrder = await Order.findById(order._id);
+    return {
+      success: true,
+      message: "Order already processed",
+      orderId: freshOrder?._id || order._id,
+      orderNumber: freshOrder?.orderNumber || order.orderNumber,
+      alreadyProcessed: true,
+    };
+  }
+
+  order = updatedOrder;
   const savedOrderId = order._id;
   const finalOrderNumber = order.orderNumber || razorpay_payment_id || String(order._id);
 
-  // 5. Update Product Stock & Save Admin Product Sales AFTER Order is guaranteed saved
+  // 6. Update Product Stock & Save Admin Product Sales AFTER Order is guaranteed saved
   const products = order.orderItems || [];
   const dbProductMap = new Map();
   const vendorMap = new Map();
@@ -340,24 +450,18 @@ async function processPaymentCompletion({
       if (!item.productId) continue;
 
       // Decrement Stock safely and Increment soldCount
-      // Decrement Stock safely and Increment soldCount
       const qtyToDecrement = Number(item.quantity || 1);
       try {
-        await Product.updateOne(
-          { _id: item.productId },
-          { $inc: { countInStock: -qtyToDecrement, soldCount: qtyToDecrement } }
+        const updatedP = await Product.findByIdAndUpdate(
+          item.productId,
+          { $inc: { countInStock: -qtyToDecrement, soldCount: qtyToDecrement } },
+          { new: true }
         );
         if (updatedP && (updatedP.soldCount || 0) >= 10 && !updatedP.isBestSeller) {
           updatedP.isBestSeller = true;
           await updatedP.save();
         }
-        if (updatedP && (updatedP.soldCount || 0) >= 10 && !updatedP.isBestSeller) {
-          updatedP.isBestSeller = true;
-          await updatedP.save();
-        }
-      }
-      catch (stockErr) {
-        console.error(`✗ Failed to update stock/sales for Product ${item.productId}:`, stockErr.message);
+      } catch (stockErr) {
         console.error(`✗ Failed to update stock/sales for Product ${item.productId}:`, stockErr.message);
       }
 
@@ -588,6 +692,10 @@ async function processPaymentCompletion({
 
       const vendorProductName = vendorProducts.map((p) => p.name).join(", ");
       const vendorTotalQuantity = vendorProducts.reduce((sum, p) => sum + (p.quantity || 1), 0).toString();
+      const vendorSubtotal = vendorProducts.reduce(
+        (sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1),
+        0
+      );
 
       const vendorNotificationPayload = {
         vendor_phone: currentVendor.phone,
@@ -595,7 +703,7 @@ async function processPaymentCompletion({
         orderId: finalOrderNumber,
         product: vendorProductName,
         quantity: vendorTotalQuantity,
-        total_amount: `${totalAmount} `,
+        total_amount: `${vendorSubtotal}`,
         customer_name: order.customerName,
         customer_phone: order.customerPhone,
         address: addressStr,
