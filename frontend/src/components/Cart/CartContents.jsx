@@ -63,7 +63,7 @@ const CartContents = ({ cart, userId, guestId }) => {
           <div className="flex-1 min-w-0">
             <Link
               to={`/product/${product.productId}`}
-              className="text-sm font-semibold text-gray-900 hover:text-[#047ca8] line-clamp-2 leading-snug"
+              className="text-sm font-semibold text-gray-900 hover:text-[#A5794F] line-clamp-2 leading-snug"
             >
               {product.name}
             </Link>
@@ -129,7 +129,7 @@ const CartContents = ({ cart, userId, guestId }) => {
                 {/* Wishlist */}
                 <button
                   onClick={() => handleSaveToWishlist(product)}
-                  className="text-xs text-[#047ca8] hover:text-[#035f82] flex items-center gap-1 transition-colors pl-2 flex-shrink-0"
+                  className="text-xs text-[#A5794F] hover:text-[#035f82] flex items-center gap-1 transition-colors pl-2 flex-shrink-0"
                 >
                   <Heart className="h-3.5 w-3.5" />
                   Save

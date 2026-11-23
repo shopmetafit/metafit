@@ -95,14 +95,14 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
   const activeSubCategories = activeGoalObj?.subCategories || [];
 
   return (
-    <div className="bg-[#FFFDF5] rounded-xl shadow-xs border border-[#D4A017]/30 p-2.5 transition-all mb-2">
+    <div className="bg-[#FDFBF6] rounded-xl shadow-xs border border-[#A5794F]/30 p-2.5 transition-all mb-2">
       {/* ─── Top Bar: Category Label & Clear Action / Refine Results ─── */}
       <div className="hidden sm:flex items-center justify-between mb-2 px-1 flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <span className="flex items-center justify-center h-5 w-5 rounded-md bg-[#D4A017]/15 text-[#7A1522]">
+          <span className="flex items-center justify-center h-5 w-5 rounded-md bg-[#A5794F]/15 text-[#8A6743]">
             <LayoutGrid className="h-3.5 w-3.5 stroke-[2.2]" />
           </span>
-          <span className="text-xs sm:text-sm font-bold text-[#4A0712] tracking-tight">
+          <span className="text-xs sm:text-sm font-bold text-[#4E4033] tracking-tight">
             Explore Categories
           </span>
         </div>
@@ -111,7 +111,7 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
           {selectedGoal && (
             <button
               onClick={() => handleGoalSelect(null)}
-              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#7A1522] hover:text-red-600 hover:bg-red-50 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#8A6743] hover:text-red-600 hover:bg-red-50 px-2 py-0.5 rounded-md transition-colors cursor-pointer"
             >
               <span>Clear Filter</span>
               <X className="h-3 w-3" />
@@ -122,13 +122,13 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
             <button
               type="button"
               onClick={onOpenFilter}
-              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#3A0610] bg-[#D4A017] border border-[#D4A017] hover:bg-[#F2C94C] hover:text-[#3A0610] rounded-lg shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 group"
+              className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#292117] bg-[#A5794F] border border-[#A5794F] hover:bg-[#E5C79A] hover:text-[#292117] rounded-lg shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 group"
               aria-label="Refine Results"
             >
               <SlidersHorizontal className="h-3.5 w-3.5 stroke-[2.2]" />
               <span>Refine Results</span>
               {activeFilterCount > 0 && (
-                <span className="bg-[#3A0610] group-hover:bg-[#4A0712] text-[#F2C94C] text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-0.5 shadow-2xs">
+                <span className="bg-[#292117] group-hover:bg-[#4E4033] text-[#E5C79A] text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold ml-0.5 shadow-2xs">
                   {activeFilterCount}
                 </span>
               )}
@@ -144,7 +144,7 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
             type="button"
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="hidden md:flex absolute -left-1.5 z-20 items-center justify-center h-7 w-7 rounded-full bg-white shadow-md border border-[#D4A017]/40 text-[#4A0712] hover:text-[#D4A017] hover:scale-105 transition-all cursor-pointer"
+            className="hidden md:flex absolute -left-1.5 z-20 items-center justify-center h-7 w-7 rounded-full bg-white shadow-md border border-[#A5794F]/40 text-[#4E4033] hover:text-[#A5794F] hover:scale-105 transition-all cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -162,8 +162,8 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
             onClick={() => handleGoalSelect("all")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all flex-shrink-0 cursor-pointer ${
               selectedGoal === null
-                ? "bg-[#D4A017] text-[#3A0610] border-[#D4A017] shadow-sm font-bold"
-                : "bg-white text-[#4A0712] border-[#D4A017]/30 hover:border-[#D4A017] hover:text-[#3A0610] hover:bg-[#FFF8E7]"
+                ? "bg-[#A5794F] text-[#292117] border-[#A5794F] shadow-sm font-bold"
+                : "bg-white text-[#4E4033] border-[#A5794F]/30 hover:border-[#A5794F] hover:text-[#292117] hover:bg-[#F7F1E7]"
             }`}
           >
             <WellnessIcon id="all" className="w-4 h-4" />
@@ -183,8 +183,8 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
                 onClick={() => handleGoalSelect(g.id || g.name)}
                 className={`flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-full border transition-all flex-shrink-0 cursor-pointer ${
                   isSelected
-                    ? "bg-[#D4A017] text-[#3A0610] border-[#D4A017] shadow-sm font-bold"
-                    : "bg-white text-[#4A0712] border-[#D4A017]/30 hover:border-[#D4A017] hover:text-[#3A0610] hover:bg-[#FFF8E7]"
+                    ? "bg-[#A5794F] text-[#292117] border-[#A5794F] shadow-sm font-bold"
+                    : "bg-white text-[#4E4033] border-[#A5794F]/30 hover:border-[#A5794F] hover:text-[#292117] hover:bg-[#F7F1E7]"
                 }`}
               >
                 <WellnessIcon id={g.id} className="w-4 h-4" />
@@ -199,7 +199,7 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
             type="button"
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="hidden md:flex absolute -right-1.5 z-20 items-center justify-center h-7 w-7 rounded-full bg-white shadow-md border border-[#D4A017]/40 text-[#4A0712] hover:text-[#D4A017] hover:scale-105 transition-all cursor-pointer"
+            className="hidden md:flex absolute -right-1.5 z-20 items-center justify-center h-7 w-7 rounded-full bg-white shadow-md border border-[#A5794F]/40 text-[#4E4033] hover:text-[#A5794F] hover:scale-105 transition-all cursor-pointer"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -208,10 +208,10 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
 
       {/* ─── Level 2: Subcategories Tray (shown only when category has multiple distinct subcategories) ─── */}
       {selectedGoal && activeSubCategories.length > 1 && (
-        <div className="mt-2.5 pt-2 border-t border-[#D4A017]/20 flex items-center gap-2">
+        <div className="mt-2.5 pt-2 border-t border-[#A5794F]/20 flex items-center gap-2">
           <div
             ref={subScrollContainerRef}
-            className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full p-1 bg-[#FFF8E7] rounded-lg border border-[#D4A017]/30 shadow-2xs"
+            className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full p-1 bg-[#F7F1E7] rounded-lg border border-[#A5794F]/30 shadow-2xs"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {/* "All <Category>" subcategory chip */}
@@ -220,11 +220,11 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
               onClick={() => handleSubGoalSelect(null)}
               className={`flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all flex-shrink-0 cursor-pointer ${
                 selectedSubGoal === null
-                  ? "bg-white text-[#3A0610] shadow-xs border border-[#D4A017] font-bold"
-                  : "text-[#7A1522] hover:text-[#3A0610] hover:bg-white/70"
+                  ? "bg-white text-[#292117] shadow-xs border border-[#A5794F] font-bold"
+                  : "text-[#8A6743] hover:text-[#292117] hover:bg-white/70"
               }`}
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-[#D4A017]" />
+              <LayoutGrid className="w-3.5 h-3.5 text-[#A5794F]" />
               <span>All {activeLabel}</span>
             </button>
 
@@ -241,8 +241,8 @@ const GoalBar = ({ onOpenFilter, activeFilterCount = 0 }) => {
                   onClick={() => handleSubGoalSelect(sub.id || sub.name)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all flex-shrink-0 cursor-pointer ${
                     isSubSelected
-                      ? "bg-white text-[#3A0610] shadow-xs border border-[#D4A017] font-bold"
-                      : "text-[#7A1522] hover:text-[#3A0610] hover:bg-white/70"
+                      ? "bg-white text-[#292117] shadow-xs border border-[#A5794F] font-bold"
+                      : "text-[#8A6743] hover:text-[#292117] hover:bg-white/70"
                   }`}
                 >
                   <WellnessIcon id={sub.id} className="w-3.5 h-3.5" />

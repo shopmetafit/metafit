@@ -43,7 +43,7 @@
   color: #333;
   font-size: 16px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid #6E5136;
 }
 
 .info-row {
@@ -77,7 +77,7 @@
 
 .info-row .awb-number {
   font-family: monospace;
-  color: #007bff;
+  color: #6E5136;
   font-weight: 600;
 }
 

@@ -56,21 +56,21 @@ const AboutUs = () => {
         canonical="/about"
       />
       {/* Hero Section */}
-      <section className="relative py-32 flex items-center justify-center bg-gradient-to-br from-teal-700 via-teal-600 to-teal-800 overflow-hidden">
-        <div 
+      <section className="relative py-32 flex items-center justify-center bg-herb-wood-dark overflow-hidden">
+        <div
           className="absolute inset-0 opacity-10"
-          style={{ 
+          style={{
             backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
             backgroundSize: '32px 32px',
             transform: `translateY(${scrollY * 0.3}px)`
           }}
         />
-        
+
         <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
-          <div className="inline-block mb-4 px-5 py-1.5 border border-teal-400/30 rounded text-teal-300 text-sm tracking-wider font-medium backdrop-blur-sm">
+          <div className="inline-block mb-4 px-5 py-1.5 border border-herb-footer-accent/30 rounded text-herb-footer-accent text-sm tracking-wider font-medium backdrop-blur-sm">
             ESTABLISHING NEW STANDARDS IN WELLNESS
           </div>
-          <h1 className="text-4xl md:text-5xl font-light text-white mb-5 tracking-tight">
+          <h1 className="font-display text-4xl md:text-5xl font-light text-white mb-5 tracking-tight">
             About <span className="font-semibold">Our Company</span>
           </h1>
           <p className="text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed font-light">
@@ -158,8 +158,8 @@ const AboutUs = () => {
             {pillars.map((pillar, idx) => {
               const Icon = pillar.icon;
               return (
-                <div 
-                  key={idx} 
+                <div
+                  key={idx}
                   className="border border-slate-700 p-10 hover:border-teal-600 transition-colors group"
                 >
                   <Icon className="text-teal-500 mb-6 group-hover:text-teal-400 transition-colors" size={32} />
@@ -176,7 +176,7 @@ const AboutUs = () => {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">About M Wellness Bazar - Leading Wellness Marketplace in India</h2>
-          
+
           <div className="space-y-5 text-gray-700 leading-relaxed">
             <p>
               M Wellness Bazar is a premier digital wellness marketplace dedicated to transforming how Indians access premium health and wellness products. Founded with the vision of making authentic, high-quality wellness solutions accessible to everyone, we have established ourselves as a trusted platform that bridges the gap between traditional healing wisdom and modern health science. Our curated collection brings together thousands of authentic wellness products, from Ayurvedic supplements and herbal remedies to modern nutritional supplements, fitness accessories, and holistic health solutions.
@@ -221,4 +221,3 @@ const AboutUs = () => {
 
 export default AboutUs;
 
-  

@@ -118,11 +118,11 @@ const MyAddressesPage = () => {
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-4 overflow-x-auto whitespace-nowrap"
         >
-          <Link to="/" className="hover:text-[#022824] transition-colors">
+          <Link to="/" className="hover:text-[#4E4033] transition-colors">
             Home
           </Link>
           <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
-          <Link to="/profile" className="hover:text-[#022824] transition-colors">
+          <Link to="/profile" className="hover:text-[#4E4033] transition-colors">
             My Account
           </Link>
           <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
@@ -143,13 +143,13 @@ const MyAddressesPage = () => {
             to="/my-orders"
             className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
           >
-            <Package className="w-4 h-4 text-[#047ca8] shrink-0" />
+            <Package className="w-4 h-4 text-[#A5794F] shrink-0" />
             <span className="hidden sm:inline">My Orders</span>
             <span className="sm:hidden font-medium">Orders</span>
           </Link>
           <Link
             to="/my-addresses"
-            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#022824] text-white shadow-xs text-center"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#4E4033] text-white shadow-xs text-center"
           >
             <MapPin className="w-4 h-4 text-teal-300 shrink-0" />
             <span className="hidden sm:inline">Saved Addresses</span>
@@ -171,7 +171,7 @@ const MyAddressesPage = () => {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4 mb-6">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center border border-teal-100">
-                <MapPin className="h-5 w-5 text-[#047ca8]" />
+                <MapPin className="h-5 w-5 text-[#A5794F]" />
               </div>
               <div>
                 <h1 className="text-lg sm:text-xl font-bold text-gray-900">
@@ -186,7 +186,7 @@ const MyAddressesPage = () => {
             <button
               type="button"
               onClick={handleOpenAddModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#022824] hover:bg-[#044a42] text-white font-semibold text-xs sm:text-sm rounded-md transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#4E4033] hover:bg-[#044a42] text-white font-semibold text-xs sm:text-sm rounded-md transition-all shadow-xs cursor-pointer"
             >
               <Plus className="h-4 w-4" /> Add New Address
             </button>
@@ -195,7 +195,7 @@ const MyAddressesPage = () => {
           {/* Content */}
           {loading && addresses.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-              <Loader2 className="h-8 w-8 animate-spin text-[#047ca8] mb-2" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#A5794F] mb-2" />
               <p className="text-sm font-medium">Loading your saved addresses...</p>
             </div>
           ) : error ? (
@@ -204,7 +204,7 @@ const MyAddressesPage = () => {
             </div>
           ) : addresses.length === 0 ? (
             <div className="text-center py-20 px-4 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
-              <div className="w-16 h-16 bg-blue-50 text-[#047ca8] rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
+              <div className="w-16 h-16 bg-blue-50 text-[#A5794F] rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
                 <MapPin className="h-8 w-8" />
               </div>
               <h2 className="text-lg font-bold text-gray-900 mb-1">No addresses saved yet</h2>
@@ -214,7 +214,7 @@ const MyAddressesPage = () => {
               <button
                 type="button"
                 onClick={handleOpenAddModal}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#022824] hover:bg-[#044a42] text-white font-semibold rounded-md text-sm transition-all shadow-xs cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#4E4033] hover:bg-[#044a42] text-white font-semibold rounded-md text-sm transition-all shadow-xs cursor-pointer"
               >
                 <Plus className="h-4 w-4" /> Add Your First Address
               </button>

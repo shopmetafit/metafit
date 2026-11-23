@@ -47,7 +47,7 @@ const AddressCard = ({
         selectable ? "cursor-pointer" : ""
       } ${
         isSelected
-          ? "border-[#047ca8] ring-2 ring-[#047ca8]/20 bg-blue-50/20 shadow-md"
+          ? "border-[#A5794F] ring-2 ring-[#A5794F]/20 bg-blue-50/20 shadow-md"
           : isDefault
           ? "border-emerald-300 bg-emerald-50/10 shadow-sm"
           : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
@@ -73,7 +73,7 @@ const AddressCard = ({
                 name="selectedAddress"
                 checked={isSelected}
                 onChange={() => onSelect && onSelect(address)}
-                className="h-4 w-4 text-[#047ca8] focus:ring-[#047ca8] cursor-pointer"
+                className="h-4 w-4 text-[#A5794F] focus:ring-[#A5794F] cursor-pointer"
               />
             )}
           </div>
@@ -102,7 +102,7 @@ const AddressCard = ({
                 e.stopPropagation();
                 onSetDefault && onSetDefault(_id);
               }}
-              className="inline-flex items-center gap-1 text-xs text-[#047ca8] hover:text-[#036589] font-medium py-1 px-2 rounded hover:bg-blue-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs text-[#A5794F] hover:text-[#036589] font-medium py-1 px-2 rounded hover:bg-blue-50 transition-colors cursor-pointer"
             >
               <Star className="h-3.5 w-3.5" /> Set Default
             </button>

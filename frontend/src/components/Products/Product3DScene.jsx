@@ -15,7 +15,7 @@ const ProductModel = () => {
     <mesh ref={meshRef}>
       <boxGeometry args={[1, 1.5, 0.3]} />
       <meshPhongMaterial
-        color="#047ca8"
+        color="#A5794F"
         shininess={100}
         emissive="#0592b0"
         emissiveIntensity={0.2}

@@ -33,12 +33,12 @@ const VendorLogin = () => {
     setIsLoading(true);
     try {
       const response = await vendorApiService.loginVendor(formData.email, formData.password);
-      
+
       if (response.success) {
         // Store token and vendor info
         localStorage.setItem('vendorToken', response.token);
         localStorage.setItem('vendorInfo', JSON.stringify(response.vendor));
-        
+
         toast.success("Login successful!");
         navigate("/vendor-dashboard");
       } else {
@@ -75,12 +75,12 @@ const VendorLogin = () => {
     setIsLoading(true);
     try {
       const response = await vendorApiService.sendOtp(formData.phone);
-      
+
       if (response.success) {
         toast.success("OTP sent to your phone");
         setOtpSent(true);
         setOtpTimer(120); // 2 minutes timer
-        
+
         // Start countdown
         const timer = setInterval(() => {
           setOtpTimer(prev => {
@@ -119,12 +119,12 @@ const VendorLogin = () => {
     setIsLoading(true);
     try {
       const response = await vendorApiService.loginVendorWithOTP(formData.phone, formData.otp);
-      
+
       if (response.success) {
         // Store token and vendor info
         localStorage.setItem('vendorToken', response.token);
         localStorage.setItem('vendorInfo', JSON.stringify(response.vendor));
-        
+
         toast.success("Login successful!");
         navigate("/vendor-dashboard");
       } else {
@@ -162,21 +162,19 @@ const VendorLogin = () => {
           <div className="flex border border-gray-200 rounded-lg mb-4 sm:mb-6 overflow-hidden">
             <button
               onClick={() => setLoginMethod('otp')}
-              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${
-                loginMethod === 'otp'
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${loginMethod === 'otp'
                   ? 'bg-black text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Phone & OTP
             </button>
             <button
               onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${
-                loginMethod === 'email'
+              className={`flex-1 py-2 sm:py-3 px-3 sm:px-4 text-sm sm:text-base font-medium transition ${loginMethod === 'email'
                   ? 'bg-black text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+                }`}
             >
               Email & Password
             </button>
@@ -276,8 +274,8 @@ const VendorLogin = () => {
                     disabled={isLoading || otpSent}
                     className="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm bg-black text-white rounded-lg hover:bg-gray-800 transition disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-black"
                   >
-                    {otpSent && otpTimer > 0 
-                      ? `Resend OTP (${Math.floor(otpTimer / 60)}:${(otpTimer % 60).toString().padStart(2, '0')})` 
+                    {otpSent && otpTimer > 0
+                      ? `Resend OTP (${Math.floor(otpTimer / 60)}:${(otpTimer % 60).toString().padStart(2, '0')})`
                       : isLoading ? "Sending..." : "Send OTP"
                     }
                   </button>

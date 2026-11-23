@@ -192,7 +192,7 @@ const AddEditAddressModal = ({
                   onClick={() => setFormData({ ...formData, addressType: type })}
                   className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
                     formData.addressType === type
-                      ? "border-[#047ca8] bg-blue-50 text-[#047ca8] shadow-xs"
+                      ? "border-[#A5794F] bg-blue-50 text-[#A5794F] shadow-xs"
                       : "border-gray-200 text-gray-600 hover:bg-gray-50"
                   }`}
                 >
@@ -214,7 +214,7 @@ const AddEditAddressModal = ({
                 placeholder="e.g. John Doe"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                   errors.fullName ? "border-red-400 bg-red-50/50" : "border-gray-200"
                 }`}
               />
@@ -231,7 +231,7 @@ const AddEditAddressModal = ({
                 placeholder="10-digit mobile number"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                   errors.phone ? "border-red-400 bg-red-50/50" : "border-gray-200"
                 }`}
               />
@@ -249,7 +249,7 @@ const AddEditAddressModal = ({
               placeholder="e.g. Flat 402, Sunshine Apartments"
               value={formData.house}
               onChange={(e) => setFormData({ ...formData, house: e.target.value })}
-              className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+              className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                 errors.house ? "border-red-400 bg-red-50/50" : "border-gray-200"
               }`}
             />
@@ -265,7 +265,7 @@ const AddEditAddressModal = ({
               placeholder="e.g. MG Road, Sector 14"
               value={formData.area}
               onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-              className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+              className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                 errors.area ? "border-red-400 bg-red-50/50" : "border-gray-200"
               }`}
             />
@@ -282,7 +282,7 @@ const AddEditAddressModal = ({
               placeholder="e.g. Near City Mall"
               value={formData.landmark}
               onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
-              className="w-full p-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none"
+              className="w-full p-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none"
             />
           </div>
 
@@ -294,7 +294,7 @@ const AddEditAddressModal = ({
                   PIN Code *
                 </label>
                 {isPincodeLoading && (
-                  <span className="text-[11px] text-[#047ca8] font-medium flex items-center animate-pulse">
+                  <span className="text-[11px] text-[#A5794F] font-medium flex items-center animate-pulse">
                     <Loader2 className="h-3 w-3 animate-spin mr-1" /> Auto-filling...
                   </span>
                 )}
@@ -305,7 +305,7 @@ const AddEditAddressModal = ({
                 placeholder="6-digit PIN code"
                 value={formData.pincode}
                 onChange={handlePincodeChange}
-                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                   errors.pincode ? "border-red-400 bg-red-50/50" : "border-gray-200"
                 }`}
               />
@@ -321,7 +321,7 @@ const AddEditAddressModal = ({
                 placeholder="City"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                   errors.city ? "border-red-400 bg-red-50/50" : "border-gray-200"
                 }`}
               />
@@ -340,7 +340,7 @@ const AddEditAddressModal = ({
                 placeholder="District"
                 value={formData.district}
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                className="w-full p-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none"
+                className="w-full p-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none"
               />
             </div>
 
@@ -353,7 +353,7 @@ const AddEditAddressModal = ({
                 placeholder="State (e.g. Rajasthan)"
                 value={formData.state}
                 onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#047ca8]/20 focus:border-[#047ca8] outline-none ${
+                className={`w-full p-2.5 text-sm border rounded-xl focus:ring-2 focus:ring-[#A5794F]/20 focus:border-[#A5794F] outline-none ${
                   errors.state ? "border-red-400 bg-red-50/50" : "border-gray-200"
                 }`}
               />
@@ -379,7 +379,7 @@ const AddEditAddressModal = ({
                 id="isDefaultCheck"
                 checked={formData.isDefault}
                 onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                className="h-4 w-4 text-[#047ca8] focus:ring-[#047ca8] rounded border-gray-300 cursor-pointer"
+                className="h-4 w-4 text-[#A5794F] focus:ring-[#A5794F] rounded border-gray-300 cursor-pointer"
               />
               <label htmlFor="isDefaultCheck" className="text-xs font-semibold text-gray-700 cursor-pointer">
                 Make this my default address
@@ -399,7 +399,7 @@ const AddEditAddressModal = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#047ca8] hover:bg-[#036d94] text-white font-bold text-sm rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+              className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#A5794F] hover:bg-[#036d94] text-white font-bold text-sm rounded-xl transition-all shadow-sm disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? (
                 <>

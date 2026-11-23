@@ -384,11 +384,11 @@ const SupportPage = () => {
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-xs text-slate-500 mb-3 sm:mb-4 overflow-x-auto whitespace-nowrap"
         >
-          <Link to="/" className="hover:text-[#022824] transition-colors font-medium">
+          <Link to="/" className="hover:text-[#4E4033] transition-colors font-medium">
             Home
           </Link>
           <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-          <Link to="/profile" className="hover:text-[#022824] transition-colors font-medium">
+          <Link to="/profile" className="hover:text-[#4E4033] transition-colors font-medium">
             My Account
           </Link>
           <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" />
@@ -423,7 +423,7 @@ const SupportPage = () => {
           </Link>
           <Link
             to="/support"
-            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#022824] text-white shadow-xs text-center"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2.5 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-[#4E4033] text-white shadow-xs text-center"
           >
             <Headphones className="w-4 h-4 text-teal-300 shrink-0" />
             <span className="hidden sm:inline">Help & Support</span>
@@ -432,7 +432,7 @@ const SupportPage = () => {
         </div>
 
         {/* ── Premium Compact Support Header ── */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#022824] via-[#043e38] to-[#022824] text-white p-5 sm:p-7 mb-5 shadow-sm border border-teal-900/50">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#4E4033] via-[#043e38] to-[#4E4033] text-white p-5 sm:p-7 mb-5 shadow-sm border border-teal-900/50">
           {/* Subtle brand ambient glow */}
           <div className="absolute -right-8 -bottom-10 w-48 h-48 bg-teal-400/10 rounded-full blur-2xl pointer-events-none" />
           <div className="absolute left-1/3 -top-10 w-36 h-36 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
@@ -456,9 +456,9 @@ const SupportPage = () => {
                 <button
                   type="button"
                   onClick={() => handleTabChange("create")}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-[#022824] text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-[#4E4033] text-xs font-bold transition-all shadow-xs cursor-pointer"
                 >
-                  <PlusCircle className="w-4 h-4 text-[#022824]" />
+                  <PlusCircle className="w-4 h-4 text-[#4E4033]" />
                   <span>Open a Ticket</span>
                 </button>
               ) : (
@@ -481,18 +481,16 @@ const SupportPage = () => {
             <button
               type="button"
               onClick={() => handleTabChange("tickets")}
-              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === "tickets"
-                  ? "bg-[#022824] text-white shadow-xs"
+              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === "tickets"
+                  ? "bg-[#4E4033] text-white shadow-xs"
                   : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
+                }`}
             >
               <MessageSquare className={`w-4 h-4 ${activeTab === "tickets" ? "text-teal-400" : "text-slate-400"}`} />
               <span>My Tickets</span>
               <span
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                  activeTab === "tickets" ? "bg-teal-900 text-teal-200" : "bg-slate-100 text-slate-600"
-                }`}
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === "tickets" ? "bg-teal-900 text-teal-200" : "bg-slate-100 text-slate-600"
+                  }`}
               >
                 {tickets.length}
               </span>
@@ -500,11 +498,10 @@ const SupportPage = () => {
             <button
               type="button"
               onClick={() => handleTabChange("create")}
-              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === "create"
-                  ? "bg-[#022824] text-white shadow-xs"
+              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === "create"
+                  ? "bg-[#4E4033] text-white shadow-xs"
                   : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
+                }`}
             >
               <PlusCircle className={`w-4 h-4 ${activeTab === "create" ? "text-teal-400" : "text-slate-400"}`} />
               <span>Open New Ticket</span>
@@ -512,11 +509,10 @@ const SupportPage = () => {
             <button
               type="button"
               onClick={() => handleTabChange("faqs")}
-              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                activeTab === "faqs"
-                  ? "bg-[#022824] text-white shadow-xs"
+              className={`inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${activeTab === "faqs"
+                  ? "bg-[#4E4033] text-white shadow-xs"
                   : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-              }`}
+                }`}
             >
               <FileQuestion className={`w-4 h-4 ${activeTab === "faqs" ? "text-teal-400" : "text-slate-400"}`} />
               <span>Instant FAQs</span>
@@ -601,7 +597,7 @@ const SupportPage = () => {
                 <button
                   type="button"
                   onClick={() => handleTabChange("create")}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#022824] hover:bg-[#033b34] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#4E4033] hover:bg-[#4E4033] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4 text-teal-300" />
                   <span>Open a Support Ticket</span>
@@ -638,7 +634,7 @@ const SupportPage = () => {
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <span className="font-mono font-bold text-xs text-[#022824] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/70">
+                          <span className="font-mono font-bold text-xs text-[#4E4033] bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200/70">
                             #{ticket.ticketNumber}
                           </span>
                           {getStatusBadge(ticket.status)}
@@ -692,7 +688,7 @@ const SupportPage = () => {
 
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 group-hover:bg-[#022824] text-teal-800 group-hover:text-white text-xs font-bold transition-all shadow-2xs"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-50 group-hover:bg-[#4E4033] text-teal-800 group-hover:text-white text-xs font-bold transition-all shadow-2xs"
                         >
                           <span>View</span>
                           <ChevronRight className="w-3.5 h-3.5" />
@@ -749,7 +745,7 @@ const SupportPage = () => {
                       setCreatedSuccessTicket(null);
                       handleOpenTicket(createdSuccessTicket);
                     }}
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#022824] text-white text-xs font-bold hover:bg-[#033b34] transition-all cursor-pointer shadow-xs"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#4E4033] text-white text-xs font-bold hover:bg-[#4E4033] transition-all cursor-pointer shadow-xs"
                   >
                     View Ticket Conversation
                   </button>
@@ -885,7 +881,7 @@ const SupportPage = () => {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-[#022824] hover:bg-[#033b34] text-white font-bold text-xs sm:text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-[#4E4033] hover:bg-[#4E4033] text-white font-bold text-xs sm:text-sm shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                       {isSubmitting ? (
                         <>
@@ -942,8 +938,8 @@ const SupportPage = () => {
                       type="button"
                       onClick={() => setFaqCategoryFilter(cat)}
                       className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${faqCategoryFilter === cat
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        ? "bg-slate-900 text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                         }`}
                     >
                       {cat}
@@ -1004,7 +1000,7 @@ const SupportPage = () => {
                 <button
                   type="button"
                   onClick={() => handleTabChange("create")}
-                  className="px-4 py-2 rounded-lg bg-[#022824] text-white text-xs font-bold hover:bg-[#033b34] transition-all cursor-pointer whitespace-nowrap shadow-xs"
+                  className="px-4 py-2 rounded-lg bg-[#4E4033] text-white text-xs font-bold hover:bg-[#4E4033] transition-all cursor-pointer whitespace-nowrap shadow-xs"
                 >
                   Create Ticket
                 </button>
@@ -1023,7 +1019,7 @@ const SupportPage = () => {
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="bg-[#022824] text-white p-4 sm:p-5 flex items-start justify-between gap-3 shrink-0">
+              <div className="bg-[#4E4033] text-white p-4 sm:p-5 flex items-start justify-between gap-3 shrink-0">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <button
@@ -1101,15 +1097,15 @@ const SupportPage = () => {
                           }`}
                       >
                         {isStaff && (
-                          <div className="w-7 h-7 rounded-full bg-[#022824] text-teal-200 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                          <div className="w-7 h-7 rounded-full bg-[#4E4033] text-teal-200 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
                             MW
                           </div>
                         )}
 
                         <div
                           className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 shadow-2xs ${isStaff
-                              ? "bg-white border border-slate-200 text-slate-800"
-                              : "bg-[#022824] text-white"
+                            ? "bg-white border border-slate-200 text-slate-800"
+                            : "bg-[#4E4033] text-white"
                             }`}
                         >
                           <div
@@ -1165,7 +1161,7 @@ const SupportPage = () => {
                       <button
                         type="submit"
                         disabled={isReplying || !replyText.trim()}
-                        className="px-4 py-2 bg-[#022824] hover:bg-[#033b34] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                        className="px-4 py-2 bg-[#4E4033] hover:bg-[#4E4033] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
                       >
                         {isReplying ? (
                           <Loader2 className="w-4 h-4 animate-spin text-teal-300" />

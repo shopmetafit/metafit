@@ -45,7 +45,7 @@ function generateInvoicePdfBuffer(order) {
   drawRect(0, 772, 595, 70, true, false);
 
   // Header Title
-  writeText("M WELLNESS BAZAAR", 40, 810, 22, true, [255, 255, 255]);
+  writeText("M Wellness Bazaar", 40, 810, 22, true, [255, 255, 255]);
   writeText("TAX INVOICE / ORDER SUMMARY", 40, 788, 11, false, [220, 240, 250]);
 
   // Order & Date Info Box (Top Right)

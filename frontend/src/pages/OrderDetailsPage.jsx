@@ -107,7 +107,7 @@ const OrderDetailsPage = () => {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 flex justify-center items-center h-96">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#047ca8] mx-auto mb-3"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#A5794F] mx-auto mb-3"></div>
           <p className="text-gray-600 font-medium text-sm">Loading order details...</p>
         </div>
       </div>
@@ -291,7 +291,7 @@ const OrderDetailsPage = () => {
         <div>
           <Link
             to="/my-orders"
-            className="text-[#047ca8] hover:underline font-medium text-sm mb-2 inline-block"
+            className="text-[#A5794F] hover:underline font-medium text-sm mb-2 inline-block"
           >
             ← Back to My Orders
           </Link>
@@ -312,7 +312,7 @@ const OrderDetailsPage = () => {
             type="button"
             disabled={isDownloadingInvoice}
             onClick={handleDownloadInvoice}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#047ca8] hover:bg-[#036e96] text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#A5794F] hover:bg-[#036e96] text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm cursor-pointer disabled:opacity-50"
           >
             {isDownloadingInvoice ? (
               <>
@@ -358,7 +358,7 @@ const OrderDetailsPage = () => {
 
         <Link
           to={`/support?tab=create&orderId=${orderDetails._id}`}
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 hover:bg-teal-100 text-[#022824] font-semibold text-xs sm:text-sm rounded-xl border border-teal-200 transition-colors cursor-pointer"
+          className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 hover:bg-teal-100 text-[#4E4033] font-semibold text-xs sm:text-sm rounded-xl border border-teal-200 transition-colors cursor-pointer"
         >
           <Headphones className="h-4 w-4 text-teal-700" />
           <span>Need Help with this Order?</span>
@@ -405,7 +405,7 @@ const OrderDetailsPage = () => {
       {/* Timeline - Only show if order is NOT cancelled */}
       {orderDetails.status &&
         orderDetails.status.toLowerCase() !== "cancelled" && (
-          <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl border border-blue-100 p-6 sm:p-8 mb-8">
+          <div className="bg-herb-secondary/70 rounded-xl border border-herb-border p-6 sm:p-8 mb-8">
             <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-8">
               Delivery Timeline
             </h3>
@@ -622,7 +622,7 @@ const OrderDetailsPage = () => {
                         )}
                         <Link
                           to={`/product/${item.productId}`}
-                          className="text-[#047ca8] hover:underline font-semibold"
+                          className="text-[#A5794F] hover:underline font-semibold"
                         >
                           {item.name}
                         </Link>
@@ -655,7 +655,7 @@ const OrderDetailsPage = () => {
                 type="button"
                 disabled={isDownloadingInvoice}
                 onClick={handleDownloadInvoice}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl transition-all border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#A5794F] text-xs font-bold rounded-xl transition-all border border-[#A5794F]/30 cursor-pointer disabled:opacity-50"
               >
                 {isDownloadingInvoice ? (
                   <>
@@ -749,7 +749,7 @@ const OrderDetailsPage = () => {
               )}
               <div className="border-t border-gray-300 pt-2 flex justify-between items-center">
                 <span className="font-bold text-gray-900 text-sm">Grand Total</span>
-                <span className="font-extrabold text-base sm:text-lg text-[#047ca8]">
+                <span className="font-extrabold text-base sm:text-lg text-[#A5794F]">
                   ₹{Math.round(orderDetails.totalPrice || 0).toLocaleString()}
                 </span>
               </div>

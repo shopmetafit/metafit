@@ -2,10 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-#root{
-  font-family: "Inter" , sans-serif;
+body {
+  font-family: "Manrope", system-ui, sans-serif;
+  background-color: oklch(97.5% 0.012 85);
+  color: oklch(20% 0.02 60);
   font-optical-sizing: auto;
-  font-style: normal;
+}
+
+::selection {
+  background-color: oklch(80% 0.07 72);
+  color: oklch(16% 0.004 60);
+}
+
+/* Fraunces display headings (mWellness Bazaar style) */
+.font-display {
+  font-family: "Fraunces", Georgia, serif;
+  font-optical-sizing: auto;
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
@@ -70,7 +82,78 @@
 }
 
 .navratri-gold-border {
-  background: linear-gradient(90deg, transparent, #D4A017, #F2C94C, #D4A017, transparent);
+  background: linear-gradient(90deg, transparent, #A5794F, #E5C79A, #A5794F, transparent);
   background-size: 200% 100%;
   animation: navratriGoldLine 7s linear infinite;
 }
+
+/* =========================================================
+   MWELLNESS BAZAAR INTRO ANIMATION (LEAF REVEAL)
+   ========================================================= */
+
+@keyframes rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes leaf-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-12vh) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  to {
+    transform: translate3d(var(--sway), 105vh, 0) rotate(var(--rot));
+    opacity: 0.9;
+  }
+}
+
+.leaf-reveal-overlay {
+  z-index: 9999;
+  background: linear-gradient(160deg, #f2f7ef, #e3efe0);
+  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.leaf-reveal-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.leaf-petal {
+  will-change: transform;
+  animation: leaf-fall linear both;
+  position: absolute;
+  top: 0;
+}
+
+.leaf-reveal-brand {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  animation: 0.7s ease-out both rise;
+  display: flex;
+  position: absolute;
+  inset: 0;
+}
+
+.leaf-reveal-hidden {
+  visibility: hidden;
+}
+
+.leaf-reveal-shown {
+  animation: 0.6s ease-out both rise;
+}
+

@@ -33,7 +33,7 @@
 }
 
 .orders-table thead {
-  background: #f8f9fa;
+  background: #EEE8DD;
   border-bottom: 2px solid #dee2e6;
 }
 
@@ -51,12 +51,12 @@
 }
 
 .orders-table tbody tr:hover {
-  background: #f8f9fa;
+  background: #EEE8DD;
 }
 
 .order-id {
   font-family: monospace;
-  color: #007bff;
+  color: #6E5136;
   font-weight: 600;
 }
 
@@ -125,7 +125,7 @@
 
 .btn-ship {
   padding: 8px 16px;
-  background: #007bff;
+  background: #6E5136;
   color: white;
   border: none;
   border-radius: 4px;
@@ -156,7 +156,7 @@
 
 .pagination-btn {
   padding: 8px 12px;
-  background: #f8f9fa;
+  background: #EEE8DD;
   border: 1px solid #dee2e6;
   border-radius: 4px;
   cursor: pointer;
@@ -166,9 +166,9 @@
 }
 
 .pagination-btn:hover:not(:disabled) {
-  background: #007bff;
+  background: #6E5136;
   color: white;
-  border-color: #007bff;
+  border-color: #6E5136;
 }
 
 .pagination-btn:disabled {
@@ -194,13 +194,13 @@
 }
 
 .pagination-number:hover {
-  background: #f8f9fa;
+  background: #EEE8DD;
 }
 
 .pagination-number.active {
-  background: #007bff;
+  background: #6E5136;
   color: white;
-  border-color: #007bff;
+  border-color: #6E5136;
 }
 
 .loading-state,

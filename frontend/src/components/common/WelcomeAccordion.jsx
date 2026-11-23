@@ -41,16 +41,16 @@ const WelcomeAccordion = ({ isOpen, onToggle }) => {
         onClick={handleToggle}
         aria-expanded={isMainOpen}
         aria-controls="welcome-accordion-body"
-        className="w-full p-5 sm:p-6 flex items-center justify-between text-left hover:bg-gray-50/80 transition-colors cursor-pointer select-none group focus:outline-none focus:ring-2 focus:ring-[#0FB7A3]/40"
+        className="w-full p-5 sm:p-6 flex items-center justify-between text-left hover:bg-gray-50/80 transition-colors cursor-pointer select-none group focus:outline-none focus:ring-2 focus:ring-[#A5794F]/40"
       >
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 group-hover:text-teal-800 transition-colors leading-snug pr-2">
           Welcome to M Wellness Bazaar — Your Premium Wellness Destination
         </h2>
         <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 ml-3 group-hover:bg-teal-100 transition-colors">
           {isMainOpen ? (
-            <Minus className="w-5 h-5 text-[#0FB7A3]" />
+            <Minus className="w-5 h-5 text-[#A5794F]" />
           ) : (
-            <Plus className="w-5 h-5 text-[#0FB7A3]" />
+            <Plus className="w-5 h-5 text-[#A5794F]" />
           )}
         </div>
       </button>

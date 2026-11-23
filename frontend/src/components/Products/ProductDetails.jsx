@@ -959,9 +959,9 @@ const ProductDetails = ({ productId }) => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#f0f2f2]">
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#F7F1E7]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#047ca8] mx-auto mb-3" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A5794F] mx-auto mb-3" />
 
           <p className="text-gray-600 text-sm">
             Loading product...
@@ -979,7 +979,7 @@ const ProductDetails = ({ productId }) => {
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#f0f2f2]">
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#F7F1E7]">
         <p className="text-red-500">
           {error}
         </p>
@@ -1266,7 +1266,7 @@ const ProductDetails = ({ productId }) => {
       : null;
 
   return (
-    <div className="min-h-screen bg-[#f0f2f2]">
+    <div className="min-h-screen bg-herb-background">
       <SEO
         title={
           selectedProduct.name
@@ -1286,7 +1286,7 @@ const ProductDetails = ({ productId }) => {
 
       <div className="max-w-screen-2xl mx-auto px-4 py-4">
 
-        
+
 
         {/* ====================================================
             MAIN PRODUCT CARD
@@ -1320,8 +1320,8 @@ const ProductDetails = ({ productId }) => {
                         }
                         className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
                           "video"
-                          ? "border-[#047ca8]"
-                          : "border-gray-200 hover:border-[#047ca8]"
+                          ? "border-[#A5794F]"
+                          : "border-gray-200 hover:border-[#A5794F]"
                           }`}
                       >
                         <video
@@ -1364,8 +1364,8 @@ const ProductDetails = ({ productId }) => {
                           }
                           className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
                             imgUrl
-                            ? "border-[#047ca8]"
-                            : "border-gray-200 hover:border-[#047ca8]"
+                            ? "border-[#A5794F]"
+                            : "border-gray-200 hover:border-[#A5794F]"
                             }`}
                         >
                           <img
@@ -1415,8 +1415,8 @@ const ProductDetails = ({ productId }) => {
                                 }
                                 className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 transition-all ${mainImage ===
                                   imgUrl
-                                  ? "border-[#047ca8]"
-                                  : "border-gray-200 hover:border-[#047ca8]"
+                                  ? "border-[#A5794F]"
+                                  : "border-gray-200 hover:border-[#A5794F]"
                                   }`}
                               >
                                 <img
@@ -1479,7 +1479,7 @@ const ProductDetails = ({ productId }) => {
 
                   {discountPct >
                     0 && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      <div className="absolute top-3 left-3 bg-herb-rustic text-herb-background text-xs font-bold px-2 py-1 rounded">
                         -
                         {
                           discountPct
@@ -1528,7 +1528,7 @@ const ProductDetails = ({ productId }) => {
 
                   {discountPct >
                     0 && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      <div className="absolute top-3 left-3 bg-herb-rustic text-herb-background text-xs font-bold px-2 py-1 rounded">
                         -
                         {
                           discountPct
@@ -1551,7 +1551,7 @@ const ProductDetails = ({ productId }) => {
                         }
                         className={`w-14 h-14 rounded-md border-2 overflow-hidden transition-all relative block ${mainImage ===
                           "video"
-                          ? "border-[#047ca8]"
+                          ? "border-[#A5794F]"
                           : "border-gray-200"
                           }`}
                       >
@@ -1595,7 +1595,7 @@ const ProductDetails = ({ productId }) => {
                           }
                           className={`w-14 h-14 flex-shrink-0 rounded-md border-2 overflow-hidden bg-gray-50 ${mainImage ===
                             imgUrl
-                            ? "border-[#047ca8]"
+                            ? "border-[#A5794F]"
                             : "border-gray-200"
                             }`}
                         >
@@ -1621,7 +1621,7 @@ const ProductDetails = ({ productId }) => {
               {selectedProduct.description && (
                 <div className="hidden lg:block mt-8 pt-6 border-t border-gray-100">
 
-                  <h2 className="text-base font-bold text-gray-900 mb-3">
+                  <h2 className="font-display text-base font-bold text-herb-ink mb-3">
                     About this product
                   </h2>
 
@@ -1647,10 +1647,10 @@ const ProductDetails = ({ productId }) => {
               {selectedProduct.brand && (
                 <Link
                   to={`/collections/all?brand=${encodeURIComponent(selectedProduct.brand.trim())}`}
-                  className="inline-block text-sm text-[#047ca8] hover:text-[#035c7d] font-semibold mb-1 group transition-colors"
+                  className="inline-block text-sm text-herb-wood-dark hover:text-herb-ink font-semibold mb-1 group transition-colors"
                 >
                   Visit the{" "}
-                  <span className="underline group-hover:text-[#035c7d]">
+                  <span className="underline group-hover:text-herb-ink">
                     {selectedProduct.brand}
                   </span>{" "}
                   Store
@@ -1660,7 +1660,7 @@ const ProductDetails = ({ productId }) => {
               {/* NAME & COMPARE CONTROL */}
 
               <div className="flex items-start justify-between sm:justify-start gap-3 mb-3">
-                <h1 className="text-xl md:text-2xl font-semibold text-gray-900 leading-snug flex-1 sm:flex-initial">
+                <h1 className="font-display text-xl md:text-2xl font-semibold text-herb-ink leading-snug flex-1 sm:flex-initial">
                   {selectedProduct.name}
                 </h1>
 
@@ -1670,8 +1670,8 @@ const ProductDetails = ({ productId }) => {
                   title={isCompared ? "In Comparison (Click to remove)" : "Compare with Other Products"}
                   aria-label={isCompared ? "Remove from comparison" : "Compare product"}
                   className={`w-[35px] h-[30px] min-w-[35px] min-h-[30px] rounded-lg border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${isCompared
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-emerald-500/10"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700"
+                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 shadow-emerald-500/10"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700"
                     }`}
                 >
                   <ArrowLeftRight className={`h-5 w-5 ${isCompared ? "stroke-[2.5]" : ""}`} />
@@ -1693,7 +1693,7 @@ const ProductDetails = ({ productId }) => {
                       {renderRatingStars(averageRating)}
                     </div>
 
-                    <span className="text-xs text-[#047ca8] font-semibold">
+                    <span className="text-xs text-[#A5794F] font-semibold">
                       {formattedAverage} out of 5 ({totalReviews} {totalReviews === 1 ? "review" : "reviews"})
                     </span>
                   </>
@@ -1797,7 +1797,7 @@ const ProductDetails = ({ productId }) => {
 
                       <div className="flex items-baseline gap-3 flex-wrap">
 
-                        <span className="text-3xl font-bold text-gray-900">
+                        <span className="text-3xl font-bold text-herb-ink">
                           {
                             formatCurrency(
                               displayPrice
@@ -1884,8 +1884,8 @@ const ProductDetails = ({ productId }) => {
                             }
                             className={`p-3 border-2 rounded-lg text-left transition-all ${selectedVariant?.label ===
                               variant.label
-                              ? "border-[#047ca8] bg-blue-50"
-                              : "border-gray-200 hover:border-[#047ca8]"
+                              ? "border-herb-wood bg-herb-accent/50"
+                              : "border-gray-200 hover:border-herb-wood"
                               }`}
                           >
                             <p className="text-xs font-bold text-gray-800 mb-0.5">
@@ -1931,7 +1931,7 @@ const ProductDetails = ({ productId }) => {
                     </div>
 
                     {selectedVariant && (
-                      <div className="mt-2 px-3 py-2 bg-[#e8f4f8] border border-[#b3d9e8] rounded text-sm text-[#047ca8] font-medium">
+                      <div className="mt-2 px-3 py-2 bg-herb-accent/50 border border-herb-wood-light rounded text-sm text-herb-rustic font-medium">
                         Selected:{" "}
                         {
                           selectedVariant.label
@@ -1989,8 +1989,8 @@ const ProductDetails = ({ productId }) => {
                               }
                               className={`px-4 py-2 rounded border-2 text-sm font-medium transition-all flex flex-col items-center justify-center min-w-[3rem] ${selectedSize ===
                                 sizeRaw
-                                ? "border-[#047ca8] bg-blue-50 text-[#047ca8]"
-                                : "border-gray-300 hover:border-[#047ca8] text-gray-800"
+                                ? "border-herb-wood bg-herb-accent/50 text-herb-wood-dark"
+                                : "border-gray-300 hover:border-herb-wood text-gray-800"
                                 }`}
                             >
                               <span>
@@ -2048,7 +2048,7 @@ const ProductDetails = ({ productId }) => {
                             }
                             className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor ===
                               color
-                              ? "ring-2 ring-[#047ca8] ring-offset-2"
+                              ? "ring-2 ring-[#A5794F] ring-offset-2"
                               : "border-gray-300 hover:scale-110"
                               }`}
                             style={{
@@ -2069,12 +2069,12 @@ const ProductDetails = ({ productId }) => {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                 {cartQuantity > 0 ? (
                   /* CART QUANTITY CONTROL */
-                  <div className="flex-1 flex items-center justify-between sm:justify-center border-2 border-[#047ca8] bg-[#e8f4f8] rounded-xl px-2 py-1.5 shadow-xs">
+                  <div className="flex-1 flex items-center justify-between sm:justify-center border-2 border-herb-wood bg-herb-accent/50 rounded-xl px-2 py-1.5 shadow-xs">
                     <button
                       type="button"
                       onClick={handleDecrementCart}
                       disabled={isButtonDisabled}
-                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#047ca8] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
+                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#A5794F] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="h-4 w-4 stroke-[2.5]" />
@@ -2083,7 +2083,7 @@ const ProductDetails = ({ productId }) => {
                     <div className="flex flex-col items-center justify-center px-4">
                       <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500">In Cart</span>
                       <span className="font-black text-gray-900 text-base leading-none">
-                        {isButtonDisabled ? <Loader2 className="h-4 w-4 animate-spin text-[#047ca8]" /> : cartQuantity}
+                        {isButtonDisabled ? <Loader2 className="h-4 w-4 animate-spin text-[#A5794F]" /> : cartQuantity}
                       </span>
                     </div>
 
@@ -2091,7 +2091,7 @@ const ProductDetails = ({ productId }) => {
                       type="button"
                       onClick={handleIncrementCart}
                       disabled={isButtonDisabled}
-                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#047ca8] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
+                      className="w-10 h-10 flex items-center justify-center bg-white hover:bg-gray-100 active:bg-gray-200 text-[#A5794F] rounded-lg transition-colors border border-[#b3d9e8] disabled:opacity-50 cursor-pointer shadow-xs"
                       aria-label="Increase quantity"
                     >
                       <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -2104,8 +2104,8 @@ const ProductDetails = ({ productId }) => {
                     onClick={handleAddToCart}
                     disabled={isButtonDisabled || isBuyNowLoading}
                     className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 border-2 ${isButtonDisabled
-                        ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                        : "border-[#0FB7A3] bg-teal-50/60 text-[#0a7a6c] hover:bg-[#0FB7A3] hover:text-white shadow-xs hover:shadow-md active:scale-[0.98] cursor-pointer"
+                      ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
+                      : "border-herb-wood bg-herb-accent/60 text-herb-wood-dark hover:bg-herb-ink hover:text-herb-background hover:border-herb-ink shadow-xs hover:shadow-md active:scale-[0.98] cursor-pointer"
                       }`}
                   >
                     <ShoppingCart className="h-4 w-4" />
@@ -2119,8 +2119,8 @@ const ProductDetails = ({ productId }) => {
                   onClick={handleBuyNow}
                   disabled={isButtonDisabled || isBuyNowLoading}
                   className={`flex-1 flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white transition-all duration-200 shadow-md ${isBuyNowLoading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-[#047ca8] via-[#036e96] to-[#025877] hover:from-[#036a90] hover:to-[#024963] hover:shadow-lg active:scale-[0.98] cursor-pointer"
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-herb-ink hover:bg-herb-wood-dark hover:shadow-lg active:scale-[0.98] cursor-pointer"
                     }`}
                 >
                   <Zap className="h-4 w-4 fill-white" />
@@ -2133,8 +2133,8 @@ const ProductDetails = ({ productId }) => {
                   onClick={handleWishlistToggle}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
                   className={`px-4 py-3.5 rounded-xl border-2 transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 ${isWishlisted
-                      ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                      : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                 >
                   <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : ""}`} />
@@ -2142,17 +2142,17 @@ const ProductDetails = ({ productId }) => {
               </div>
 
               {/* TRUST BADGES */}
-              <div className="grid grid-cols-3 gap-2 py-3 px-2 mt-1 bg-gray-50/80 rounded-xl border border-gray-100 text-center text-xs text-gray-600">
+              <div className="grid grid-cols-3 gap-2 py-3 px-2 mt-1 bg-herb-secondary/70 rounded-xl border border-herb-border text-center text-xs text-herb-muted-foreground">
                 <div className="flex flex-col items-center justify-center gap-1">
-                  <Truck className="h-4 w-4 text-[#047ca8]" />
+                  <Truck className="h-4 w-4 text-[#A5794F]" />
                   <span className="font-medium text-[11px] text-gray-700">Fast Delivery</span>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1 border-x border-gray-200 px-1">
-                  <ShieldCheck className="h-4 w-4 text-[#0FB7A3]" />
+                  <ShieldCheck className="h-4 w-4 text-[#A5794F]" />
                   <span className="font-medium text-[11px] text-gray-700">100% Genuine</span>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1">
-                  <RotateCcw className="h-4 w-4 text-[#047ca8]" />
+                  <RotateCcw className="h-4 w-4 text-[#A5794F]" />
                   <span className="font-medium text-[11px] text-gray-700">Easy Returns</span>
                 </div>
               </div>
@@ -2161,7 +2161,7 @@ const ProductDetails = ({ productId }) => {
 
               <div className="mt-6 border-t border-gray-100 pt-4">
 
-                <h3 className="text-sm font-bold text-gray-800 mb-3">
+                <h3 className="font-display text-sm font-bold text-herb-ink mb-3">
                   Product Details
                 </h3>
 
@@ -2218,7 +2218,7 @@ const ProductDetails = ({ productId }) => {
                                     key={
                                       idx
                                     }
-                                    className="inline-block bg-[#e8f4f8] text-[#047ca8] px-2 py-1 rounded text-xs font-medium"
+                                    className="inline-block bg-herb-accent/60 text-herb-rustic px-2 py-1 rounded text-xs font-medium"
                                   >
                                     {
                                       goal
@@ -2309,7 +2309,7 @@ const ProductDetails = ({ productId }) => {
           {selectedProduct.description && (
             <div className="lg:hidden px-4 pb-6 border-t border-gray-100 pt-4">
 
-              <h2 className="text-base font-bold text-gray-900 mb-3">
+              <h2 className="font-display text-base font-bold text-herb-ink mb-3">
                 About this product
               </h2>
 
@@ -2340,7 +2340,7 @@ const ProductDetails = ({ productId }) => {
         {(similarLoading || displayedRelatedProducts.length > 0) && (
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 my-6 border border-gray-100">
             <div className="mb-5 border-b border-gray-100 pb-3">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+              <h2 className="font-display text-xl md:text-2xl font-bold text-herb-ink tracking-tight">
                 Related Products
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">

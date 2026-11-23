@@ -611,7 +611,7 @@ const CheckOut = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#047ca8] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A5794F] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading checkout...</p>
         </div>
       </div>
@@ -622,14 +622,14 @@ const CheckOut = () => {
   if (!cart || !cart.products || cart.products.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 font-sans">
-        <div className="w-16 h-16 bg-[#FFF8E7] rounded-full flex items-center justify-center mb-4 border border-[#D4A017]/30">
-          <Trash2 className="h-8 w-8 text-[#D4A017]" />
+        <div className="w-16 h-16 bg-[#F7F1E7] rounded-full flex items-center justify-center mb-4 border border-[#A5794F]/30">
+          <Trash2 className="h-8 w-8 text-[#A5794F]" />
         </div>
-        <h2 className="text-2xl font-bold text-[#3A0610] mb-2">Your cart is empty</h2>
+        <h2 className="text-2xl font-bold text-[#292117] mb-2">Your cart is empty</h2>
         <p className="text-gray-500 text-sm mb-6 max-w-sm">Items added to your cart will appear here for checkout.</p>
         <Link
           to="/collections/all"
-          className="px-6 py-3 bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] font-extrabold rounded-xl transition-all shadow-md text-sm cursor-pointer inline-block"
+          className="px-6 py-3 bg-[#A5794F] hover:bg-[#E5C79A] text-[#292117] font-extrabold rounded-xl transition-all shadow-md text-sm cursor-pointer inline-block"
         >
           Explore Products
         </Link>
@@ -642,7 +642,7 @@ const CheckOut = () => {
       {isVerifying && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-xs">
           <div className="bg-white p-8 rounded-2xl flex flex-col items-center shadow-2xl max-w-sm mx-4 text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#047ca8] mb-6"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#A5794F] mb-6"></div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Verifying Payment</h2>
             <p className="text-gray-600 text-sm">Please don't close this window or press back while we confirm your order.</p>
           </div>
@@ -676,7 +676,7 @@ const CheckOut = () => {
                 placeholder="Enter your email"
                 className={`w-full p-2.5 text-sm border rounded-xl outline-none ${user
                   ? "bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200"
-                  : "bg-white text-gray-900 border-gray-300 focus:border-[#047ca8]"
+                  : "bg-white text-gray-900 border-gray-300 focus:border-[#A5794F]"
                   }`}
               />
             </div>
@@ -686,12 +686,12 @@ const CheckOut = () => {
               <div className="mb-6 border-t border-gray-100 pt-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-base font-bold text-gray-900 flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4 text-[#047ca8]" /> Select Delivery Address
+                    <MapPin className="h-4 w-4 text-[#A5794F]" /> Select Delivery Address
                   </h3>
                   <button
                     type="button"
                     onClick={() => setIsAddressModalOpen(true)}
-                    className="text-xs font-bold text-[#047ca8] hover:underline cursor-pointer"
+                    className="text-xs font-bold text-[#A5794F] hover:underline cursor-pointer"
                   >
                     + Add New Address
                   </button>
@@ -715,7 +715,7 @@ const CheckOut = () => {
                     <button
                       type="button"
                       onClick={() => setIsAddressModalOpen(true)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#047ca8] text-white text-xs font-bold rounded-xl hover:bg-[#036e96] transition-all cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#A5794F] text-white text-xs font-bold rounded-xl hover:bg-[#036e96] transition-all cursor-pointer"
                     >
                       + Add New Address
                     </button>
@@ -737,7 +737,7 @@ const CheckOut = () => {
                       firstName: e.target.value,
                     });
                   }}
-                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                   required
                 />
               </div>
@@ -752,7 +752,7 @@ const CheckOut = () => {
                       lastName: e.target.value,
                     });
                   }}
-                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                   required
                 />
               </div>
@@ -770,7 +770,7 @@ const CheckOut = () => {
                     address: e.target.value,
                   });
                 }}
-                className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                 required
               />
             </div>
@@ -794,7 +794,7 @@ const CheckOut = () => {
                     placeholder={isIndia ? "Enter 6-digit PIN code" : "Enter postal code"}
                     value={shippingAddress.postalCode}
                     onChange={handlePincodeChange}
-                    className={`w-full p-2.5 text-sm border rounded-xl outline-none ${isPincodeLoading ? 'bg-teal-50/50 border-teal-400' : 'border-gray-300 focus:border-[#047ca8]'}`}
+                    className={`w-full p-2.5 text-sm border rounded-xl outline-none ${isPincodeLoading ? 'bg-teal-50/50 border-teal-400' : 'border-gray-300 focus:border-[#A5794F]'}`}
                     required
                   />
                   {shippingAddress.postalCode?.replace(/\D/g, '').length === 6 && !isPincodeLoading && shippingAddress.city && (
@@ -817,7 +817,7 @@ const CheckOut = () => {
                       city: e.target.value,
                     });
                   }}
-                  className={`w-full p-2.5 text-sm border rounded-xl outline-none ${hasLocalShippingItem ? (hasFreeShippingItem ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-teal-50') : 'border-gray-300 focus:border-[#047ca8]'}`}
+                  className={`w-full p-2.5 text-sm border rounded-xl outline-none ${hasLocalShippingItem ? (hasFreeShippingItem ? 'border-green-500 bg-green-50' : 'border-teal-500 bg-teal-50') : 'border-gray-300 focus:border-[#A5794F]'}`}
                   required
                 />
                 {hasLocalShippingItem && (
@@ -841,7 +841,7 @@ const CheckOut = () => {
                       state: e.target.value,
                     });
                   }}
-                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                   required
                 />
               </div>
@@ -857,7 +857,7 @@ const CheckOut = () => {
                       country: e.target.value,
                     });
                   }}
-                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                  className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                   required
                 />
               </div>
@@ -875,13 +875,13 @@ const CheckOut = () => {
                     phone: e.target.value,
                   });
                 }}
-                className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#047ca8]"
+                className="w-full p-2.5 text-sm border border-gray-300 rounded-xl outline-none focus:border-[#A5794F]"
                 required
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] font-extrabold py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-sm"
+              className="w-full bg-[#A5794F] hover:bg-[#E5C79A] text-[#292117] font-extrabold py-3.5 rounded-xl transition-all shadow-md cursor-pointer text-sm"
             >
               Continue to Payment
             </button>
@@ -889,8 +889,8 @@ const CheckOut = () => {
         </div>
 
         {/* Right Section - Cart Order Summary */}
-        <div className="bg-[#FFFDF5] rounded-xl p-6 border border-[#D4A017]/30 h-fit space-y-6">
-          <h3 className="text-xl font-extrabold uppercase tracking-tight text-[#4A0712]">Order Summary</h3>
+        <div className="bg-[#FDFBF6] rounded-xl p-6 border border-[#A5794F]/30 h-fit space-y-6">
+          <h3 className="text-xl font-extrabold uppercase tracking-tight text-[#4E4033]">Order Summary</h3>
 
           {/* Cart items list */}
           <div className="space-y-4 divide-y divide-gray-200/80">
@@ -909,7 +909,7 @@ const CheckOut = () => {
                       className="w-14 h-14 object-contain rounded-lg border border-gray-200 bg-white p-1 flex-shrink-0"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#3A0610] line-clamp-2 leading-snug">{item.name}</p>
+                      <p className="text-xs font-bold text-[#292117] line-clamp-2 leading-snug">{item.name}</p>
 
                       {/* Variant / Size / Color */}
                       {(item.size || item.color || item.variant) && (
@@ -926,7 +926,7 @@ const CheckOut = () => {
 
                       {/* Price & MRP */}
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs font-bold text-[#650B18]">
+                        <span className="text-xs font-bold text-[#6E5136]">
                           ₹{sellingPrice.toLocaleString()}
                         </span>
                         {hasMrp && (
@@ -979,7 +979,7 @@ const CheckOut = () => {
                   {/* Line Total */}
                   <div className="flex sm:flex-col justify-between sm:justify-center items-end flex-shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-gray-100">
                     <span className="sm:hidden text-xs text-gray-500 font-medium">Line Total:</span>
-                    <p className="text-xs sm:text-sm font-extrabold text-[#650B18]">
+                    <p className="text-xs sm:text-sm font-extrabold text-[#6E5136]">
                       ₹{(sellingPrice * item.quantity).toLocaleString()}
                     </p>
                   </div>
@@ -990,20 +990,20 @@ const CheckOut = () => {
 
           {/* Coupon Code Box */}
           <div className="border-t border-gray-200 pt-4">
-            <label className="block text-xs font-bold text-[#4A0712] mb-1.5 uppercase">Apply Coupon Code</label>
+            <label className="block text-xs font-bold text-[#4E4033] mb-1.5 uppercase">Apply Coupon Code</label>
             <div className="flex gap-2">
               <input
                 type="text"
                 placeholder="Enter coupon"
                 value={couponCode}
                 onChange={(e) => setCouponCode(e.target.value)}
-                className="flex-1 p-2 text-xs border border-[#D4A017]/40 rounded-xl uppercase font-semibold outline-none bg-white focus:border-[#D4A017]"
+                className="flex-1 p-2 text-xs border border-[#A5794F]/40 rounded-xl uppercase font-semibold outline-none bg-white focus:border-[#A5794F]"
               />
               <button
                 type="button"
                 onClick={handleApplyCoupon}
                 disabled={isApplyingCoupon}
-                className="px-4 py-2 bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] text-xs font-extrabold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 bg-[#A5794F] hover:bg-[#E5C79A] text-[#292117] text-xs font-extrabold rounded-xl transition-all cursor-pointer"
               >
                 Apply
               </button>
@@ -1019,11 +1019,11 @@ const CheckOut = () => {
           <div className="border-t border-gray-200 pt-4 space-y-2 text-xs sm:text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
-              <span className="font-semibold text-[#3A0610]">₹{subtotal.toLocaleString()}</span>
+              <span className="font-semibold text-[#292117]">₹{subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Handling Fee (3%)</span>
-              <span className="font-semibold text-[#3A0610]">₹{serviceCharge.toLocaleString()}</span>
+              <span className="font-semibold text-[#292117]">₹{serviceCharge.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-gray-600">
               <span>Shipping Charge</span>
@@ -1034,7 +1034,7 @@ const CheckOut = () => {
               ) : deliveryCharge === 0 ? (
                 <span className="font-semibold text-emerald-700">FREE</span>
               ) : (
-                <span className="font-semibold text-[#3A0610]">₹{deliveryCharge.toLocaleString()}</span>
+                <span className="font-semibold text-[#292117]">₹{deliveryCharge.toLocaleString()}</span>
               )}
             </div>
             {couponDiscount > 0 && (
@@ -1043,16 +1043,16 @@ const CheckOut = () => {
                 <span className="font-bold">- ₹{couponDiscount.toLocaleString()}</span>
               </div>
             )}
-            <div className="border-t border-[#D4A017]/30 pt-3 flex justify-between items-center text-base font-extrabold text-[#3A0610]">
+            <div className="border-t border-[#A5794F]/30 pt-3 flex justify-between items-center text-base font-extrabold text-[#292117]">
               <span>Total Payable</span>
-              <span className="text-[#650B18] text-lg font-black">₹{finalTotal.toLocaleString()}</span>
+              <span className="text-[#6E5136] text-lg font-black">₹{finalTotal.toLocaleString()}</span>
             </div>
 
             {/* Shipping Explanation Note */}
             <div className="pt-2">
               <div className="text-xs text-gray-600 leading-relaxed bg-amber-50/70 border border-amber-200/70 rounded-lg p-2.5">
                 <p>
-                  <span className="font-bold text-[#4A0712]">Note: </span>
+                  <span className="font-bold text-[#4E4033]">Note: </span>
                   Shipping charges are calculated based on your delivery location. Enter your city and required address details to see the applicable shipping charge. Your total will update accordingly.
                 </p>
                 {isDestinationValidated && (

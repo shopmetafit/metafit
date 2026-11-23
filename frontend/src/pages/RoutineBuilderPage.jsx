@@ -116,8 +116,8 @@ const RoutineBuilderPage = () => {
             sm:pb-2.5
           "
         >
-        
-          
+
+
           {/* Main Heading */}
           <h1
             className="
@@ -139,9 +139,9 @@ const RoutineBuilderPage = () => {
             <span
               className="
                 bg-gradient-to-r
-                from-[#022824]
-                via-[#046559]
-                to-[#0FB7A3]
+                from-[#4E4033]
+                via-[#6E5136]
+                to-[#A5794F]
 
                 text-transparent
                 bg-clip-text

@@ -24,7 +24,7 @@ export default function privacyPolicy() {
           </h2>
           <ul className="list-disc list-inside text-gray-600 space-y-2">
             <li>We collect personal data (e.g., name, address) with explicit consent.</li>
-            
+
           </ul>
         </section>
 
