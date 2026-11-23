@@ -84,9 +84,7 @@ const Hero = () => (
         >
           <Sparkles className="h-4 w-4 text-amber-300 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 animate-pulse" />
           <span className="tracking-wide">Today's Deals</span>
-          <span className="px-1.5 py-0.5 rounded-full bg-amber-400/25 text-amber-200 text-[10px] font-bold border border-amber-300/40">
-            Sale
-          </span>
+
         </Link>
       </div>
     </div>
