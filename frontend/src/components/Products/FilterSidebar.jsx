@@ -333,10 +333,10 @@ const FilterSidebar = () => {
                       }}
                       className="flex items-center justify-between py-2 cursor-pointer hover:bg-gray-50 px-2 rounded-md transition-colors"
                     >
-                      <span className={`text-[15px] ${selectedCategory === category.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#D4A017]' : 'text-gray-800'}`}>
+                      <span className={`text-[15px] ${selectedCategory === category.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#A5794F]' : 'text-gray-800'}`}>
                         {category.name}
                       </span>
-                      <FaChevronRight className="text-[#D4A017] text-xs" />
+                      <FaChevronRight className="text-[#A5794F] text-xs" />
                     </div>
                   ))}
                 </div>
@@ -346,13 +346,13 @@ const FilterSidebar = () => {
               <div className="w-1/2 flex-shrink-0 pl-2 pr-2">
                 {activeCategoryMenu && (
                   <div className="space-y-1">
-                    <h4 className="font-bold text-[#4A0712] mb-3 px-2 text-[15px]">{activeCategoryMenu.name} & More</h4>
+                    <h4 className="font-bold text-[#4E4033] mb-3 px-2 text-[15px]">{activeCategoryMenu.name} & More</h4>
                     
                     <div 
-                      className="py-2 cursor-pointer hover:bg-[#FFF8E7] px-2 rounded-md transition-colors"
+                      className="py-2 cursor-pointer hover:bg-[#F7F1E7] px-2 rounded-md transition-colors"
                       onClick={() => handleCategoryChange(activeCategoryMenu.name.toLowerCase(), true)}
                     >
-                      <span className={`text-[15px] ${selectedCategory === activeCategoryMenu.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#D4A017]' : 'text-gray-700'}`}>
+                      <span className={`text-[15px] ${selectedCategory === activeCategoryMenu.name.toLowerCase() && !selectedSubCategory ? 'font-bold text-[#A5794F]' : 'text-gray-700'}`}>
                         All {activeCategoryMenu.name}
                       </span>
                     </div>
@@ -360,10 +360,10 @@ const FilterSidebar = () => {
                     {activeCategoryMenu.subCategories?.map((subCat) => (
                       <div 
                         key={subCat}
-                        className="py-2 cursor-pointer hover:bg-[#FFF8E7] px-2 rounded-md transition-colors"
+                        className="py-2 cursor-pointer hover:bg-[#F7F1E7] px-2 rounded-md transition-colors"
                         onClick={() => handleSubCategoryChange(subCat.toLowerCase(), activeCategoryMenu.name.toLowerCase())}
                       >
-                        <span className={`text-[15px] ${selectedSubCategory === subCat.toLowerCase() ? 'font-bold text-[#D4A017]' : 'text-gray-700'}`}>
+                        <span className={`text-[15px] ${selectedSubCategory === subCat.toLowerCase() ? 'font-bold text-[#A5794F]' : 'text-gray-700'}`}>
                           {subCat}
                         </span>
                       </div>
@@ -395,7 +395,7 @@ const FilterSidebar = () => {
                     value={minPriceInput}
                     onChange={(e) => setMinPriceInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#A5794F] focus:ring-1 focus:ring-[#A5794F] transition-colors"
                   />
                 </div>
                 <div className="flex-1">
@@ -407,13 +407,13 @@ const FilterSidebar = () => {
                     value={maxPriceInput}
                     onChange={(e) => setMaxPriceInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#D4A017] focus:ring-1 focus:ring-[#D4A017] transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#A5794F] focus:ring-1 focus:ring-[#A5794F] transition-colors"
                   />
                 </div>
                 <div className="self-end pb-0.5">
                   <button
                     onClick={applyPriceFilter}
-                    className="bg-[#D4A017] hover:bg-[#F2C94C] text-[#3A0610] text-sm font-bold px-4 py-2 rounded-lg transition-colors duration-300 shadow-sm"
+                    className="bg-[#A5794F] hover:bg-[#E5C79A] text-[#292117] text-sm font-bold px-4 py-2 rounded-lg transition-colors duration-300 shadow-sm"
                   >
                     Go
                   </button>
@@ -447,7 +447,7 @@ const FilterSidebar = () => {
         <div className="pt-6 border-t border-gray-200">
           <button
             onClick={resetFilters}
-            className="w-full bg-[#FFF8E7] text-[#7A1522] border border-[#D4A017]/40 py-3 rounded-lg font-bold text-base hover:bg-[#D4A017] hover:text-[#3A0610] transition-colors duration-300"
+            className="w-full bg-[#F7F1E7] text-[#8A6743] border border-[#A5794F]/40 py-3 rounded-lg font-bold text-base hover:bg-[#A5794F] hover:text-[#292117] transition-colors duration-300"
           >
             Reset Filters
           </button>
@@ -464,11 +464,11 @@ const SectionHeader = ({ title, isOpen, toggle }) => (
     className="flex justify-between items-center cursor-pointer"
     onClick={toggle}
   >
-    <h3 className="text-xl font-semibold text-[#4A0712]">{title}</h3>
+    <h3 className="text-xl font-semibold text-[#4E4033]">{title}</h3>
     {isOpen ? (
-      <FaChevronUp className="text-[#D4A017]" />
+      <FaChevronUp className="text-[#A5794F]" />
     ) : (
-      <FaChevronDown className="text-[#D4A017]" />
+      <FaChevronDown className="text-[#A5794F]" />
     )}
   </div>
 );
@@ -480,7 +480,7 @@ const Checkbox = ({ label, checked, onChange }) => (
       type="checkbox"
       checked={checked}
       onChange={onChange}
-      className="h-5 w-5 rounded border-gray-300 text-[#D4A017] focus:ring-[#D4A017] focus:ring-opacity-50 accent-[#D4A017]"
+      className="h-5 w-5 rounded border-gray-300 text-[#A5794F] focus:ring-[#A5794F] focus:ring-opacity-50 accent-[#A5794F]"
     />
     <span className="text-gray-700">{label}</span>
   </label>

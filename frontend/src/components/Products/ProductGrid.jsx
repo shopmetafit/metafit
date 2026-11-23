@@ -139,7 +139,7 @@ const ProductCard = ({ product, onProductClick }) => {
         className="flex flex-col flex-1 h-full w-full"
       >
         {/* PRODUCT IMAGE */}
-        <div className="relative aspect-square w-full bg-[#f8f9fa] rounded-xl overflow-hidden flex items-center justify-center p-3 mb-2.5">
+        <div className="relative aspect-square w-full bg-herb-muted rounded-xl overflow-hidden flex items-center justify-center p-3 mb-2.5">
           {!imageLoaded && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-xl" />
           )}
@@ -172,13 +172,13 @@ const ProductCard = ({ product, onProductClick }) => {
             aria-label="Add to wishlist"
             className={`absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs shadow-xs flex items-center justify-center transition-all duration-150 z-10 ${
               isWishlisted
-                ? "text-[#D4A017]"
-                : "text-gray-400 hover:text-[#D4A017] hover:scale-110 active:scale-95"
+                ? "text-[#A5794F]"
+                : "text-gray-400 hover:text-[#A5794F] hover:scale-110 active:scale-95"
             }`}
           >
             <Heart
               className={`w-3.5 h-3.5 ${
-                isWishlisted ? "fill-[#D4A017] text-[#D4A017]" : ""
+                isWishlisted ? "fill-[#A5794F] text-[#A5794F]" : ""
               }`}
             />
           </button>
@@ -191,8 +191,8 @@ const ProductCard = ({ product, onProductClick }) => {
             title={isCompared ? "In Comparison (Click to remove)" : "Add to Compare"}
             className={`absolute top-10 right-2 w-7 h-7 rounded-full backdrop-blur-xs shadow-xs flex items-center justify-center transition-all duration-150 z-10 ${
               isCompared
-                ? "bg-[#D4A017] text-[#3A0610] shadow-[#D4A017]/30 scale-105 opacity-100 font-bold"
-                : "bg-white/90 text-gray-400 hover:text-[#D4A017] opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
+                ? "bg-[#A5794F] text-[#292117] shadow-[#A5794F]/30 scale-105 opacity-100 font-bold"
+                : "bg-white/90 text-gray-400 hover:text-[#A5794F] opacity-90 sm:opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
             }`}
           >
             <ArrowLeftRight className="w-3 h-3 stroke-[2.2]" />
@@ -201,15 +201,35 @@ const ProductCard = ({ product, onProductClick }) => {
 
         {/* PRODUCT DETAILS AREA */}
         <div className="flex flex-col flex-1 px-0.5 pb-1">
+          {/* BRAND */}
+          {product.brand && (
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-herb-muted-foreground truncate mb-0.5">
+              {product.brand}
+            </p>
+          )}
+
           {/* PRODUCT NAME */}
-          <h3 className="text-xs sm:text-[13px] font-medium text-gray-800 leading-snug line-clamp-2 mb-2 group-hover:text-[#7A1522] transition-colors">
+          <h3 className="text-xs sm:text-[13px] font-medium text-herb-foreground leading-snug line-clamp-2 mb-2 group-hover:text-herb-wood-dark transition-colors">
             {product.name}
           </h3>
+
+          {/* RATING */}
+          {Number(product.numReviews) > 0 && (
+            <div className="flex items-center gap-1 mb-1.5">
+              <Star className="w-3 h-3 fill-herb-wood text-herb-wood" />
+              <span className="text-[10px] font-semibold text-herb-foreground">
+                {Number(product.rating).toFixed(1)}
+              </span>
+              <span className="text-[10px] text-herb-muted-foreground">
+                ({product.numReviews})
+              </span>
+            </div>
+          )}
 
           {/* PRICES HIERARCHY */}
           <div className="mt-auto flex flex-col gap-0.5">
             {/* SELLING PRICE */}
-            <span className="text-sm sm:text-base font-bold text-[#650B18]">
+            <span className="text-sm sm:text-base font-bold text-herb-ink">
               ₹{sellingPrice.toLocaleString()}
             </span>
 
@@ -220,7 +240,7 @@ const ProductCard = ({ product, onProductClick }) => {
                   M.R.P. ₹{mrpPrice.toLocaleString()}
                 </span>
                 {discountPercentage && (
-                  <span className="font-bold text-[#D4A017]">
+                  <span className="font-bold text-[#A5794F]">
                     {discountPercentage}% off
                   </span>
                 )}
@@ -280,7 +300,7 @@ const ProductGrid = ({
               </p>
               <Link
                 to="/collections/all"
-                className="inline-block px-5 py-2.5 bg-[#022824] text-white rounded-xl hover:bg-[#046559] transition-colors font-semibold text-sm shadow-sm"
+                className="inline-block px-5 py-2.5 bg-[#4E4033] text-white rounded-xl hover:bg-[#6E5136] transition-colors font-semibold text-sm shadow-sm"
               >
                 Browse All Products
               </Link>

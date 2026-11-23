@@ -1060,9 +1060,9 @@ const ProductDetails = ({ productId }) => {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#f0f2f2]">
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#F7F1E7]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#047ca8] mx-auto mb-3" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A5794F] mx-auto mb-3" />
 
           <p className="text-gray-600 text-sm">
             Loading product...
@@ -1080,7 +1080,7 @@ const ProductDetails = ({ productId }) => {
 
   if (error) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center bg-[#f0f2f2]">
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#F7F1E7]">
         <p className="text-red-500">
           {error}
         </p>
@@ -1367,7 +1367,7 @@ const ProductDetails = ({ productId }) => {
       : null;
 
   return (
-    <div className="min-h-screen bg-[#f0f2f2]">
+    <div className="min-h-screen bg-herb-background">
       <SEO
         title={
           selectedProduct.name
@@ -2153,7 +2153,7 @@ const ProductDetails = ({ productId }) => {
         {(similarLoading || displayedRelatedProducts.length > 0) && (
           <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 my-6 border border-gray-100">
             <div className="mb-5 border-b border-gray-100 pb-3">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+              <h2 className="font-display text-xl md:text-2xl font-bold text-herb-ink tracking-tight">
                 Related Products
               </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">

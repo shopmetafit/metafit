@@ -7,7 +7,7 @@ export const WellnessIcon = ({ id, className = "w-4 h-4 flex-shrink-0" }) => {
     case "all":
       return (
         <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="3" y="3" width="7.5" height="7.5" rx="2" fill="#0FB7A3" />
+          <rect x="3" y="3" width="7.5" height="7.5" rx="2" fill="#A5794F" />
           <rect x="13.5" y="3" width="7.5" height="7.5" rx="2" fill="#3B82F6" />
           <rect x="3" y="13.5" width="7.5" height="7.5" rx="2" fill="#F59E0B" />
           <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2" fill="#8B5CF6" />
@@ -21,7 +21,7 @@ export const WellnessIcon = ({ id, className = "w-4 h-4 flex-shrink-0" }) => {
           <path d="M7 6C8.5 9 10 11 12 12C14 11 15.5 9 17 6" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" />
           <path d="M5 12C7 16 10 19 12 20C14 19 17 16 19 12" stroke="#7C3AED" strokeWidth="2" strokeLinecap="round" />
           <circle cx="12" cy="12" r="2.5" fill="#A78BFA" />
-          <path d="M16 8L19 5" stroke="#0FB7A3" strokeWidth="2" strokeLinecap="round" />
+          <path d="M16 8L19 5" stroke="#A5794F" strokeWidth="2" strokeLinecap="round" />
         </svg>
       );
 

@@ -25,7 +25,7 @@ export default function BlogDetail() {
       setLoading(true);
       const response = await axios.get(`${API_URL}/api/blogs/${slug}`);
       setBlog(response.data.blog);
-      
+
       // Check if user has already liked
       const user = JSON.parse(localStorage.getItem("user"));
       if (user && response.data.blog.likes.includes(user._id)) {
@@ -219,11 +219,10 @@ export default function BlogDetail() {
           <div className="border-t border-gray-200 pt-6 flex items-center gap-4">
             <button
               onClick={handleLike}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                isLiked
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${isLiked
                   ? "bg-red-50 text-red-600"
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+                }`}
             >
               <Heart size={20} fill={isLiked ? "currentColor" : "none"} />
               <span>{blog.likes.length} Likes</span>

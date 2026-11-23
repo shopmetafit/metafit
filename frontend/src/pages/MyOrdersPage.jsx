@@ -130,7 +130,7 @@ const MyOrdersPage = () => {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#047ca8] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#A5794F] mx-auto mb-4"></div>
           <p className="text-gray-600 font-medium">Fetching your orders...</p>
         </div>
       </div>
@@ -161,11 +161,11 @@ const MyOrdersPage = () => {
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-4 overflow-x-auto whitespace-nowrap"
         >
-          <Link to="/" className="hover:text-[#022824] transition-colors">
+          <Link to="/" className="hover:text-[#4E4033] transition-colors">
             Home
           </Link>
           <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
-          <Link to="/profile" className="hover:text-[#022824] transition-colors">
+          <Link to="/profile" className="hover:text-[#4E4033] transition-colors">
             My Account
           </Link>
           <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
@@ -184,7 +184,7 @@ const MyOrdersPage = () => {
           </Link>
           <Link
             to="/my-orders"
-            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#022824] text-white shadow-xs text-center"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#4E4033] text-white shadow-xs text-center"
           >
             <Package className="w-4 h-4 text-teal-300 shrink-0" />
             <span className="hidden sm:inline">My Orders ({orders.length})</span>
@@ -320,7 +320,7 @@ const MyOrdersPage = () => {
                     {/* Items Preview Table */}
                     <div className="flex-1 space-y-3">
                       <p className="text-xs text-gray-400 uppercase font-bold tracking-wider flex items-center gap-1.5">
-                        <Package className="h-4 w-4 text-[#047ca8]" /> Products (
+                        <Package className="h-4 w-4 text-[#A5794F]" /> Products (
                         {order.orderItems?.length || 0})
                       </p>
 
@@ -393,7 +393,7 @@ const MyOrdersPage = () => {
                             type="button"
                             disabled={isDownloading}
                             onClick={(e) => handleDownloadInvoice(e, order)}
-                            className="w-full py-2 px-3 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#047ca8] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-[#047ca8]/30 cursor-pointer disabled:opacity-50"
+                            className="w-full py-2 px-3 bg-[#e8f4f8] hover:bg-[#d4ebf3] text-[#A5794F] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-[#A5794F]/30 cursor-pointer disabled:opacity-50"
                           >
                             {isDownloading ? (
                               <>
@@ -447,7 +447,7 @@ const MyOrdersPage = () => {
         ) : (
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-12 text-center max-w-lg mx-auto mt-12">
             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ShoppingBag className="h-10 w-10 text-[#047ca8]" />
+              <ShoppingBag className="h-10 w-10 text-[#A5794F]" />
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">No orders yet</h3>
             <p className="text-gray-500 mb-8 text-sm">
@@ -455,7 +455,7 @@ const MyOrdersPage = () => {
             </p>
             <button
               onClick={() => navigate("/collections/all")}
-              className="w-full sm:w-auto px-8 py-3 bg-[#047ca8] hover:bg-[#036d94] text-white font-bold rounded-xl transition-all shadow-md cursor-pointer"
+              className="w-full sm:w-auto px-8 py-3 bg-[#A5794F] hover:bg-[#036d94] text-white font-bold rounded-xl transition-all shadow-md cursor-pointer"
             >
               Start Shopping
             </button>

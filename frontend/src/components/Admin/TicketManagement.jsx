@@ -353,7 +353,7 @@ const TicketManagement = () => {
           </div>
           <button
             type="submit"
-            className="px-5 py-2 bg-[#022824] hover:bg-[#033b34] text-white text-xs font-bold rounded-lg transition cursor-pointer"
+            className="px-5 py-2 bg-[#4E4033] hover:bg-[#4E4033] text-white text-xs font-bold rounded-lg transition cursor-pointer"
           >
             Search
           </button>
@@ -455,7 +455,7 @@ const TicketManagement = () => {
                     className="hover:bg-gray-50/80 transition-colors cursor-pointer"
                     onClick={() => handleOpenTicket(t)}
                   >
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#022824]">
+                    <td className="py-3.5 px-4 font-mono font-bold text-[#4E4033]">
                       #{t.ticketNumber}
                     </td>
                     <td className="py-3.5 px-4">
@@ -569,7 +569,7 @@ const TicketManagement = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="bg-[#022824] text-white p-4 sm:p-5 flex items-start justify-between gap-3 shrink-0">
+            <div className="bg-[#4E4033] text-white p-4 sm:p-5 flex items-start justify-between gap-3 shrink-0">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-mono text-xs font-bold bg-white/20 text-teal-200 px-2 py-0.5 rounded">
@@ -708,7 +708,7 @@ const TicketManagement = () => {
                       }`}
                     >
                       {!isStaff && (
-                        <div className="w-8 h-8 rounded-full bg-[#047ca8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-[#A5794F] text-white flex items-center justify-center text-xs font-bold shrink-0">
                           {activeTicket.customerName
                             ? activeTicket.customerName[0].toUpperCase()
                             : "C"}
@@ -718,7 +718,7 @@ const TicketManagement = () => {
                       <div
                         className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-3.5 shadow-2xs ${
                           isStaff
-                            ? "bg-[#022824] text-white"
+                            ? "bg-[#4E4033] text-white"
                             : "bg-white border border-gray-200 text-gray-800"
                         }`}
                       >
@@ -768,7 +768,7 @@ const TicketManagement = () => {
                 <button
                   type="submit"
                   disabled={replying || !replyMessage.trim()}
-                  className="px-5 py-2 bg-[#022824] hover:bg-[#033b34] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                  className="px-5 py-2 bg-[#4E4033] hover:bg-[#4E4033] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shrink-0"
                 >
                   {replying ? (
                     <Loader2 className="w-4 h-4 animate-spin text-teal-300" />

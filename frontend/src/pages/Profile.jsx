@@ -169,7 +169,7 @@ const Profile = () => {
           aria-label="Breadcrumb"
           className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-4 overflow-x-auto whitespace-nowrap"
         >
-          <Link to="/" className="hover:text-[#022824] transition-colors">
+          <Link to="/" className="hover:text-[#4E4033] transition-colors">
             Home
           </Link>
           <ChevronRight className="h-3 w-3 text-gray-400 shrink-0" />
@@ -182,7 +182,7 @@ const Profile = () => {
         <div className="bg-white rounded-lg border border-gray-200 shadow-xs p-1 sm:p-1.5 mb-4 sm:mb-6 grid grid-cols-3 gap-1 sm:flex sm:items-center sm:gap-1">
           <Link
             to="/profile"
-            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#022824] text-white shadow-xs text-center"
+            className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-semibold bg-[#4E4033] text-white shadow-xs text-center"
           >
             <User className="w-4 h-4 text-teal-300 shrink-0" />
             <span className="hidden sm:inline">Profile Information</span>
@@ -192,7 +192,7 @@ const Profile = () => {
             to="/my-orders"
             className="flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-1 sm:gap-2 px-2 sm:px-5 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
           >
-            <Package className="w-4 h-4 text-[#047ca8] shrink-0" />
+            <Package className="w-4 h-4 text-[#A5794F] shrink-0" />
             <span className="hidden sm:inline">My Orders</span>
             <span className="sm:hidden font-medium">Orders</span>
           </Link>
@@ -224,7 +224,7 @@ const Profile = () => {
                 className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover border border-gray-200"
               />
             ) : (
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#022824] text-white flex items-center justify-center font-bold text-base sm:text-lg tracking-wider shadow-xs">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#4E4033] text-white flex items-center justify-center font-bold text-base sm:text-lg tracking-wider shadow-xs">
                 {initials}
               </div>
             )}
@@ -261,7 +261,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={handleStartEdit}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-[#022824] text-xs font-bold transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-50 hover:bg-teal-100/80 text-[#4E4033] text-xs font-bold transition-all border border-teal-200/80 cursor-pointer shadow-2xs hover:shadow-xs"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-teal-700" />
                   <span>Edit Profile</span>
@@ -286,7 +286,7 @@ const Profile = () => {
                         setFormData({ ...formData, name: e.target.value })
                       }
                       placeholder="e.g. John Doe"
-                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#A5794F] focus:border-transparent transition-all"
                     />
                   </div>
 
@@ -303,7 +303,7 @@ const Profile = () => {
                         setFormData({ ...formData, email: e.target.value })
                       }
                       placeholder="name@example.com"
-                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#A5794F] focus:border-transparent transition-all"
                     />
                   </div>
 
@@ -319,7 +319,7 @@ const Profile = () => {
                         setFormData({ ...formData, phone: e.target.value })
                       }
                       placeholder="10-digit mobile number"
-                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#047ca8] focus:border-transparent transition-all"
+                      className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#A5794F] focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -329,7 +329,7 @@ const Profile = () => {
                   <button
                     type="submit"
                     disabled={savingProfile}
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-[#022824] hover:bg-[#044a42] text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-md bg-[#4E4033] hover:bg-[#044a42] text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     {savingProfile ? (
                       <>

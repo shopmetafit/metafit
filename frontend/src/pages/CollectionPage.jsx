@@ -5,11 +5,13 @@ import { SlidersHorizontal, X } from "lucide-react";
 import FilterSidebar from "../components/Products/FilterSidebar";
 import GoalBar from "../components/Products/GoalBar";
 import ProductGrid from "../components/Products/ProductGrid";
+import HomePage from "../components/Home/HomePage";
 
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductsByFilters } from "../redux/slices/productSlice";
 import FAQSection from "./FAQ";
 import WelcomeAccordion from "../components/common/WelcomeAccordion";
+import LeafRevealIntro from "../components/common/LeafRevealIntro";
 
 import SEO from "../components/SEO/SEO";
 
@@ -31,6 +33,8 @@ const categorySlugToName = {
   "panchakarma-equipment": "Panchakarma Equipment",
   "accessories": "Accessories",
 };
+
+const PAGE_LIMIT = 24;
 
 const CollectionPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -127,7 +131,8 @@ const CollectionPage = () => {
 
 
 
-  // Filter products by real discount percentage if discount query parameters exist
+  // Filter products by real discount percentage if discount query parameters exist,
+  // and sort with highest discount first when viewing deals/discounts.
   const filteredProducts = useMemo(() => {
     if (!products || !Array.isArray(products)) return [];
 
@@ -147,8 +152,46 @@ const CollectionPage = () => {
       });
     }
 
+    const sortBy = queryParams.sortBy || queryParams.sort;
+    const isDealsContext = Boolean(
+      queryParams.discount ||
+      queryParams.discountMin ||
+      queryParams.discountMax ||
+      sortBy === "discount"
+    );
+
+    // If on Today's Deals / discount filter or sortBy is explicitly 'discount',
+    // sort descending by discount percentage (highest discount first)
+    if (sortBy === "discount" || (isDealsContext && (!sortBy || sortBy === "priority" || sortBy === "featured"))) {
+      result = [...result].sort((a, b) => {
+        const discA = getProductDiscount(a);
+        const discB = getProductDiscount(b);
+        if (discB !== discA) {
+          return discB - discA; // Highest discount percentage first
+        }
+        // If discount percentages are equal, show larger absolute ₹ savings first
+        const priceA = Number(a.price || 0);
+        const saleA = Number(a.discountPrice || a.price || 0);
+        const priceB = Number(b.price || 0);
+        const saleB = Number(b.discountPrice || b.price || 0);
+        const savingsA = priceA - saleA;
+        const savingsB = priceB - saleB;
+        if (savingsB !== savingsA) {
+          return savingsB - savingsA;
+        }
+        return (b.rating || 0) - (a.rating || 0);
+      });
+    }
+
     return result;
-  }, [products, queryParams.discount, queryParams.discountMin, queryParams.discountMax]);
+  }, [
+    products,
+    queryParams.discount,
+    queryParams.discountMin,
+    queryParams.discountMax,
+    queryParams.sortBy,
+    queryParams.sort,
+  ]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -278,8 +321,30 @@ const CollectionPage = () => {
 
   const robotsDirective = hasFilterParams ? "noindex, follow" : "index, follow";
 
+  // Pure home route (no collection, no category, no filters) -> reference-style homepage
+  const isHome =
+    !collection && !categorySlug && Object.keys(queryParams).length === 0;
+
+  if (isHome) {
+    return (
+      <LeafRevealIntro>
+        <div className="min-h-screen">
+          <SEO
+            title="M Wellness Bazaar — Indian wellness products, delivered"
+            description="Shop women's wellness, skin & body care, healthy foods and Ayurvedic devices from trusted Indian brands."
+            canonical="/"
+            robots="index, follow"
+          />
+          <div className="max-w-screen-2xl mx-auto px-2 sm:px-4 pt-3 pb-8">
+            <HomePage />
+          </div>
+        </div>
+      </LeafRevealIntro>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#f0f2f2]">
+    <div className="min-h-screen bg-herb-background">
       <SEO
         title={seoTitle}
         description={seoDescription}
@@ -304,7 +369,7 @@ const CollectionPage = () => {
               {activeFilters.map((f) => (
                 <span
                   key={f.key}
-                  className="inline-flex items-center gap-1 bg-[#FFF8E7] border border-[#D4A017]/40 text-[#4A0712] text-xs font-bold px-2 py-0.5 rounded-md"
+                  className="inline-flex items-center gap-1 bg-[#F7F1E7] border border-[#A5794F]/40 text-[#4E4033] text-xs font-bold px-2 py-0.5 rounded-md"
                 >
                   <span>{f.label}</span>
                   <button
@@ -383,9 +448,9 @@ const CollectionPage = () => {
             aria-label="Refine Results Filter"
           >
             {/* Header */}
-            <div className="bg-[#232f3e] text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
+            <div className="bg-[#292117] text-white px-4 py-3 flex items-center justify-between flex-shrink-0">
               <h2 className="text-sm font-bold flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-[#0FB7A3]" />
+                <SlidersHorizontal className="h-4 w-4 text-[#A5794F]" />
                 <span>Refine Results</span>
               </h2>
               <button
@@ -406,7 +471,7 @@ const CollectionPage = () => {
             <div className="p-4 border-t border-gray-200 flex-shrink-0 bg-white">
               <button
                 onClick={closeSidebar}
-                className="w-full bg-[#0FB7A3] hover:bg-[#0DA28E] text-white font-bold py-3 rounded-lg transition-colors cursor-pointer text-sm"
+                className="w-full bg-[#A5794F] hover:bg-[#6E5136] text-white font-bold py-3 rounded-lg transition-colors cursor-pointer text-sm"
               >
                 Show {totalProducts || products?.length || 0} Results
               </button>

@@ -75,14 +75,13 @@ const sendTicketCreatedCustomerEmail = async (ticket) => {
                   <td style="padding:6px 0; font-size:13px; color:#64748b;"><b>Category:</b></td>
                   <td style="padding:6px 0; font-size:13px; color:#0f172a;">${escapeHtml(ticket.category)}</td>
                 </tr>
-                ${
-                  ticket.orderNumber
-                    ? `<tr>
+                ${ticket.orderNumber
+          ? `<tr>
                   <td style="padding:6px 0; font-size:13px; color:#64748b;"><b>Related Order:</b></td>
                   <td style="padding:6px 0; font-size:13px; color:#047ca8; font-weight:600;">${escapeHtml(ticket.orderNumber)}</td>
                 </tr>`
-                    : ""
-                }
+          : ""
+        }
                 <tr>
                   <td style="padding:6px 0; font-size:13px; color:#64748b;"><b>Subject:</b></td>
                   <td style="padding:6px 0; font-size:13px; color:#0f172a; font-weight:600;">${escapeHtml(ticket.subject)}</td>

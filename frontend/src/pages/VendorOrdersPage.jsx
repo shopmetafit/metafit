@@ -223,8 +223,8 @@ const VendorOrdersPage = () => {
           <div
             onClick={() => setStatusFilter("All")}
             className={`cursor-pointer p-4 rounded-2xl border transition shadow-sm ${statusFilter === "All"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-800 border-slate-200 hover:border-blue-300"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-slate-800 border-slate-200 hover:border-blue-300"
               }`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${statusFilter === "All" ? "text-blue-100" : "text-slate-400"}`}>
@@ -236,8 +236,8 @@ const VendorOrdersPage = () => {
           <div
             onClick={() => setStatusFilter("Processing")}
             className={`cursor-pointer p-4 rounded-2xl border transition shadow-sm ${statusFilter === "Processing"
-                ? "bg-amber-600 text-white border-amber-600"
-                : "bg-white text-slate-800 border-slate-200 hover:border-amber-300"
+              ? "bg-amber-600 text-white border-amber-600"
+              : "bg-white text-slate-800 border-slate-200 hover:border-amber-300"
               }`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${statusFilter === "Processing" ? "text-amber-100" : "text-amber-600"}`}>
@@ -249,8 +249,8 @@ const VendorOrdersPage = () => {
           <div
             onClick={() => setStatusFilter("Will be Out for Delivery in 1–2 Days")}
             className={`cursor-pointer p-4 rounded-2xl border transition shadow-sm ${statusFilter.replace(/–/g, "-") === "Will be Out for Delivery in 1-2 Days"
-                ? "bg-purple-600 text-white border-purple-600"
-                : "bg-white text-slate-800 border-slate-200 hover:border-purple-300"
+              ? "bg-purple-600 text-white border-purple-600"
+              : "bg-white text-slate-800 border-slate-200 hover:border-purple-300"
               }`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${statusFilter.replace(/–/g, "-") === "Will be Out for Delivery in 1-2 Days" ? "text-purple-100" : "text-purple-600"}`}>
@@ -262,8 +262,8 @@ const VendorOrdersPage = () => {
           <div
             onClick={() => setStatusFilter("Out for Delivery")}
             className={`cursor-pointer p-4 rounded-2xl border transition shadow-sm ${statusFilter === "Out for Delivery"
-                ? "bg-blue-600 text-white border-blue-600"
-                : "bg-white text-slate-800 border-slate-200 hover:border-blue-300"
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-slate-800 border-slate-200 hover:border-blue-300"
               }`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${statusFilter === "Out for Delivery" ? "text-blue-100" : "text-blue-600"}`}>
@@ -275,8 +275,8 @@ const VendorOrdersPage = () => {
           <div
             onClick={() => setStatusFilter("Delivered")}
             className={`cursor-pointer p-4 rounded-2xl border transition shadow-sm ${statusFilter === "Delivered"
-                ? "bg-emerald-600 text-white border-emerald-600"
-                : "bg-white text-slate-800 border-slate-200 hover:border-emerald-300"
+              ? "bg-emerald-600 text-white border-emerald-600"
+              : "bg-white text-slate-800 border-slate-200 hover:border-emerald-300"
               }`}
           >
             <p className={`text-xs font-semibold uppercase tracking-wider ${statusFilter === "Delivered" ? "text-emerald-100" : "text-emerald-600"}`}>
@@ -501,45 +501,41 @@ const VendorOrdersPage = () => {
                 <>
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center shadow-lg shrink-0 ${
-                      isDeliveredStatus 
-                        ? "bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-emerald-500/25" 
+                    <div className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center shadow-lg shrink-0 ${isDeliveredStatus
+                        ? "bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-emerald-500/25"
                         : isWillBeOutForDelivery
-                        ? "bg-gradient-to-tr from-amber-500 to-orange-600 shadow-amber-500/25"
-                        : "bg-gradient-to-tr from-purple-500 to-indigo-600 shadow-purple-500/25"
-                    }`}>
+                          ? "bg-gradient-to-tr from-amber-500 to-orange-600 shadow-amber-500/25"
+                          : "bg-gradient-to-tr from-purple-500 to-indigo-600 shadow-purple-500/25"
+                      }`}>
                       {isDeliveredStatus ? <Check className="w-5 h-5" /> : <Truck className="w-5 h-5" />}
                     </div>
                     <div>
                       <h3 className="font-extrabold text-base sm:text-lg text-slate-900 leading-snug">
                         {isDeliveredStatus ? "Mark Order as Delivered" : outForDeliveryModalOrder.targetStatus}
                       </h3>
-                      <p className={`text-xs font-bold ${
-                        isDeliveredStatus ? "text-emerald-600" : isWillBeOutForDelivery ? "text-amber-600" : "text-purple-600"
-                      }`}>
+                      <p className={`text-xs font-bold ${isDeliveredStatus ? "text-emerald-600" : isWillBeOutForDelivery ? "text-amber-600" : "text-purple-600"
+                        }`}>
                         WhatsApp Customer Notification
                       </p>
                     </div>
                   </div>
 
                   {/* Notice Message */}
-                  <div className={`rounded-2xl p-3.5 border mb-4 text-xs leading-relaxed font-medium ${
-                    isDeliveredStatus
+                  <div className={`rounded-2xl p-3.5 border mb-4 text-xs leading-relaxed font-medium ${isDeliveredStatus
                       ? "bg-emerald-50/90 border-emerald-100 text-emerald-950"
                       : isWillBeOutForDelivery
-                      ? "bg-amber-50/90 border-amber-100 text-amber-950"
-                      : "bg-purple-50/90 border-purple-100 text-purple-950"
-                  }`}>
-                    <p className={`font-bold mb-1 flex items-center gap-1.5 text-xs ${
-                      isDeliveredStatus ? "text-emerald-900" : isWillBeOutForDelivery ? "text-amber-900" : "text-purple-900"
+                        ? "bg-amber-50/90 border-amber-100 text-amber-950"
+                        : "bg-purple-50/90 border-purple-100 text-purple-950"
                     }`}>
+                    <p className={`font-bold mb-1 flex items-center gap-1.5 text-xs ${isDeliveredStatus ? "text-emerald-900" : isWillBeOutForDelivery ? "text-amber-900" : "text-purple-900"
+                      }`}>
                       <span>📲</span> Automated WhatsApp Update Message
                     </p>
                     {isDeliveredStatus
                       ? "Selecting Delivered will mark this order as completed and automatically send a WhatsApp delivery confirmation message to the customer with the following details:"
                       : isWillBeOutForDelivery
-                      ? "Selecting this status will notify the user on WhatsApp that their order will be out for delivery in 2–3 days with the following parameters:"
-                      : "A WhatsApp message will be sent to the customer with the following data:"}
+                        ? "Selecting this status will notify the user on WhatsApp that their order will be out for delivery in 2–3 days with the following parameters:"
+                        : "A WhatsApp message will be sent to the customer with the following data:"}
                   </div>
 
                   {/* Notification Data Preview */}
@@ -659,13 +655,12 @@ const VendorOrdersPage = () => {
                         await handleStatusUpdate(ord._id, ord.status, targetSt);
                         setOutForDeliveryModalOrder(null);
                       }}
-                      className={`w-full px-4 py-2.5 rounded-xl text-white text-xs font-black shadow-md transition flex items-center justify-center gap-1.5 disabled:opacity-50 text-center ${
-                        isDeliveredStatus
+                      className={`w-full px-4 py-2.5 rounded-xl text-white text-xs font-black shadow-md transition flex items-center justify-center gap-1.5 disabled:opacity-50 text-center ${isDeliveredStatus
                           ? "bg-gradient-to-r from-emerald-600 to-teal-600 shadow-emerald-500/20 hover:from-emerald-700 hover:to-teal-700"
                           : isWillBeOutForDelivery
-                          ? "bg-gradient-to-r from-amber-600 to-orange-600 shadow-amber-500/20 hover:from-amber-700 hover:to-orange-700"
-                          : "bg-gradient-to-r from-purple-600 to-indigo-600 shadow-purple-500/20 hover:from-purple-700 hover:to-indigo-700"
-                      }`}
+                            ? "bg-gradient-to-r from-amber-600 to-orange-600 shadow-amber-500/20 hover:from-amber-700 hover:to-orange-700"
+                            : "bg-gradient-to-r from-purple-600 to-indigo-600 shadow-purple-500/20 hover:from-purple-700 hover:to-indigo-700"
+                        }`}
                     >
                       {updatingOrderId === outForDeliveryModalOrder.order._id ? (
                         "Updating & Sending..."

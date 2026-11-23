@@ -116,18 +116,16 @@ const ContactUs = () => {
                 href={info.link || '#'}
                 onMouseEnter={() => setHoveredCard(idx)}
                 onMouseLeave={() => setHoveredCard(null)}
-                className={`bg-white p-8 border transition-all duration-300 ${
-                  hoveredCard === idx
+                className={`bg-white p-8 border transition-all duration-300 ${hoveredCard === idx
                     ? 'border-teal-600 shadow-xl -translate-y-2'
                     : 'border-slate-200 shadow-lg'
-                }`}
+                  }`}
               >
-                <div className={`w-14 h-14 mb-6 border-2 flex items-center justify-center transition-colors ${
-                  hoveredCard === idx ? 'border-teal-600 bg-teal-50' : 'border-slate-300'
-                }`}>
-                  <Icon 
-                    className={`transition-colors ${hoveredCard === idx ? 'text-teal-600' : 'text-slate-600'}`} 
-                    size={24} 
+                <div className={`w-14 h-14 mb-6 border-2 flex items-center justify-center transition-colors ${hoveredCard === idx ? 'border-teal-600 bg-teal-50' : 'border-slate-300'
+                  }`}>
+                  <Icon
+                    className={`transition-colors ${hoveredCard === idx ? 'text-teal-600' : 'text-slate-600'}`}
+                    size={24}
                   />
                 </div>
                 <p className="text-sm text-slate-500 uppercase tracking-wider mb-3">{info.title}</p>
@@ -147,7 +145,7 @@ const ContactUs = () => {
           <div className="bg-white p-10 border border-slate-200">
             <h2 className="text-3xl font-light text-slate-900 mb-2">Send a Message</h2>
             <p className="text-slate-600 mb-8">Fill out the details below and we'll get back to you shortly.</p>
-            
+
             {isSubmitted ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -247,7 +245,7 @@ const ContactUs = () => {
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-800 mb-8">Contact M Wellness Bazar - Get in Touch with Our Wellness Experts</h2>
-          
+
           <div className="space-y-5 text-gray-700 leading-relaxed">
             <p>
               At M Wellness Bazar, we believe in building strong relationships with our customers through open communication and responsive support. Whether you have questions about our premium wellness products, need personalized recommendations, want to explore partnership opportunities, or have feedback about your experience, our dedicated team is here to help. We're committed to providing exceptional customer service and ensuring that every interaction with M Wellness Bazar reflects our dedication to your wellness journey and satisfaction.

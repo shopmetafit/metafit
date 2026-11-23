@@ -49,7 +49,7 @@ const Hero = () => {
               className="group relative px-10 md:px-14 py-4 md:py-5 text-lg md:text-xl font-bold text-white rounded-full overflow-hidden transition-all duration-300 transform hover:scale-110"
             >
               {/* Animated gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0fa958] via-[#06b6d4] via-[#0fa958] to-[#06b6d4] bg-[length:200%_100%] group-hover:animate-pulse animate-gradient"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0fa958] via-[#A5794F] via-[#0fa958] to-[#A5794F] bg-[length:200%_100%] group-hover:animate-pulse animate-gradient"></div>
               
               {/* Shine effect */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-white rounded-full blur-xl transition-opacity duration-300"></div>
@@ -62,7 +62,7 @@ const Hero = () => {
               </div>
               
               {/* Shadow */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#0fa958] to-[#06b6d4] -z-10 blur-lg opacity-60 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#0fa958] to-[#A5794F] -z-10 blur-lg opacity-60 group-hover:opacity-100 transition-opacity"></div>
             </Link>
           </div>
 

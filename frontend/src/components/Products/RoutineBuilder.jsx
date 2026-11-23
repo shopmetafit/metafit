@@ -646,7 +646,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
       <div className="bg-white/95 backdrop-blur-2xl rounded-2xl lg:rounded-[22px] shadow-xl border border-teal-100/90 overflow-hidden relative">
 
         {/* ─── TOP HEADER BAR WITH STEPPER PROGRESS ─── */}
-        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#046559] p-3 sm:p-3.5 lg:p-4 text-white relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#01221e] via-[#023c35] to-[#6E5136] p-3 sm:p-3.5 lg:p-4 text-white relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-56 h-56 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Title & Subtitle Row */}
@@ -708,9 +708,9 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
             <div className="self-start sm:self-center flex-shrink-0 flex items-center gap-2.5 sm:gap-3.5">
               {/* Dr. AyurAI Animated Character Entry Point */}
               <button
-  type="button"
-  onClick={() => setIsAiChatModalOpen(true)}
-  className="
+                type="button"
+                onClick={() => setIsAiChatModalOpen(true)}
+                className="
     relative
     w-[60px] h-[60px]
     sm:w-[76px] sm:h-[76px]
@@ -729,13 +729,13 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
     hover:scale-105
     active:scale-95
   "
-  aria-label="Ask Dr. AyurAI"
-  title="Ask Dr. AyurAI"
->
-  <img
-    src="/doctor.svg"
-    alt="Dr. AyurAI"
-    className="
+                aria-label="Ask Dr. AyurAI"
+                title="Ask Dr. AyurAI"
+              >
+                <img
+                  src="/doctor.svg"
+                  alt="Dr. AyurAI"
+                  className="
       w-full
       h-full
       object-contain
@@ -745,10 +745,10 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
       border-none
       shadow-none
     "
-  />
-</button>
+                />
+              </button>
 
-             
+
               {isModal && (
                 <button
                   type="button"
@@ -922,7 +922,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                       type="button"
                       onClick={() => setSelectedGoal(g.id)}
                       className={`relative text-left p-3.5 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-200 group flex flex-col justify-between cursor-pointer min-h-[105px] lg:min-h-[115px] ${isSelected
-                        ? "border-[#0FB7A3] bg-teal-50/70 shadow-sm ring-1 ring-[#0FB7A3]/30"
+                        ? "border-[#A5794F] bg-teal-50/70 shadow-sm ring-1 ring-[#A5794F]/30"
                         : "border-slate-200/90 hover:border-teal-300 hover:bg-slate-50/80 bg-white"
                         }`}
                     >
@@ -932,7 +932,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                             {g.icon}
                           </span>
                           {isSelected && (
-                            <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-[9px] lg:text-[10px] font-bold shadow-2xs">
+                            <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#A5794F] text-white flex items-center justify-center text-[9px] lg:text-[10px] font-bold shadow-2xs">
                               <Check className="w-3 h-3 stroke-[3]" />
                             </span>
                           )}
@@ -968,7 +968,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
               <button
                 type="button"
                 onClick={() => setCurrentStep(2)}
-                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#022824] via-[#034d45] to-[#047ca8] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#4E4033] via-[#034d45] to-[#A5794F] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               >
                 <span>Continue to Biomarkers</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1058,7 +1058,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
               <button
                 type="button"
                 onClick={() => setCurrentStep(3)}
-                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#022824] via-[#034d45] to-[#047ca8] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-[#4E4033] via-[#034d45] to-[#A5794F] text-white text-xs lg:text-sm font-bold shadow-md hover:shadow-teal-500/20 hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
               >
                 <span>Continue to Formulations</span>
                 <ArrowRight className="w-4 h-4" />
@@ -1108,7 +1108,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                     type="button"
                     onClick={() => setRoutineTiming(timeOpt.id)}
                     className={`w-full text-left p-3.5 lg:p-4 rounded-xl lg:rounded-2xl border-2 transition-all duration-200 flex items-center gap-3 lg:gap-4 cursor-pointer ${isSelected
-                      ? "border-[#0FB7A3] bg-teal-50/80 shadow-sm ring-1 ring-[#0FB7A3]/30 scale-[1.005]"
+                      ? "border-[#A5794F] bg-teal-50/80 shadow-sm ring-1 ring-[#A5794F]/30 scale-[1.005]"
                       : "border-slate-200/90 hover:border-teal-300 hover:bg-slate-50 bg-white"
                       }`}
                   >
@@ -1126,7 +1126,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                           )}
                         </div>
                         {isSelected && (
-                          <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#0FB7A3] text-white flex items-center justify-center text-[9px] font-bold">
+                          <span className="w-4 h-4 lg:w-5 lg:h-5 rounded-full bg-[#A5794F] text-white flex items-center justify-center text-[9px] font-bold">
                             <Check className="w-3 h-3 stroke-[3]" />
                           </span>
                         )}
@@ -1151,7 +1151,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
               <button
                 type="button"
                 onClick={handleStartAnalysis}
-                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-[#022824] text-white text-xs lg:text-sm font-bold shadow-lg hover:shadow-teal-500/25 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
+                className="inline-flex items-center gap-2 px-6 lg:px-7 py-2 lg:py-2.5 h-10 lg:h-[44px] rounded-xl lg:rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-[#4E4033] text-white text-xs lg:text-sm font-bold shadow-lg hover:shadow-teal-500/25 hover:scale-[1.01] active:scale-[0.99] transition-all cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
                 <span>Generate Official Protocol</span>
@@ -1218,7 +1218,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                 </div>
 
                 {/* Prescription / Protocol Certificate Card */}
-                <div className="bg-gradient-to-br from-[#022824] via-[#033f37] to-[#01221e] rounded-2xl p-3.5 sm:p-5 pt-11 sm:pt-12 text-white shadow-xl relative overflow-hidden border border-teal-500/30">
+                <div className="bg-gradient-to-br from-[#4E4033] via-[#033f37] to-[#01221e] rounded-2xl p-3.5 sm:p-5 pt-11 sm:pt-12 text-white shadow-xl relative overflow-hidden border border-teal-500/30">
                   <div className="absolute top-0 right-0 w-64 h-64 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
                   {/* Top-Left Back Arrow Button */}
@@ -1787,7 +1787,7 @@ export const RoutineBuilder = ({ isModal = false, onClose = () => { }, backHandl
                   Swap {swappingSlot === "am" ? "Morning (AM)" : "Evening (PM)"} Product
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Choose any active product from Wellness Bazaar inventory.
+                  Choose any active product froM Wellness Bazaar inventory.
                 </p>
               </div>
               <button
