@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { MessageCircle, X, Send } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const WhatsAppChat = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const phoneNumber = '918302270668'; // WhatsApp phone number with country code
   const message = 'Hello! I would like to know more about your wellness products and services.';
 
@@ -85,45 +87,64 @@ const WhatsAppChat = () => {
       )}
 
       {/* Floating Button */}
-      <button
-        onClick={toggleChat}
-        className={`group relative w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center overflow-hidden ${
-          isOpen
-            ? 'bg-green-600 hover:bg-green-700'
-            : 'bg-gradient-to-br from-green-500 via-green-600 to-teal-600 hover:shadow-3xl'
-        }`}
-        aria-label="WhatsApp Chat"
-      >
-        {/* Animated Background */}
-        <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
-
-        {/* Pulsing Glow */}
+      <div className="relative isolate">
         {!isOpen && (
-          <div className="absolute inset-0 rounded-full bg-green-400 opacity-20 animate-pulse"></div>
+          <button
+            type="button"
+            onClick={() => navigate('/routine-builder')}
+            className="absolute -top-[68px] right-0 z-30 h-14 w-14 cursor-pointer transition-transform hover:scale-105 active:scale-95 sm:-top-[76px] sm:h-16 sm:w-16"
+            aria-label="Open Personalized Wellness Routine"
+            title="Personalized Wellness Routine"
+          >
+            <img
+              src="/doctor.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-contain"
+            />
+          </button>
         )}
 
-        {/* Icon */}
-        <div className="relative z-10 flex items-center justify-center">
-          {isOpen ? (
-            <X className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-          ) : (
-            <>
-              <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
-              {/* Badge */}
-              <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 bg-red-500 text-white text-[11px] sm:text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-bounce">
-                1
-              </span>
-            </>
+        <button
+          onClick={toggleChat}
+          className={`group relative z-20 w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center overflow-hidden ${
+            isOpen
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-gradient-to-br from-green-500 via-green-600 to-teal-600 hover:shadow-3xl'
+          }`}
+          aria-label="WhatsApp Chat"
+        >
+          {/* Animated Background */}
+          <div className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-700"></div>
+
+          {/* Pulsing Glow */}
+          {!isOpen && (
+            <div className="absolute inset-0 rounded-full bg-green-400 opacity-20 animate-pulse"></div>
           )}
-        </div>
 
-        {/* Hover Text */}
-        {!isOpen && (
-          <div className="absolute bottom-full mb-3 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            Chat with us
+          {/* Icon */}
+          <div className="relative z-10 flex items-center justify-center">
+            {isOpen ? (
+              <X className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+            ) : (
+              <>
+                <MessageCircle className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                {/* Badge */}
+                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 w-5 h-5 bg-red-500 text-white text-[11px] sm:text-xs font-bold rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                  1
+                </span>
+              </>
+            )}
           </div>
-        )}
-      </button>
+
+          {/* Hover Text */}
+          {!isOpen && (
+            <div className="absolute bottom-full mb-3 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-3 py-2 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              Chat with us
+            </div>
+          )}
+        </button>
+      </div>
 
       <style>{`
         @keyframes slideUp {
