@@ -187,10 +187,10 @@ const TodaysDeals = ({ products }) => {
         </div>
         <Link
           to="/collections/all?discountMin=10&sortBy=discount"
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-herb-wood-dark hover:text-herb-ink transition-colors"
+          className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-herb-wood-dark hover:text-herb-ink transition-colors shrink-0"
         >
           View all
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Link>
       </div>
 
