@@ -27,6 +27,8 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -125,6 +127,64 @@ const ProductDetails = ({ productId }) => {
     useState(null);
   const [isAboutExpanded, setIsAboutExpanded] =
     useState(true);
+
+  /* Delivery Pincode checker state */
+  const [deliveryPincode, setDeliveryPincode] = useState(() => {
+    return localStorage.getItem("mwellness_pincode") || "313001";
+  });
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
+  const [pincodeError, setPincodeError] = useState("");
+
+  const calculateDeliveryEstimate = (code) => {
+    const cleanCode = (code || "").trim();
+    if (!/^\d{6}$/.test(cleanCode)) {
+      setDeliveryEstimate(null);
+      setPincodeError("Please enter a valid 6-digit pincode");
+      return;
+    }
+    setPincodeError("");
+    const now = new Date();
+    const minDate = new Date(now);
+    minDate.setDate(now.getDate() + 5);
+    const maxDate = new Date(now);
+    maxDate.setDate(now.getDate() + 7);
+
+    const options = { weekday: "short", day: "numeric", month: "short" };
+    setDeliveryEstimate({
+      pincode: cleanCode,
+      minDate: minDate.toLocaleDateString("en-IN", options),
+      maxDate: maxDate.toLocaleDateString("en-IN", options),
+    });
+    localStorage.setItem("mwellness_pincode", cleanCode);
+  };
+
+  useEffect(() => {
+    if (deliveryPincode && /^\d{6}$/.test(deliveryPincode.trim())) {
+      calculateDeliveryEstimate(deliveryPincode);
+    }
+  }, []);
+
+  const handlePincodeChange = (e) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setDeliveryPincode(val);
+    if (val.length === 6) {
+      calculateDeliveryEstimate(val);
+    } else {
+      setDeliveryEstimate(null);
+      if (val.length > 0 && val.length < 6) {
+        setPincodeError("");
+      }
+    }
+  };
+
+  const handleCheckPincode = () => {
+    if (!deliveryPincode || deliveryPincode.length !== 6) {
+      setPincodeError("Please enter a valid 6-digit pincode");
+      setDeliveryEstimate(null);
+    } else {
+      calculateDeliveryEstimate(deliveryPincode);
+    }
+  };
 
   /*
   ============================================================
@@ -1742,6 +1802,57 @@ const ProductDetails = ({ productId }) => {
                   </div>
                 </div>
               )}
+
+              {/* ==================================================
+                  DELIVERY PINCODE CHECKER
+              ================================================== */}
+              <div className="my-5 p-4 rounded-2xl border border-[#E6DDD0] bg-white">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <MapPin className="h-4 w-4 text-[#14110E]" />
+                  <span className="text-sm font-semibold text-[#1A1612]">Delivery</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={deliveryPincode}
+                    onChange={handlePincodeChange}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCheckPincode();
+                      }
+                    }}
+                    placeholder="Enter Pincode"
+                    className="flex-1 h-10 px-3.5 rounded-xl border border-[#E6DDD0] bg-[#FAF7F2] text-sm text-[#1A1612] placeholder:text-[#9C8E7E] focus:outline-none focus:border-[#14110E] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCheckPincode}
+                    className="h-10 px-5 rounded-xl bg-[#14110E] hover:bg-black active:scale-[0.98] text-white text-sm font-medium transition-all cursor-pointer shrink-0"
+                  >
+                    Check
+                  </button>
+                </div>
+
+                {pincodeError && (
+                  <p className="text-xs text-rose-600 mt-2 font-medium">
+                    {pincodeError}
+                  </p>
+                )}
+
+                {deliveryEstimate && (
+                  <div className="mt-3 pt-3 border-t border-[#F0EBE1] flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-[#2E7D32] shrink-0" />
+                    <p className="text-sm font-medium text-[#1A1612]">
+                      Delivery by <span className="font-semibold text-[#14110E]">{deliveryEstimate.minDate} – {deliveryEstimate.maxDate}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* ==================================================
                   ACTION BUTTONS & QUANTITY CONTROLS

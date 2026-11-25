@@ -667,9 +667,8 @@ const Topbar = () => {
                       Account
                     </span>
                     <ChevronDown
-                      className={`h-3 w-3 text-gray-300 transition-transform ${
-                        accountMenuOpen ? 'rotate-180 text-[#DAB78C]' : ''
-                      }`}
+                      className={`h-3 w-3 text-gray-300 transition-transform ${accountMenuOpen ? 'rotate-180 text-[#DAB78C]' : ''
+                        }`}
                     />
                   </div>
                 </div>
@@ -769,9 +768,8 @@ const Topbar = () => {
 
             <div className="flex items-center gap-1">
               <MapPin
-                className={`h-3.5 w-3.5 text-[#DAB78C] ${
-                  isFetchingLocation ? 'animate-bounce' : ''
-                }`}
+                className={`h-3.5 w-3.5 text-[#DAB78C] ${isFetchingLocation ? 'animate-bounce' : ''
+                  }`}
               />
 
               <span className="text-xs font-bold truncate max-w-[130px] text-[#FDFBF6]">
@@ -1224,9 +1222,8 @@ const Topbar = () => {
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin
-              className={`h-4 w-4 text-[#DAB78C] flex-shrink-0 ${
-                isFetchingLocation ? 'animate-bounce' : ''
-              }`}
+              className={`h-4 w-4 text-[#DAB78C] flex-shrink-0 ${isFetchingLocation ? 'animate-bounce' : ''
+                }`}
             />
             <span className="text-[#F7F1E7]/80 flex-shrink-0 text-[11px] font-medium">
               Deliver to
