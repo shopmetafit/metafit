@@ -117,27 +117,25 @@ const Navbar = () => {
       : categories;
 
   const navLinkClass =
-    "px-3 py-2 text-sm font-medium text-herb-rustic whitespace-nowrap hover:text-herb-wood-dark rounded-md hover:bg-herb-accent/60 flex-shrink-0 transition-colors";
+    "px-3 py-1.5 text-sm font-medium text-white/90 whitespace-nowrap hover:text-[#DAB78C] rounded-md transition-colors flex-shrink-0";
 
   return (
     <>
       {/* =====================================================
-          HERBAL CATEGORY NAV BAR — cream, calm & earthy
+          CATEGORY NAV BAR — deep brown theme matching Image 2
       ====================================================== */}
 
-      <nav className="bg-herb-secondary/80 border-b border-herb-border backdrop-blur-sm relative z-20">
-        <div className="max-w-screen-2xl mx-auto px-3 flex items-center gap-1 overflow-x-auto no-scrollbar">
+      <nav className="bg-[#443524] border-t border-b border-[#362a1c] relative z-20">
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar py-1">
 
           {/* ALL CATEGORIES — opens sidebar menu */}
           <button
             onClick={() => setMenuOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm font-bold text-herb-ink whitespace-nowrap hover:bg-herb-accent/60 rounded-md flex-shrink-0 transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium text-white hover:text-[#DAB78C] whitespace-nowrap rounded-md flex-shrink-0 transition-colors cursor-pointer"
           >
-            <Menu className="h-4 w-4 text-herb-wood" />
-            All categories
+            <span>All categories</span>
+            <ChevronRight className="h-4 w-4 text-white" />
           </button>
-
-          <div className="w-px h-5 bg-herb-border mx-1 flex-shrink-0" />
 
           {/* HOME */}
           <Link to="/" className={navLinkClass}>
@@ -149,12 +147,9 @@ const Navbar = () => {
             Explore
           </Link>
 
-          {/* TODAY'S DEALS */}
-          <Link
-            to="/collections/all?discountMin=10&sortBy=discount"
-            className="px-3 py-2 text-sm font-semibold text-herb-wood-dark whitespace-nowrap hover:text-herb-ink hover:bg-herb-accent/60 rounded-md flex-shrink-0 transition-colors"
-          >
-            Today's Deals
+          {/* BECOME A SELLER */}
+          <Link to="/vendor-register" className={navLinkClass}>
+            Become a Seller
           </Link>
 
           {/* BLOG */}
@@ -172,19 +167,18 @@ const Navbar = () => {
           {/* PHONE */}
           <a
             href="tel:+918829912389"
-            className="hidden xl:flex items-center gap-1.5 px-3 py-2 text-sm whitespace-nowrap rounded-md flex-shrink-0 transition-colors text-herb-rustic hover:text-herb-ink"
+            className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 text-sm whitespace-nowrap rounded-md flex-shrink-0 transition-colors text-white/80 hover:text-white"
           >
-            <Phone className="h-4 w-4 text-herb-wood" />
+            <Phone className="h-3.5 w-3.5 text-[#DAB78C]" />
             <span>+91 88299 12389</span>
           </a>
 
-          {/* BECOME A SELLER — right aligned */}
+          {/* TODAY'S DEALS — right aligned black pill button */}
           <Link
-            to="/vendor-register"
-            className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 my-1 text-sm font-semibold whitespace-nowrap rounded-full flex-shrink-0 transition-colors bg-herb-wood-dark text-herb-background hover:bg-herb-wood"
+            to="/collections/all?discountMin=10&sortBy=discount"
+            className="ml-auto bg-[#0F0D0C] hover:bg-black text-white text-xs sm:text-sm font-medium px-4 py-1.5 rounded-full border border-white/10 transition-colors whitespace-nowrap shadow-xs"
           >
-            <Leaf className="h-3.5 w-3.5" />
-            Become a Seller
+            Today's Deals
           </Link>
         </div>
       </nav>
