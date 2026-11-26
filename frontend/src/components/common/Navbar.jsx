@@ -134,10 +134,15 @@ const Navbar = ({ onOpenMobileNav }) => {
 
           {/* ALL CATEGORIES — opens sidebar menu */}
           <button
-            onClick={() => (onOpenMobileNav ? onOpenMobileNav() : setMenuOpen(true))}
+            onClick={() => {
+              if (window.innerWidth < 768 && onOpenMobileNav) {
+                onOpenMobileNav();
+              } else {
+                setMenuOpen(true);
+              }
+            }}
             className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium text-white hover:text-[#DAB78C] whitespace-nowrap rounded-md flex-shrink-0 transition-colors cursor-pointer"
           >
-            <Menu className="h-4 w-4 text-white" />
             <span>All categories</span>
             <ChevronRight className="h-4 w-4 text-white" />
           </button>

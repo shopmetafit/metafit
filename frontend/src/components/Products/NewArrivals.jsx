@@ -126,7 +126,7 @@ const NewArrivals = () => {
                 <img
                   src={product.images[0]?.url || "https://via.placeholder.com/400x400?text=No+Image"}
                   alt={product.images[0]?.altText || product.name}
-                  className="w-full aspect-square object-contain bg-white p-4 group-hover:scale-110 transition-transform duration-300"
+                  className="w-full aspect-square object-contain bg-white p-0 group-hover:scale-110 transition-transform duration-300"
                   draggable="false"
                 />
                 

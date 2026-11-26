@@ -113,7 +113,7 @@ const DealCard = ({ product }) => {
           </span>
         )}
 
-        <div className="aspect-square w-full bg-herb-muted flex items-center justify-center p-3">
+        <div className="aspect-square w-full bg-herb-muted flex items-center justify-center p-0">
           <img
             src={image}
             alt={product.name}

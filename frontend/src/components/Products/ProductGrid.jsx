@@ -139,7 +139,7 @@ const ProductCard = ({ product, onProductClick }) => {
         className="flex flex-col flex-1 h-full w-full"
       >
         {/* PRODUCT IMAGE */}
-        <div className="relative aspect-square w-full bg-herb-muted rounded-xl overflow-hidden flex items-center justify-center p-3 mb-2.5">
+        <div className="relative aspect-square w-full bg-herb-muted rounded-xl overflow-hidden flex items-center justify-center p-0 mb-2.5">
           {!imageLoaded && (
             <div className="absolute inset-0 bg-gray-100 animate-pulse rounded-xl" />
           )}

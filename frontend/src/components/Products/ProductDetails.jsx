@@ -1981,23 +1981,23 @@ const ProductDetails = ({ productId }) => {
               {/* ==================================================
                   ACTION BUTTONS & QUANTITY CONTROLS
               ================================================== */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 my-5">
+              <div className="flex items-center gap-2 sm:gap-3 my-4 sm:my-5">
                 {cartQuantity > 0 ? (
                   /* CART QUANTITY CONTROL */
-                  <div className="flex-1 h-11 flex items-center justify-between sm:justify-center border-[1.5px] border-[#14110E] bg-[#F3EBE0] rounded-xl px-3">
+                  <div className="flex-1 h-12 flex items-center justify-between sm:justify-center border-[1.5px] border-[#14110E] bg-[#F3EBE0] rounded-xl px-2 sm:px-3">
                     <button
                       type="button"
                       onClick={handleDecrementCart}
                       disabled={isButtonDisabled}
-                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer"
+                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer shrink-0"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="h-3.5 w-3.5 stroke-[2.5]" />
                     </button>
 
-                    <div className="flex flex-col items-center justify-center px-4">
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-[#6E5D4B]">In Cart</span>
-                      <span className="font-bold text-[#1A1612] text-sm leading-none">
+                    <div className="flex flex-col items-center justify-center px-1 sm:px-4 min-w-0">
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-[#6E5D4B] leading-none">In Cart</span>
+                      <span className="font-bold text-[#1A1612] text-sm leading-tight">
                         {isButtonDisabled ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#14110E]" /> : cartQuantity}
                       </span>
                     </div>
@@ -2006,7 +2006,7 @@ const ProductDetails = ({ productId }) => {
                       type="button"
                       onClick={handleIncrementCart}
                       disabled={isButtonDisabled}
-                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer"
+                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer shrink-0"
                       aria-label="Increase quantity"
                     >
                       <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -2018,10 +2018,10 @@ const ProductDetails = ({ productId }) => {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isButtonDisabled || isBuyNowLoading}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 px-5 rounded-xl font-medium text-sm text-white bg-[#14110E] hover:bg-black active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-12 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 rounded-xl font-semibold sm:font-medium text-xs sm:text-sm text-white bg-[#14110E] hover:bg-black active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
                   >
-                    <ShoppingCart className="h-4 w-4 text-white" />
-                    <span>{isButtonDisabled ? "Adding..." : "Add to Cart"}</span>
+                    <ShoppingCart className="h-4 w-4 text-white shrink-0" />
+                    <span className="whitespace-nowrap truncate">{isButtonDisabled ? "Adding..." : "Add to Cart"}</span>
                   </button>
                 )}
 
@@ -2030,10 +2030,10 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleBuyNow}
                   disabled={isButtonDisabled || isBuyNowLoading}
-                  className="flex-1 h-11 flex items-center justify-center gap-2 px-5 rounded-xl font-medium text-sm text-white bg-[#8E5E3C] hover:bg-[#7D5233] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-12 flex items-center justify-center gap-1.5 sm:gap-2 px-2.5 sm:px-5 rounded-xl font-semibold sm:font-medium text-xs sm:text-sm text-white bg-[#8E5E3C] hover:bg-[#7D5233] active:scale-[0.98] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
                 >
-                  <Zap className="h-4 w-4 fill-white text-white" />
-                  <span>{isBuyNowLoading ? "Processing..." : "Buy Now"}</span>
+                  <Zap className="h-4 w-4 fill-white text-white shrink-0" />
+                  <span className="whitespace-nowrap truncate">{isBuyNowLoading ? "Processing..." : "Buy Now"}</span>
                 </button>
 
                 {/* WISHLIST HEART BUTTON */}
@@ -2041,7 +2041,7 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleWishlistToggle}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-                  className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 p-0 ${
+                  className={`w-12 h-12 min-w-[48px] rounded-xl border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 p-0 shadow-xs ${
                     isWishlisted
                       ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
                       : "border-[#E6DDD0] bg-white text-[#1A1612] hover:border-[#8E5E3C]"
