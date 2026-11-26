@@ -27,6 +27,8 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  MapPin,
+  CheckCircle2,
 } from "lucide-react";
 import axios from "axios";
 import {
@@ -125,6 +127,64 @@ const ProductDetails = ({ productId }) => {
     useState(null);
   const [isAboutExpanded, setIsAboutExpanded] =
     useState(true);
+
+  /* Delivery Pincode checker state */
+  const [deliveryPincode, setDeliveryPincode] = useState(() => {
+    return localStorage.getItem("mwellness_pincode") || "313001";
+  });
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
+  const [pincodeError, setPincodeError] = useState("");
+
+  const calculateDeliveryEstimate = (code) => {
+    const cleanCode = (code || "").trim();
+    if (!/^\d{6}$/.test(cleanCode)) {
+      setDeliveryEstimate(null);
+      setPincodeError("Please enter a valid 6-digit pincode");
+      return;
+    }
+    setPincodeError("");
+    const now = new Date();
+    const minDate = new Date(now);
+    minDate.setDate(now.getDate() + 5);
+    const maxDate = new Date(now);
+    maxDate.setDate(now.getDate() + 7);
+
+    const options = { weekday: "short", day: "numeric", month: "short" };
+    setDeliveryEstimate({
+      pincode: cleanCode,
+      minDate: minDate.toLocaleDateString("en-IN", options),
+      maxDate: maxDate.toLocaleDateString("en-IN", options),
+    });
+    localStorage.setItem("mwellness_pincode", cleanCode);
+  };
+
+  useEffect(() => {
+    if (deliveryPincode && /^\d{6}$/.test(deliveryPincode.trim())) {
+      calculateDeliveryEstimate(deliveryPincode);
+    }
+  }, []);
+
+  const handlePincodeChange = (e) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setDeliveryPincode(val);
+    if (val.length === 6) {
+      calculateDeliveryEstimate(val);
+    } else {
+      setDeliveryEstimate(null);
+      if (val.length > 0 && val.length < 6) {
+        setPincodeError("");
+      }
+    }
+  };
+
+  const handleCheckPincode = () => {
+    if (!deliveryPincode || deliveryPincode.length !== 6) {
+      setPincodeError("Please enter a valid 6-digit pincode");
+      setDeliveryEstimate(null);
+    } else {
+      calculateDeliveryEstimate(deliveryPincode);
+    }
+  };
 
   /*
   ============================================================
@@ -230,29 +290,67 @@ const ProductDetails = ({ productId }) => {
 
   const keyFeatures = (() => {
     if (!selectedProduct?.description) return [];
-    const htmlString = selectedProduct.description;
-    const items = [];
+    const raw = selectedProduct.description;
+
+    // 1. Check for <li> tags if HTML formatted
+    const liMatches = [];
     const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
     let match;
-    while ((match = liRegex.exec(htmlString)) !== null) {
-      const content = match[1];
-      const strongMatch = content.match(/<strong[^>]*>([\s\S]*?)<\/strong>/i);
-      let title = "";
-      if (strongMatch) {
-        title = strongMatch[1].replace(/<[^>]+>/g, "").trim();
-      } else {
-        const plainText = content.replace(/<[^>]+>/g, "").trim();
-        title = plainText.split(/[–—\-:]/)[0].trim();
-      }
-      title = title
+    while ((match = liRegex.exec(raw)) !== null) {
+      const text = match[1]
+        .replace(/<[^>]+>/g, "")
         .replace(/&amp;/g, "&")
         .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA70}-\u{1FAFF}\u{FE0F}]/gu, "")
         .trim();
-      if (title && !items.includes(title)) {
-        items.push(title);
+      if (text && !liMatches.includes(text)) {
+        liMatches.push(text);
       }
     }
-    return items;
+    if (liMatches.length > 0) return liMatches;
+
+    // 2. Check for bullet characters (•, *, -, –, ✓, ✨) in raw text
+    const cleanLines = raw
+      .split(/\r?\n|<br\s*\/?>|<\/p>/gi)
+      .map((l) =>
+        l
+          .replace(/<[^>]+>/g, "")
+          .replace(/&amp;/g, "&")
+          .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA70}-\u{1FAFF}\u{FE0F}]/gu, "")
+          .trim()
+      )
+      .filter(Boolean);
+
+    const bulletLines = [];
+    cleanLines.forEach((line) => {
+      if (/^(why choose|how to use|storage|directions|ingredients|storage instructions)/i.test(line) || line.endsWith("?")) {
+        return;
+      }
+      if (/^[•\*\-–✓✨]/.test(line)) {
+        const cleaned = line.replace(/^[•\*\-–✓✨\s:]+/, "").trim();
+        if (cleaned.length > 3 && !bulletLines.includes(cleaned)) {
+          bulletLines.push(cleaned);
+        }
+      }
+    });
+
+    if (bulletLines.length > 0) return bulletLines;
+
+    // 3. Fallback: split sentences from clean lines to make clean points
+    const sentences = [];
+    cleanLines.forEach((line) => {
+      if (/^(why choose|how to use|storage|directions|ingredients|storage instructions)/i.test(line) || line.endsWith("?")) {
+        return;
+      }
+      const parts = line.split(/(?<=[.!?])\s+/);
+      parts.forEach((p) => {
+        const trimmed = p.trim();
+        if (trimmed.length > 20 && trimmed.length < 180 && !sentences.includes(trimmed)) {
+          sentences.push(trimmed);
+        }
+      });
+    });
+
+    return sentences.slice(0, 6);
   })();
 
   useEffect(() => {
@@ -1385,65 +1483,49 @@ const ProductDetails = ({ productId }) => {
         }
       />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
 
-        {/* BACK TO DEALS / PRODUCTS */}
-        <div className="mb-3">
+        {/* BACK TO DEALS */}
+        <div className="mb-4">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-stone-600 hover:text-stone-900 font-medium cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-[#6E5D4B] hover:text-[#1A1612] font-normal cursor-pointer transition-colors"
           >
             <span>← Back to deals</span>
           </button>
         </div>
 
         {/* ====================================================
-            MAIN PRODUCT CARD
+            MAIN PRODUCT SECTION (LOVABLE STYLE)
         ==================================================== */}
 
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 xl:gap-12 items-start">
+        <div className="mb-10">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
 
             {/* ==================================================
-                LEFT - IMAGES (COMPACT & BALANCED)
+                LEFT - CLEAN IMAGE GALLERY
             ================================================== */}
 
-            <div className="w-full lg:w-[34%] xl:w-[36%] max-w-[360px] flex-shrink-0 mx-auto lg:mx-0">
-              {/* MAIN PRODUCT IMAGE CARD (Compact size, clean aesthetic fill) */}
-              <div className="relative w-full aspect-square rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#F2EEE9] flex items-center justify-center shadow-xs">
+            <div className="w-full lg:w-[46%] max-w-[490px] flex-shrink-0 mx-auto lg:mx-0 lg:sticky lg:top-28">
+              {/* MAIN PRODUCT IMAGE CARD */}
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECE6DD] flex items-center justify-center">
                 {mainImage === "video" ? (
                   <video
                     src={selectedProduct.videoUrl}
                     controls
-                    className="w-full h-full object-cover rounded-[20px] md:rounded-[24px]"
+                    className="w-full h-full object-cover rounded-2xl"
                   />
                 ) : (
                   <img
                     src={mainImage || "https://via.placeholder.com/600"}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover rounded-[20px] md:rounded-[24px] transition-all duration-300"
+                    className="w-full h-full object-cover rounded-2xl transition-all duration-300"
                   />
-                )}
-
-                {/* NEW METAFIT LOGO (Top-right corner badge) */}
-                <div className="absolute top-3 right-3 bg-white/95 rounded-xl p-1.5 shadow-sm border border-stone-200/60 z-10 w-11 h-11 flex items-center justify-center">
-                  <img
-                    src="/metafit-logo.png"
-                    alt="Metafit Wellness"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                {/* DISCOUNT BADGE (Top-left corner) */}
-                {discountPct > 0 && (
-                  <div className="absolute top-3 left-3 bg-[#ff3b30] text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm z-10">
-                    -{discountPct}% OFF
-                  </div>
                 )}
               </div>
 
-              {/* THUMBNAILS (Clean horizontal row underneath the main image with arrows) */}
+              {/* THUMBNAILS */}
               {allProductThumbnails.length > 1 && (
                 <div className="flex items-center gap-2 mt-3.5">
                   <button
@@ -1452,7 +1534,7 @@ const ProductDetails = ({ productId }) => {
                       const el = document.getElementById("main-thumbnails-scroll");
                       if (el) el.scrollBy({ left: -120, behavior: "smooth" });
                     }}
-                    className="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-gray-900 shadow-xs flex-shrink-0 cursor-pointer"
+                    className="w-8 h-8 rounded-full border border-[#E6DDD0] bg-white flex items-center justify-center text-[#5C4D3C] hover:text-[#1A1612] shadow-xs flex-shrink-0 cursor-pointer transition-colors"
                     aria-label="Previous thumbnails"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -1463,13 +1545,13 @@ const ProductDetails = ({ productId }) => {
                       <button
                         title="Product Video"
                         onClick={() => setMainImage("video")}
-                        className={`w-14 h-14 rounded-xl border-2 overflow-hidden transition-all relative flex-shrink-0 ${mainImage === "video"
-                          ? "border-black ring-2 ring-black/20"
-                          : "border-gray-200 hover:border-gray-400"
+                        className={`w-16 h-16 rounded-xl border-2 overflow-hidden transition-all relative flex-shrink-0 cursor-pointer ${mainImage === "video"
+                          ? "border-[#14110E] ring-2 ring-[#14110E]/15"
+                          : "border-[#E6DDD0] hover:border-[#8E5E3C]"
                           }`}
                       >
                         <video src={selectedProduct.videoUrl} muted className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/20 flex flex-col items-center justify-center">
+                        <div className="absolute inset-0 bg-black/25 flex flex-col items-center justify-center">
                           <FaPlayCircle className="text-white text-lg" />
                           <span className="text-[8px] font-bold text-white uppercase">Video</span>
                         </div>
@@ -1480,9 +1562,9 @@ const ProductDetails = ({ productId }) => {
                       <button
                         key={`main-thumb-${i}`}
                         onClick={() => setMainImage(imgUrl)}
-                        className={`w-14 h-14 flex-shrink-0 rounded-xl border-2 overflow-hidden bg-gray-50 transition-all ${mainImage === imgUrl
-                          ? "border-black ring-2 ring-black/20"
-                          : "border-gray-200 hover:border-gray-300"
+                        className={`w-16 h-16 flex-shrink-0 rounded-xl border-2 overflow-hidden bg-white transition-all cursor-pointer ${mainImage === imgUrl
+                          ? "border-[#14110E] ring-2 ring-[#14110E]/15"
+                          : "border-[#E6DDD0] hover:border-[#8E5E3C]"
                           }`}
                       >
                         <img src={imgUrl} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover" />
@@ -1496,7 +1578,7 @@ const ProductDetails = ({ productId }) => {
                       const el = document.getElementById("main-thumbnails-scroll");
                       if (el) el.scrollBy({ left: 120, behavior: "smooth" });
                     }}
-                    className="w-7 h-7 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:text-gray-900 shadow-xs flex-shrink-0 cursor-pointer"
+                    className="w-8 h-8 rounded-full border border-[#E6DDD0] bg-white flex items-center justify-center text-[#5C4D3C] hover:text-[#1A1612] shadow-xs flex-shrink-0 cursor-pointer transition-colors"
                     aria-label="Next thumbnails"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -1506,17 +1588,17 @@ const ProductDetails = ({ productId }) => {
             </div>
 
             {/* ==================================================
-                RIGHT - DETAILS
+                RIGHT - CLEAN PRODUCT DETAILS
             ================================================== */}
 
-            <div className="flex-1 w-full min-w-0">
+            <div className="flex-1 w-full min-w-0 pt-1">
 
-              {/* BRAND & LOCATION SUBTITLE */}
+              {/* BRAND & LOCATION / CATEGORY SUBTITLE */}
               {selectedProduct.brand && (
-                <div className="mb-1 text-xs sm:text-sm text-stone-600 font-medium">
+                <div className="mb-1.5 text-xs sm:text-sm text-[#6E5D4B] font-normal">
                   <Link
                     to={`/collections/all?brand=${encodeURIComponent(selectedProduct.brand.trim())}`}
-                    className="hover:text-stone-900 transition-colors"
+                    className="hover:text-[#1A1612] transition-colors"
                   >
                     {selectedProduct.brand}
                   </Link>
@@ -1525,14 +1607,14 @@ const ProductDetails = ({ productId }) => {
                   ) : selectedProduct.brandDetails?.location ? (
                     <span> · {selectedProduct.brandDetails.location}</span>
                   ) : selectedProduct.category ? (
-                    <span> · {selectedProduct.category}</span>
+                    <span className="capitalize"> · {selectedProduct.category}</span>
                   ) : null}
                 </div>
               )}
 
-              {/* PRODUCT NAME (FRAUNCES / SERIF) & COMPARE */}
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <h1 className="font-serif text-3xl sm:text-4xl text-stone-900 font-normal tracking-tight leading-tight">
+              {/* PRODUCT NAME (SERIF) & COMPARE */}
+              <div className="flex items-start justify-between gap-3 mb-2.5">
+                <h1 className="font-serif text-3xl sm:text-4xl text-[#1A1612] font-bold tracking-tight leading-tight">
                   {selectedProduct.name}
                 </h1>
 
@@ -1541,9 +1623,9 @@ const ProductDetails = ({ productId }) => {
                   onClick={() => selectedProduct && dispatch(toggleCompare(selectedProduct))}
                   title={isCompared ? "In Comparison (Click to remove)" : "Compare with Other Products"}
                   aria-label={isCompared ? "Remove from comparison" : "Compare product"}
-                  className={`w-7 h-7 min-w-[28px] min-h-[28px] rounded-md border transition-all flex items-center justify-center cursor-pointer shadow-xs flex-shrink-0 mt-1.5 ${isCompared
-                    ? "border-emerald-500 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                    : "border-gray-200 bg-white text-gray-400 hover:border-gray-300 hover:text-gray-700"
+                  className={`w-8 h-8 min-w-[32px] min-h-[32px] rounded-xl border transition-all flex items-center justify-center cursor-pointer flex-shrink-0 mt-1 ${isCompared
+                    ? "border-[#14110E] bg-[#14110E] text-white"
+                    : "border-[#E6DDD0] bg-white text-[#6E5D4B] hover:border-[#8E5E3C] hover:text-[#1A1612]"
                     }`}
                 >
                   <ArrowLeftRight className={`h-3.5 w-3.5 ${isCompared ? "stroke-[2.5]" : ""}`} />
@@ -1551,28 +1633,40 @@ const ProductDetails = ({ productId }) => {
               </div>
 
               {activeReferral && (
-                <div className="mb-2.5 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                <div className="mb-3 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   Recommended by Vendor
                 </div>
               )}
 
-              {/* RATING (ONLY RATING DISPLAYED) */}
-              <div className="flex items-center gap-2 mb-3.5">
+              {/* RATING & STOCK */}
+              <div className="flex flex-wrap items-center gap-2.5 mb-4">
                 {totalReviews > 0 ? (
-                  <div className="flex items-center gap-1.5 text-sm font-medium text-stone-700">
-                    <span className="text-[#8E5E3C] text-sm leading-none">★</span>
-                    <span className="font-semibold text-stone-900">{formattedAverage}</span>
-                    <span className="text-stone-400">·</span>
+                  <div className="flex items-center gap-1.5 text-sm text-[#5C4D3C]">
+                    <span className="text-[#B58250] text-sm leading-none">★</span>
+                    <span className="font-semibold text-[#1A1612]">{formattedAverage}</span>
+                    <span className="text-[#8C7A68]">·</span>
                     <span>{totalReviews} {totalReviews === 1 ? "rating" : "ratings"}</span>
                   </div>
                 ) : (
-                  <span className="text-xs text-stone-500 font-normal">
+                  <span className="text-xs text-[#6E5D4B] font-normal">
                     No ratings yet
+                  </span>
+                )}
+
+                {selectedProduct.countInStock !== undefined && (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium ${
+                      selectedProduct.countInStock > 0
+                        ? "bg-[#B58250]/15 text-[#7A5229]"
+                        : "bg-rose-50 text-rose-700"
+                    }`}
+                  >
+                    {selectedProduct.countInStock > 0 ? "In Stock" : "Out of Stock"}
                   </span>
                 )}
               </div>
 
-              {/* PRICE */}
+              {/* PRICE (DIRECT CLEAN TYPOGRAPHY LIKE LOVABLE) */}
               {!selectedProduct.hasVariants ? (
                 (() => {
                   let displayPrice =
@@ -1584,90 +1678,38 @@ const ProductDetails = ({ productId }) => {
 
                   if (
                     selectedSize &&
-                    typeof selectedSize ===
-                    "string" &&
+                    typeof selectedSize === "string" &&
                     selectedSize.includes(":")
                   ) {
-                    const parts =
-                      selectedSize.split(
-                        ":"
-                      );
-
-                    if (
-                      parts.length ===
-                      3
-                    ) {
-                      if (
-                        !isNaN(
-                          Number(
-                            parts[1]
-                          )
-                        )
-                      ) {
-                        displayMrp =
-                          Number(
-                            parts[1]
-                          );
-                      }
-
-                      if (
-                        !isNaN(
-                          Number(
-                            parts[2]
-                          )
-                        )
-                      ) {
-                        displayPrice =
-                          Number(
-                            parts[2]
-                          );
-                      }
-                    } else if (
-                      parts.length ===
-                      2
-                    ) {
-                      if (
-                        !isNaN(
-                          Number(
-                            parts[1]
-                          )
-                        )
-                      ) {
-                        displayPrice =
-                          Number(
-                            parts[1]
-                          );
-                      }
+                    const parts = selectedSize.split(":");
+                    if (parts.length === 3) {
+                      if (!isNaN(Number(parts[1]))) displayMrp = Number(parts[1]);
+                      if (!isNaN(Number(parts[2]))) displayPrice = Number(parts[2]);
+                    } else if (parts.length === 2) {
+                      if (!isNaN(Number(parts[1]))) displayPrice = Number(parts[1]);
                     }
                   }
 
                   const computedDiscountPct =
-                    displayMrp &&
-                      displayMrp >
-                      displayPrice
-                      ? Math.round(
-                        ((displayMrp -
-                          displayPrice) /
-                          displayMrp) *
-                        100
-                      )
+                    displayMrp && displayMrp > displayPrice
+                      ? Math.round(((displayMrp - displayPrice) / displayMrp) * 100)
                       : 0;
 
                   return (
-                    <div className="mb-4">
+                    <div className="mb-5">
                       <div className="flex items-baseline gap-2.5 flex-wrap">
-                        <span className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+                        <span className="text-2xl sm:text-3xl font-bold text-[#1A1612] tracking-tight">
                           {formatCurrency(displayPrice)}
                         </span>
 
                         {displayMrp && displayMrp > displayPrice && (
-                          <span className="text-sm sm:text-base text-stone-400 line-through font-normal">
+                          <span className="text-sm sm:text-base text-[#8C7A68] line-through font-normal">
                             {formatCurrency(displayMrp)}
                           </span>
                         )}
 
                         {computedDiscountPct > 0 && (
-                          <span className="text-sm sm:text-base font-semibold text-[#4A7A3F]">
+                          <span className="text-sm sm:text-base font-medium text-[#4A7A3F]">
                             {computedDiscountPct}% off
                           </span>
                         )}
@@ -1676,9 +1718,9 @@ const ProductDetails = ({ productId }) => {
                   );
                 })()
               ) : (
-                <div className="mb-4">
+                <div className="mb-5">
                   <div className="flex items-baseline gap-2.5 flex-wrap">
-                    <span className="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+                    <span className="text-2xl sm:text-3xl font-bold text-[#1A1612] tracking-tight">
                       {formatCurrency(
                         selectedVariant?.discountPrice ||
                         selectedVariant?.price ||
@@ -1688,14 +1730,14 @@ const ProductDetails = ({ productId }) => {
                     {selectedVariant?.discountPrice &&
                       selectedVariant?.price &&
                       selectedVariant.discountPrice < selectedVariant.price && (
-                        <span className="text-sm sm:text-base text-stone-400 line-through font-normal">
+                        <span className="text-sm sm:text-base text-[#8C7A68] line-through font-normal">
                           {formatCurrency(selectedVariant.price)}
                         </span>
                       )}
                     {selectedVariant?.discountPrice &&
                       selectedVariant?.price &&
                       selectedVariant.discountPrice < selectedVariant.price && (
-                        <span className="text-sm sm:text-base font-semibold text-[#4A7A3F]">
+                        <span className="text-sm sm:text-base font-medium text-[#4A7A3F]">
                           {Math.round(
                             ((selectedVariant.price - selectedVariant.discountPrice) /
                               selectedVariant.price) *
@@ -1712,9 +1754,9 @@ const ProductDetails = ({ productId }) => {
               {selectedProduct.hasVariants &&
                 selectedProduct.variants?.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-sm text-stone-700 font-normal mb-2">
+                    <p className="text-sm text-[#6E5D4B] font-normal mb-2">
                       Type:{" "}
-                      <span className="font-semibold text-stone-900">
+                      <span className="font-semibold text-[#1A1612]">
                         {selectedVariant?.label || "Select option"}
                       </span>
                     </p>
@@ -1727,10 +1769,10 @@ const ProductDetails = ({ productId }) => {
                             key={idx}
                             type="button"
                             onClick={() => setSelectedVariant(variant)}
-                            className={`px-4 py-2 rounded-xl text-sm transition-all cursor-pointer ${
+                            className={`px-4 py-2 rounded-xl text-sm transition-all cursor-pointer border ${
                               isVariantSelected
-                                ? "bg-black text-white font-semibold shadow-xs"
-                                : "border border-stone-200 bg-white text-stone-800 hover:border-stone-400 font-medium"
+                                ? "bg-[#14110E] text-white border-[#14110E] font-medium"
+                                : "border-[#E6DDD0] bg-white text-[#1A1612] hover:border-[#8E5E3C] font-normal"
                             }`}
                           >
                             {variant.label}
@@ -1744,9 +1786,9 @@ const ProductDetails = ({ productId }) => {
               {/* SIZES */}
               {selectedProduct.sizes?.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-sm text-stone-700 font-normal mb-2">
+                  <p className="text-sm text-[#6E5D4B] font-normal mb-2">
                     Size:{" "}
-                    <span className="font-semibold text-stone-900">
+                    <span className="font-semibold text-[#1A1612]">
                       {selectedSize ? selectedSize.split(":")[0] : ""}
                     </span>
                   </p>
@@ -1760,10 +1802,10 @@ const ProductDetails = ({ productId }) => {
                           key={i}
                           type="button"
                           onClick={() => setSelectedSize(sizeRaw)}
-                          className={`px-4 py-2 rounded-xl text-sm transition-all cursor-pointer ${
+                          className={`px-4 py-2 rounded-xl text-sm transition-all cursor-pointer border ${
                             isSelected
-                              ? "bg-black text-white font-semibold shadow-xs"
-                              : "border border-stone-200 bg-white text-stone-800 hover:border-stone-400 font-medium"
+                              ? "bg-[#14110E] text-white border-[#14110E] font-medium"
+                              : "border-[#E6DDD0] bg-white text-[#1A1612] hover:border-[#8E5E3C] font-normal"
                           }`}
                         >
                           {sizeName}
@@ -1775,74 +1817,102 @@ const ProductDetails = ({ productId }) => {
               )}
 
               {/* COLORS */}
+              {selectedProduct.colors?.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-sm font-normal text-[#6E5D4B] mb-2">
+                    Color:
+                  </p>
 
-              {selectedProduct.colors
-                ?.length > 0 && (
-                  <div className="mb-4">
-
-                    <p className="text-sm font-bold text-gray-800 mb-2">
-                      Color:
-                    </p>
-
-                    <div className="flex flex-wrap gap-2">
-
-                      {selectedProduct.colors.map(
-                        (
-                          color,
-                          i
-                        ) => (
-                          <button
-                            key={i}
-                            onClick={() =>
-                              handleColorClick(
-                                color,
-                                i
-                              )
-                            }
-                            title={
-                              selectedProduct.colorsName?.[
-                              i
-                              ] ||
-                              color
-                            }
-                            className={`w-9 h-9 rounded-full border-2 transition-all ${selectedColor ===
-                              color
-                              ? "ring-2 ring-black ring-offset-2"
-                              : "border-gray-300 hover:scale-110"
-                              }`}
-                            style={{
-                              backgroundColor:
-                                color,
-                            }}
-                          />
-                        )
-                      )}
-                    </div>
+                  <div className="flex flex-wrap gap-2.5">
+                    {selectedProduct.colors.map((color, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleColorClick(color, i)}
+                        title={selectedProduct.colorsName?.[i] || color}
+                        className={`w-8 h-8 rounded-full border-2 transition-all cursor-pointer ${
+                          selectedColor === color
+                            ? "ring-2 ring-[#14110E] ring-offset-2 border-white"
+                            : "border-[#E6DDD0] hover:scale-110"
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
               {/* ==================================================
-                  ACTION BUTTONS & QUANTITY CONTROLS (CART-BASED)
+                  DELIVERY PINCODE CHECKER
               ================================================== */}
+              <div className="my-5 p-4 rounded-2xl border border-[#E6DDD0] bg-white">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <MapPin className="h-4 w-4 text-[#14110E]" />
+                  <span className="text-sm font-semibold text-[#1A1612]">Delivery</span>
+                </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 my-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    value={deliveryPincode}
+                    onChange={handlePincodeChange}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCheckPincode();
+                      }
+                    }}
+                    placeholder="Enter Pincode"
+                    className="flex-1 h-10 px-3.5 rounded-xl border border-[#E6DDD0] bg-[#FAF7F2] text-sm text-[#1A1612] placeholder:text-[#9C8E7E] focus:outline-none focus:border-[#14110E] transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCheckPincode}
+                    className="h-10 px-5 rounded-xl bg-[#14110E] hover:bg-black active:scale-[0.98] text-white text-sm font-medium transition-all cursor-pointer shrink-0"
+                  >
+                    Check
+                  </button>
+                </div>
+
+                {pincodeError && (
+                  <p className="text-xs text-rose-600 mt-2 font-medium">
+                    {pincodeError}
+                  </p>
+                )}
+
+                {deliveryEstimate && (
+                  <div className="mt-3 pt-3 border-t border-[#F0EBE1] flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-[#2E7D32] shrink-0" />
+                    <p className="text-sm font-medium text-[#1A1612]">
+                      Delivery by <span className="font-semibold text-[#14110E]">{deliveryEstimate.minDate} – {deliveryEstimate.maxDate}</span>
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* ==================================================
+                  ACTION BUTTONS & QUANTITY CONTROLS
+              ================================================== */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 my-5">
                 {cartQuantity > 0 ? (
                   /* CART QUANTITY CONTROL */
-                  <div className="flex-1 h-11 flex items-center justify-between sm:justify-center border-[1.5px] border-black bg-stone-100 rounded-xl px-2.5 shadow-xs">
+                  <div className="flex-1 h-11 flex items-center justify-between sm:justify-center border-[1.5px] border-[#14110E] bg-[#F3EBE0] rounded-xl px-3">
                     <button
                       type="button"
                       onClick={handleDecrementCart}
                       disabled={isButtonDisabled}
-                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-stone-200 active:bg-stone-300 text-black rounded-lg transition-colors border border-stone-300 disabled:opacity-50 cursor-pointer shadow-xs"
+                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="h-3.5 w-3.5 stroke-[2.5]" />
                     </button>
 
-                    <div className="flex flex-col items-center justify-center px-3">
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-stone-500">In Cart</span>
-                      <span className="font-bold text-stone-900 text-sm leading-none">
-                        {isButtonDisabled ? <Loader2 className="h-3.5 w-3.5 animate-spin text-black" /> : cartQuantity}
+                    <div className="flex flex-col items-center justify-center px-4">
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-[#6E5D4B]">In Cart</span>
+                      <span className="font-bold text-[#1A1612] text-sm leading-none">
+                        {isButtonDisabled ? <Loader2 className="h-3.5 w-3.5 animate-spin text-[#14110E]" /> : cartQuantity}
                       </span>
                     </div>
 
@@ -1850,7 +1920,7 @@ const ProductDetails = ({ productId }) => {
                       type="button"
                       onClick={handleIncrementCart}
                       disabled={isButtonDisabled}
-                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-stone-200 active:bg-stone-300 text-black rounded-lg transition-colors border border-stone-300 disabled:opacity-50 cursor-pointer shadow-xs"
+                      className="w-8 h-8 flex items-center justify-center bg-white hover:bg-[#FAF6F0] text-[#1A1612] rounded-lg transition-colors border border-[#E6DDD0] disabled:opacity-50 cursor-pointer"
                       aria-label="Increase quantity"
                     >
                       <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
@@ -1862,7 +1932,7 @@ const ProductDetails = ({ productId }) => {
                     type="button"
                     onClick={handleAddToCart}
                     disabled={isButtonDisabled || isBuyNowLoading}
-                    className="flex-1 h-11 flex items-center justify-center gap-2 px-4 rounded-xl font-semibold text-sm text-white bg-black hover:bg-stone-800 active:scale-[0.99] transition-all duration-200 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 h-11 flex items-center justify-center gap-2 px-5 rounded-xl font-medium text-sm text-white bg-[#14110E] hover:bg-black active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart className="h-4 w-4 text-white" />
                     <span>{isButtonDisabled ? "Adding..." : "Add to Cart"}</span>
@@ -1874,7 +1944,7 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleBuyNow}
                   disabled={isButtonDisabled || isBuyNowLoading}
-                  className="flex-1 h-11 flex items-center justify-center gap-2 px-4 rounded-xl font-semibold text-sm text-white bg-[#8E5E3C] hover:bg-[#7D5233] active:scale-[0.99] transition-all duration-200 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 h-11 flex items-center justify-center gap-2 px-5 rounded-xl font-medium text-sm text-white bg-[#8E5E3C] hover:bg-[#7D5233] active:scale-[0.99] transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Zap className="h-4 w-4 fill-white text-white" />
                   <span>{isBuyNowLoading ? "Processing..." : "Buy Now"}</span>
@@ -1885,28 +1955,29 @@ const ProductDetails = ({ productId }) => {
                   type="button"
                   onClick={handleWishlistToggle}
                   title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
-                  className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 shadow-xs p-0 ${isWishlisted
-                    ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
-                    : "text-gray-700"
-                    }`}
+                  className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl border flex items-center justify-center cursor-pointer transition-all flex-shrink-0 p-0 ${
+                    isWishlisted
+                      ? "border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100"
+                      : "border-[#E6DDD0] bg-white text-[#1A1612] hover:border-[#8E5E3C]"
+                  }`}
                 >
-                  <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-gray-700"}`} />
+                  <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-[#1A1612]"}`} />
                 </button>
               </div>
 
               {/* TRUST BADGES */}
-              <div className="grid grid-cols-3 py-3 px-3 mt-3 bg-[#FAF7F0] rounded-xl border border-stone-200/80 text-center">
+              <div className="grid grid-cols-3 py-3 px-3 mt-4 bg-[#FAF7F0] rounded-xl border border-[#E6DDD0] divide-x divide-[#E6DDD0] text-center">
                 <div className="flex flex-col items-center justify-center gap-1">
                   <Truck className="h-4 w-4 text-[#8E5E3C]" />
-                  <span className="font-semibold text-xs text-gray-800">Fast Delivery</span>
+                  <span className="font-medium text-xs text-[#1A1612]">Fast Delivery</span>
                 </div>
-                <div className="flex flex-col items-center justify-center gap-1 border-x border-stone-200/80 px-2">
+                <div className="flex flex-col items-center justify-center gap-1 px-2">
                   <ShieldCheck className="h-4 w-4 text-[#8E5E3C]" />
-                  <span className="font-semibold text-xs text-gray-800">100% Genuine</span>
+                  <span className="font-medium text-xs text-[#1A1612]">100% Genuine</span>
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1">
                   <RotateCcw className="h-4 w-4 text-[#8E5E3C]" />
-                  <span className="font-semibold text-xs text-gray-800">Easy Returns</span>
+                  <span className="font-medium text-xs text-[#1A1612]">Easy Returns</span>
                 </div>
               </div>
             </div>
@@ -1914,123 +1985,101 @@ const ProductDetails = ({ productId }) => {
         </div>
 
         {/* ======================================================
-            ABOUT THIS PRODUCT & PRODUCT DETAILS (2-COLUMN GRID)
+            ABOUT THIS PRODUCT & SPECIFICATIONS (LOVABLE STYLE)
         ====================================================== */}
         {(selectedProduct.description || selectedProduct.brand || selectedProduct.category || selectedProduct.wellnessGoal?.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 my-6 items-stretch">
-            {/* LEFT CARD: About this product */}
-            <div className="bg-[#FAF8F5] rounded-2xl border border-[#EFEAE2] p-5 sm:p-6 shadow-xs h-full flex flex-col">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-[#F5EDE4] text-[#8C4A2F] flex items-center justify-center flex-shrink-0">
-                  <Sprout className="w-4.5 h-4.5" />
-                </div>
-                <h2 className="text-xl md:text-2xl font-bold text-[#520000] tracking-tight">
-                  About this product
-                </h2>
-              </div>
+          <div className="mt-12 mb-10 grid gap-8 md:gap-10 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start">
+            {/* 1. About this product */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                About this product
+              </h2>
+              {keyFeatures.length > 0 ? (
+                <ul className="list-disc space-y-2.5 pl-5 text-[#5C4D3E] text-[15px] leading-relaxed">
+                  {keyFeatures.map((item, idx) => (
+                    <li key={idx} className="pl-1">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ) : selectedProduct.description ? (
+                <div
+                  className="about-product-rich-text text-[15px] text-[#5C4D3E] leading-relaxed space-y-3"
+                  dangerouslySetInnerHTML={{
+                    __html: formatProductDescription(selectedProduct.description, selectedProduct.name),
+                  }}
+                />
+              ) : (
+                <p className="text-[15px] text-[#6E5D4B] italic">No description available for this product.</p>
+              )}
+            </section>
 
-              <div className="flex-1 flex flex-col justify-start">
-                {keyFeatures.length > 0 ? (
-                  <ul className="flex flex-col gap-3.5 mt-2">
-                    {keyFeatures.map((item, idx) => (
-                      <li key={idx} className="flex items-center gap-3">
-                        <div className="w-4.5 h-4.5 min-w-[18px] min-h-[18px] rounded-full bg-[#520000] text-white flex items-center justify-center flex-shrink-0 text-[10px] font-extrabold shadow-xs">
-                          ✓
-                        </div>
-                        <span className="text-sm md:text-[15px] font-normal text-stone-700 leading-snug">
-                          {item}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : selectedProduct.description ? (
-                  <div
-                    className="about-product-rich-text text-sm text-stone-700 leading-relaxed mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: formatProductDescription(selectedProduct.description, selectedProduct.name),
-                    }}
-                  />
-                ) : (
-                  <p className="text-sm text-stone-500 italic">No description available for this product.</p>
+            {/* 2. Specifications */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                Specifications
+              </h2>
+              <dl className="divide-y divide-[#E6DDD0] rounded-xl border border-[#E6DDD0] bg-white overflow-hidden shadow-2xs">
+                {selectedProduct.brand && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Brand</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.brand}</dd>
+                  </div>
                 )}
-              </div>
-            </div>
-
-            {/* RIGHT CARD: Product Details */}
-            <div className="bg-[#FAF8F5] rounded-2xl border border-[#EFEAE2] p-5 sm:p-6 shadow-xs h-full flex flex-col">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-[#F5EDE4] text-[#8C4A2F] flex items-center justify-center flex-shrink-0">
-                  <Layers className="w-4.5 h-4.5" />
+                {selectedProduct.category && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Category</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium capitalize">{selectedProduct.category}</dd>
+                  </div>
+                )}
+                {selectedProduct.wellnessGoal?.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Wellness Goals</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.wellnessGoal.join(", ")}</dd>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                  <dt className="text-[#6E5D4B] text-sm">Country of origin</dt>
+                  <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.countryOfOrigin || "India"}</dd>
                 </div>
-                <h2 className="text-xl md:text-2xl font-bold text-[#520000] tracking-tight">
-                  Product Details
-                </h2>
+              </dl>
+            </section>
+
+            {/* 3. About the brand */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                About the brand
+              </h2>
+              <div className="rounded-xl bg-[#F4EDE2] p-5 border border-[#E6DDD0]">
+                <p className="font-serif text-xl font-semibold text-[#1A1612]">
+                  {selectedProduct.brand || "MetaFit Wellness Partner"}
+                </p>
+                <p className="text-sm text-[#6E5D4B] mt-0.5">
+                  Authentic Wellness & Herbal Partner
+                </p>
+                <p className="mt-3 text-sm text-[#4A3E31] leading-relaxed">
+                  Dedicated to authentic Ayurvedic and wellness formulations, natural ingredients, and high purity standards.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    Made in India
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    100% Genuine
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    Natural Care
+                  </span>
+                </div>
               </div>
-
-              <div className="border border-[#EFEAE2] rounded-xl overflow-hidden bg-white shadow-xs flex-1 flex flex-col">
-                <table className="w-full h-full text-sm text-left border-collapse">
-                  <tbody>
-                    {selectedProduct.brand && (
-                      <tr className="border-b border-[#EFEAE2] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-normal text-stone-500 bg-stone-50/40 border-r border-[#EFEAE2]">
-                          Brand
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-stone-700 font-normal">
-                          {selectedProduct.brand}
-                        </td>
-                      </tr>
-                    )}
-
-                    {selectedProduct.category && (
-                      <tr className="border-b border-[#EFEAE2] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-normal text-stone-500 bg-stone-50/40 border-r border-[#EFEAE2]">
-                          Category
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-stone-700 font-normal capitalize">
-                          {selectedProduct.category}
-                        </td>
-                      </tr>
-                    )}
-
-                    {selectedProduct.wellnessGoal?.length > 0 && (
-                      <tr className="border-b border-[#EFEAE2] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-normal text-stone-500 bg-stone-50/40 border-r border-[#EFEAE2] align-middle">
-                          Wellness Goals
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-stone-700">
-                          <div className="flex flex-wrap gap-2">
-                            {selectedProduct.wellnessGoal.map((goal, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-normal bg-[#DDF0F8] text-[#036B94] border border-[#BCE1F1]"
-                              >
-                                {goal}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-
-                    <tr className="border-b border-[#EFEAE2] last:border-b-0">
-                      <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-normal text-stone-500 bg-stone-50/40 border-r border-[#EFEAE2]">
-                        Country of Origin
-                      </td>
-                      <td className="py-3 sm:py-3.5 px-4 text-stone-700 font-normal">
-                        {selectedProduct.countryOfOrigin || "India"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            </section>
           </div>
         )}
 
         {/* ======================================================
             PRODUCT REVIEWS
         ====================================================== */}
-        <div className="bg-white rounded-xl shadow-sm p-5 md:p-6 my-6 border border-gray-100">
+        <div className="bg-[#FDFBF6] rounded-2xl shadow-xs p-5 md:p-7 my-8 border border-[#E6DDD0]">
           {selectedProduct?._id && (
             <ProductReviews productId={selectedProduct._id} />
           )}
@@ -2041,12 +2090,12 @@ const ProductDetails = ({ productId }) => {
         ====================================================== */}
 
         {(similarLoading || displayedRelatedProducts.length > 0) && (
-          <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 my-6 border border-gray-100">
-            <div className="mb-5 border-b border-gray-100 pb-3">
-              <h2 className="font-display text-xl md:text-2xl font-bold text-herb-ink tracking-tight">
+          <div className="bg-[#FDFBF6] rounded-2xl shadow-xs p-5 sm:p-7 my-8 border border-[#E6DDD0]">
+            <div className="mb-5 border-b border-[#EFEAE2] pb-3">
+              <h2 className="font-serif text-xl md:text-2xl font-bold text-[#242221] tracking-tight">
                 Related Products
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-[#6E5D4B] mt-1">
                 Explore more products you may like
               </p>
             </div>

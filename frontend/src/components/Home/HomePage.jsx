@@ -28,65 +28,44 @@ import { fetchAllProducts } from "../../redux/slices/productSlice";
 import { getProductDiscount } from "../../pages/CollectionPage";
 
 /* ─────────────────────────────────────────────
-   HERO — "Promise" (herbal banner)
+   HERO — "Promise" (compact herbal banner matching Image 1)
 ───────────────────────────────────────────── */
 const Hero = () => (
-  <section className="relative overflow-hidden rounded-2xl shadow-soft border border-herb-border h-[320px] sm:h-[400px] lg:h-[460px]">
-    {/* Banner image — fixed height, image stays still while page scrolls */}
+  <section className="relative overflow-hidden -mx-2 sm:-mx-4 -mt-3 h-[210px] sm:h-[245px] md:h-[270px] border-b border-herb-border">
+    {/* Banner image */}
     <div
-      className="absolute inset-0 bg-cover bg-center md:bg-fixed"
+      className="absolute inset-0 bg-cover bg-center"
       style={{ backgroundImage: "url('/herbal-texture.jpg')" }}
       aria-hidden="true"
     />
-    {/* Light natural scrim — keeps the photo looking real, just enough darkening for text */}
-    <div
-      className="absolute inset-0"
-      style={{
-        background:
-          "linear-gradient(90deg, rgba(23,19,13,0.55) 0%, rgba(23,19,13,0.25) 28%, rgba(23,19,13,0.3) 72%, rgba(23,19,13,0.55) 100%)",
-      }}
-      aria-hidden="true"
-    />
-    {/* Soft dark band behind the text block only */}
-    <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-      <div className="w-full max-w-2xl h-full bg-herb-ink/30 [mask-image:radial-gradient(closest-side,black_55%,transparent_100%)]" />
-    </div>
 
-    <div className="relative h-full px-6 sm:px-12 text-center max-w-3xl mx-auto flex flex-col items-center justify-center">
-      <p className="text-[11px] sm:text-xs font-bold tracking-[0.35em] uppercase text-herb-footer-accent mb-4">
-        Promise
-      </p>
-      <h1 className="font-display text-4xl sm:text-6xl font-semibold tracking-tight text-herb-background">
+    <div className="relative h-full px-4 sm:px-8 text-center max-w-2xl mx-auto flex flex-col items-center justify-center">
+      {/* Brand Logo */}
+      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white shadow-sm border border-black/10 flex items-center justify-center p-1 mb-2">
+        <img
+          src="/metafit-logo.png"
+          alt="M Wellness Bazaar"
+          className="w-full h-full object-contain"
+        />
+      </div>
+
+      {/* Brand Name */}
+      <p className="font-serif text-xs sm:text-sm font-semibold text-[#1f1a14] tracking-tight">
         M Wellness Bazaar
+      </p>
+
+      {/* Thin divider */}
+      <div className="w-7 h-px bg-[#1f1a14]/25 my-2" />
+
+      {/* Promise Heading */}
+      <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1f1a14] leading-none">
+        Promise
       </h1>
-      <p className="mt-4 text-base sm:text-lg text-herb-background/90 font-light max-w-xl mx-auto">
+
+      {/* Subtitle */}
+      <p className="mt-2 text-xs sm:text-[13px] text-[#3d352c] font-normal max-w-md mx-auto">
         Thoughtfully chosen. Naturally inspired. For a healthier you.
       </p>
-      <div className="mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
-        {/* Primary CTA: Shop the bazaar */}
-        <Link
-          to="/collections/all"
-          className="relative group overflow-hidden inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-gradient-to-r from-white via-[#FFFDF9] to-[#F5E6CC] text-herb-ink text-sm sm:text-[15px] font-bold shadow-lg shadow-black/30 hover:shadow-xl hover:shadow-amber-900/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 border border-white/80"
-        >
-          {/* Shimmer light sweep on hover */}
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/60 to-transparent pointer-events-none"
-          />
-          <span className="relative tracking-wide">Shop the bazaar</span>
-          <ArrowRight className="h-4 w-4 relative text-herb-wood-dark group-hover:translate-x-1 transition-transform duration-300" />
-        </Link>
-
-        {/* Secondary CTA: Today's Deals */}
-        <Link
-          to="/collections/all?discountMin=10&sortBy=discount"
-          className="relative group overflow-hidden inline-flex items-center gap-2.5 px-6 sm:px-7 py-3.5 rounded-full bg-black/40 hover:bg-black/60 border border-amber-300/60 hover:border-amber-300 text-white text-sm sm:text-[15px] font-semibold backdrop-blur-md shadow-lg shadow-black/25 hover:shadow-amber-400/20 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
-        >
-          <Sparkles className="h-4 w-4 text-amber-300 group-hover:rotate-12 group-hover:scale-110 transition-transform duration-300 animate-pulse" />
-          <span className="tracking-wide">Today's Deals</span>
-
-        </Link>
-      </div>
     </div>
   </section>
 );
@@ -208,10 +187,10 @@ const TodaysDeals = ({ products }) => {
         </div>
         <Link
           to="/collections/all?discountMin=10&sortBy=discount"
-          className="hidden sm:inline-flex items-center gap-1 text-sm font-semibold text-herb-wood-dark hover:text-herb-ink transition-colors"
+          className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-herb-wood-dark hover:text-herb-ink transition-colors shrink-0"
         >
           View all
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Link>
       </div>
 
@@ -225,6 +204,52 @@ const TodaysDeals = ({ products }) => {
 };
 
 /* ─────────────────────────────────────────────
+   CUSTOM CATEGORY SVG ICONS
+───────────────────────────────────────────── */
+const WomanIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <circle cx="12" cy="7.5" r="3.5" />
+    <path d="M8.5 7.5c0-2.5 1.5-4.5 3.5-4.5s3.5 2 3.5 4.5c0 2 .5 3.5 1.5 5" />
+    <path d="M8.5 7.5c0 2-.5 3.5-1.5 5" />
+    <path d="M6.5 20.5c0-3 2.5-5 5.5-5s5.5 2 5.5 5" />
+  </svg>
+);
+
+const HairIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M6 19c-1-4 0-9 2.5-12C10 5 11.5 4 12 4s2 1 3.5 3c2.5 3 3.5 8 2.5 12" />
+    <path d="M9.5 20c-.5-3.5 0-8 2.5-12" />
+    <path d="M14.5 20c.5-3.5 0-8-2.5-12" />
+  </svg>
+);
+
+const SyrupIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect x="9" y="2" width="6" height="3" rx="1" />
+    <path d="M10 5v2.5L7 10v10a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V10l-3-2.5V5" />
+    <path d="M7 13h10" />
+    <path d="M7 17h10" />
+  </svg>
+);
+
+const PowderBowlIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M4 11h16c0 4.5-3.5 8-8 8s-8-3.5-8-8z" />
+    <path d="M8 19l-1 2h10l-1-2" />
+    <path d="M14.5 11L19 4.5" />
+  </svg>
+);
+
+const FaceCareIcon = ({ className = "h-4 w-4" }) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M12 20.5c3.8 0 6.8-3.3 6.8-8S15.8 4 12 4 5.2 7.5 5.2 12.5 8.2 20.5 12 20.5z" />
+    <path d="M9.5 11.5h.01" />
+    <path d="M14.5 11.5h.01" />
+    <path d="M9.5 15.2c.7.7 1.5 1 2.5 1s1.8-.3 2.5-1" />
+  </svg>
+);
+
+/* ─────────────────────────────────────────────
    CATEGORY ICON RESOLVER (ACCORDING TO NAME)
 ───────────────────────────────────────────── */
 const getCategoryIcon = (categoryName = "") => {
@@ -232,22 +257,34 @@ const getCategoryIcon = (categoryName = "") => {
 
   // Women's Wellness
   if (name.includes("women") || name.includes("fem") || name.includes("mother")) {
-    return { icon: Heart, color: "text-rose-600", bg: "bg-rose-50 border-rose-200" };
+    return { icon: WomanIcon, color: "text-rose-600", bg: "bg-rose-50 border-rose-200" };
   }
-  // Hair Care, Hair Oil, Scalp
+  // Syrup, Tonic, Kadha, Juice, Drops
+  if (name.includes("syrup") || name.includes("tonic") || name.includes("kadha") || name.includes("juice") || name.includes("liquid")) {
+    return { icon: SyrupIcon, color: "text-purple-600", bg: "bg-purple-50 border-purple-200" };
+  }
+  // Hair Oil / Serum (if specifically oil/serum without general hair care, or even hair oil)
+  if (name.includes("hair oil") || (name.includes("oil") && !name.includes("hair care"))) {
+    return { icon: Droplets, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" };
+  }
+  // Hair Care, Scalp
   if (name.includes("hair") || name.includes("scalp")) {
-    return { icon: Scissors, color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
+    return { icon: HairIcon, color: "text-amber-700", bg: "bg-amber-50 border-amber-200" };
+  }
+  // Powder, Churna, Spices, Face Pack Powder
+  if (name.includes("powder") || name.includes("churna") || name.includes("spice") || name.includes("masala")) {
+    return { icon: PowderBowlIcon, color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" };
   }
   // Skin, Skincare, Face, Scrub, Beauty
   if (name.includes("skin") || name.includes("face") || name.includes("beauty") || name.includes("scrub")) {
-    return { icon: Sparkles, color: "text-pink-600", bg: "bg-pink-50 border-pink-200" };
+    return { icon: FaceCareIcon, color: "text-pink-600", bg: "bg-pink-50 border-pink-200" };
   }
   // Foods, Beverages, Tea, Drinks, Nutrition Snacks
   if (name.includes("food") || name.includes("beverage") || name.includes("tea") || name.includes("drink") || name.includes("snack")) {
     return { icon: Apple, color: "text-orange-600", bg: "bg-orange-50 border-orange-200" };
   }
-  // Nutrition & Supplements
-  if (name.includes("nutrition") || name.includes("supplement") || name.includes("protein") || name.includes("vitamin")) {
+  // Nutrition & Supplements, Tablets, Capsules
+  if (name.includes("nutrition") || name.includes("supplement") || name.includes("protein") || name.includes("vitamin") || name.includes("tablet") || name.includes("capsule")) {
     return { icon: Pill, color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" };
   }
   // Pain Relief, Therapy Essentials
@@ -262,13 +299,9 @@ const getCategoryIcon = (categoryName = "") => {
   if (name.includes("health")) {
     return { icon: HeartPulse, color: "text-teal-600", bg: "bg-teal-50 border-teal-200" };
   }
-  // Oil, Serum, Liquid
-  if (name.includes("oil") || name.includes("serum")) {
+  // Serum
+  if (name.includes("serum")) {
     return { icon: Droplets, color: "text-amber-600", bg: "bg-amber-50 border-amber-200" };
-  }
-  // Spices, Powders
-  if (name.includes("spice") || name.includes("powder") || name.includes("masala")) {
-    return { icon: Utensils, color: "text-yellow-700", bg: "bg-yellow-50 border-yellow-200" };
   }
   // Plant & Herbs, Herbal
   if (name.includes("plant") || name.includes("herb")) {
@@ -315,24 +348,24 @@ const ExploreCategories = ({ products }) => {
         Explore Categories
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {visibleCategories.map((name) => {
           const { icon: CatIcon, color, bg } = getCategoryIcon(name);
           return (
             <Link
               key={name}
               to={`/collections/all?category=${encodeURIComponent(name.toLowerCase())}`}
-              className="group flex items-center justify-between gap-2 rounded-xl border border-herb-border bg-herb-card px-4 py-3.5 hover:border-herb-wood hover:bg-herb-accent/40 transition-colors"
+              className="group flex items-center justify-between gap-1.5 sm:gap-2 rounded-xl border border-herb-border bg-herb-card px-2.5 sm:px-4 py-2.5 sm:py-3.5 min-h-[54px] sm:min-h-[60px] hover:border-herb-wood hover:bg-herb-accent/40 transition-colors"
             >
-              <span className="flex items-center gap-2.5 min-w-0">
-                <span className={`w-8 h-8 rounded-full border flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${bg}`}>
-                  <CatIcon className={`h-4 w-4 ${color}`} />
+              <span className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${bg}`}>
+                  <CatIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${color}`} />
                 </span>
-                <span className="text-sm font-semibold text-herb-foreground truncate group-hover:text-herb-ink transition-colors">
+                <span className="text-xs sm:text-sm font-semibold text-herb-foreground line-clamp-2 leading-tight group-hover:text-herb-ink transition-colors break-words">
                   {name}
                 </span>
               </span>
-              <ChevronRight className="h-4 w-4 text-herb-wood flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-herb-wood shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           );
         })}

@@ -1075,106 +1075,111 @@ router.get("/similar/:id", async (req, res) => {
     }
 
     const currentIdStr = product._id.toString();
-    const seenIds = new Set([currentIdStr]);
-    const relatedProducts = [];
     const MAX_RELATED = 8;
 
-    const getObjectIdArray = () => {
-      return Array.from(seenIds)
-        .filter((i) => mongoose.Types.ObjectId.isValid(i))
-        .map((i) => new mongoose.Types.ObjectId(i));
+    const STOP_WORDS = new Set([
+      "for", "and", "the", "with", "in", "to", "of", "a", "an", "is", "&", "|", "/", "-", "by",
+      "ml", "gm", "kg", "pack", "set", "pure", "natural", "best", "new", "top", "original"
+    ]);
+
+    const extractTerms = (str = "") => {
+      if (!str || typeof str !== "string") return [];
+      return str
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
     };
 
-    // Priority 1: Same subCategory
-    if (product.subCategory && typeof product.subCategory === "string" && product.subCategory.trim()) {
-      const subCatProducts = await ProductReadModel.find({
-        _id: { $nin: getObjectIdArray() },
-        subCategory: product.subCategory,
-        isPublished: true,
-      })
-        .limit(MAX_RELATED)
-        .lean();
+    const isEquipmentItem = (category = "", name = "") => {
+      return /table|panchakarma|machine|device|bed|dhanwantari|steamer|monitoring|meter|yantra/i.test(
+        (category || "") + " " + (name || "")
+      );
+    };
 
-      for (const p of subCatProducts) {
-        const pid = p._id.toString();
-        if (!seenIds.has(pid)) {
-          seenIds.add(pid);
-          relatedProducts.push(p);
-        }
-      }
-    }
+    const currentCat = (product.category || "").trim();
+    const currentSubCat = (product.subCategory || "").trim();
+    const currentBrand = (product.brand || "").trim().toLowerCase();
+    const currentCatTerms = extractTerms(product.category);
+    const currentSubCatTerms = extractTerms(product.subCategory);
+    const currentNameTerms = extractTerms(product.name);
+    const targetIsEquipment = isEquipmentItem(product.category, product.name);
 
-    // Priority 2: Same Category
-    if (relatedProducts.length < MAX_RELATED && product.category) {
-      const remainingLimit = MAX_RELATED - relatedProducts.length;
-      const catProducts = await ProductReadModel.find({
-        _id: { $nin: getObjectIdArray() },
-        category: product.category,
-        isPublished: true,
-      })
-        .limit(remainingLimit)
-        .lean();
+    // Fetch candidate published products (excluding current product)
+    const candidates = await ProductReadModel.find({
+      _id: { $ne: product._id },
+      isPublished: true,
+    }).lean();
 
-      for (const p of catProducts) {
-        const pid = p._id.toString();
-        if (!seenIds.has(pid)) {
-          seenIds.add(pid);
-          relatedProducts.push(p);
-        }
-      }
-    }
+    // Score and rank all candidate products based on relevance
+    const scoredCandidates = candidates.map((cand) => {
+      let score = 0;
+      const cCat = (cand.category || "").toLowerCase();
+      const cSubCat = (cand.subCategory || "").toLowerCase();
+      const cBrand = (cand.brand || "").toLowerCase().trim();
+      const cNameTerms = extractTerms(cand.name);
+      const cCatTerms = extractTerms(cand.category);
+      const candIsEquipment = isEquipmentItem(cand.category, cand.name);
 
-    // Priority 3: Tags / WellnessGoal / Collection
-    if (relatedProducts.length < MAX_RELATED) {
-      const tagQueryConditions = [];
-      if (Array.isArray(product.tags) && product.tags.length > 0) {
-        tagQueryConditions.push({ tags: { $in: product.tags } });
-      }
-      if (Array.isArray(product.wellnessGoal) && product.wellnessGoal.length > 0) {
-        tagQueryConditions.push({ wellnessGoal: { $in: product.wellnessGoal } });
-      }
-      if (product.collection) {
-        tagQueryConditions.push({ collection: product.collection });
+      // 1. Equipment mismatch penalty
+      if (!targetIsEquipment && candIsEquipment) {
+        score -= 200; // Heavily penalize equipment for normal wellness/cosmetic/herb items
+      } else if (targetIsEquipment && candIsEquipment) {
+        score += 50;
       }
 
-      if (tagQueryConditions.length > 0) {
-        const remainingLimit = MAX_RELATED - relatedProducts.length;
-        const tagProducts = await ProductReadModel.find({
-          _id: { $nin: getObjectIdArray() },
-          isPublished: true,
-          $or: tagQueryConditions,
-        })
-          .limit(remainingLimit)
-          .lean();
-
-        for (const p of tagProducts) {
-          const pid = p._id.toString();
-          if (!seenIds.has(pid)) {
-            seenIds.add(pid);
-            relatedProducts.push(p);
-          }
-        }
+      // 2. Exact Category or SubCategory match
+      if (currentSubCat && cSubCat && currentSubCat.toLowerCase() === cSubCat) {
+        score += 80;
       }
-    }
-
-    // Priority 4: Fallback - any published products
-    if (relatedProducts.length < 4) {
-      const remainingLimit = 4 - relatedProducts.length;
-      const fallbackProducts = await ProductReadModel.find({
-        _id: { $nin: getObjectIdArray() },
-        isPublished: true,
-      })
-        .limit(remainingLimit)
-        .lean();
-
-      for (const p of fallbackProducts) {
-        const pid = p._id.toString();
-        if (!seenIds.has(pid)) {
-          seenIds.add(pid);
-          relatedProducts.push(p);
-        }
+      if (currentCat && cCat && currentCat.toLowerCase() === cCat) {
+        score += 60;
       }
-    }
+
+      // 3. Category & SubCategory Term Overlaps (e.g. "Hair", "Herbal", "Oil", "Care", "Skin", "Wellness")
+      currentCatTerms.forEach((term) => {
+        if (cCatTerms.includes(term)) score += 20;
+        else if (cCat.includes(term)) score += 15;
+        else if (cNameTerms.includes(term)) score += 10;
+      });
+
+      currentSubCatTerms.forEach((term) => {
+        if (cCatTerms.includes(term)) score += 20;
+        else if (cNameTerms.includes(term)) score += 10;
+      });
+
+      // 4. Product Name Term Overlaps (e.g. "Powder", "Oil", "Shampoo", "Aloevera", "Shikakai")
+      currentNameTerms.forEach((term) => {
+        if (cNameTerms.includes(term)) score += 25;
+        else if (cCatTerms.includes(term)) score += 12;
+      });
+
+      // 5. Brand Match bonus (same brand in same category segment)
+      if (currentBrand && cBrand === currentBrand) {
+        score += 15;
+      }
+
+      // 6. Tags & Wellness Goal Overlaps
+      if (Array.isArray(product.tags) && Array.isArray(cand.tags)) {
+        product.tags.forEach((t) => {
+          if (cand.tags.includes(t)) score += 10;
+        });
+      }
+      if (Array.isArray(product.wellnessGoal) && Array.isArray(cand.wellnessGoal)) {
+        product.wellnessGoal.forEach((g) => {
+          if (cand.wellnessGoal.includes(g)) score += 10;
+        });
+      }
+
+      return { product: cand, score };
+    });
+
+    // Sort descending by relevance score
+    scoredCandidates.sort((a, b) => b.score - a.score);
+
+    // Pick top MAX_RELATED products
+    const relatedProducts = scoredCandidates
+      .slice(0, MAX_RELATED)
+      .map((item) => item.product);
 
     // Ensure slug is present on all returned products for frontend navigation
     for (const p of relatedProducts) {

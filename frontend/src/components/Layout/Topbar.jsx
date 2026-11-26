@@ -616,38 +616,143 @@ const Topbar = () => {
           AMAZON STYLE MAIN HEADER - NAVRATRI BURGUNDY THEME
       ====================================================== */}
 
-      <div className="bg-herb-ink text-[#F7F1E7] border-b border-herb-wood-dark/60 shadow-md relative z-30">
-        <div className="max-w-screen-2xl mx-auto px-3 py-2.5 flex items-center gap-2 lg:gap-4 relative z-10">
+      <div className="bg-[#443524] text-[#F7F1E7] border-b border-[#362a1c] shadow-md relative z-30">
+        <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between md:justify-start gap-2 lg:gap-3.5 relative z-10">
 
           {/* =================================================
-              LOGO
+              LOGO (ORIGINAL LOGO RESTORED AS REQUESTED)
           ================================================= */}
-
           <Link
             to="/"
-            className="flex items-center gap-2 hover:ring-1 hover:ring-herb-wood-light rounded px-2 py-1 flex-shrink-0 group"
+            className="flex items-center gap-2 sm:gap-2.5 hover:opacity-95 rounded px-1 py-1 flex-shrink-0 group"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white/95 border border-herb-wood-light/40 flex items-center justify-center shadow-sm transition-all group-hover:shadow-herb-wood/50 flex-shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white/95 border border-white/20 flex items-center justify-center shadow-sm transition-all group-hover:shadow-white/30 flex-shrink-0 p-0.5">
               <img
                 src="/metafit-logo.png"
                 alt="M Wellness Bazaar"
-                className="w-full h-full object-contain p-0.5"
+                className="w-full h-full object-contain"
               />
             </div>
 
             <div className="leading-tight">
-              <div className="font-display text-[13px] sm:text-[15px] font-semibold text-[#F7F1E7] whitespace-nowrap">
+              <div className="font-serif text-[13px] xs:text-[15px] sm:text-[17px] font-bold text-[#F7F1E7] whitespace-nowrap">
                 M Wellness Bazaar
               </div>
-
-
             </div>
           </Link>
 
           {/* =================================================
+              DESKTOP ACCOUNT (SWAPPED TO 2ND POSITION)
+          ================================================= */}
+          {user ? (
+            <div
+              className="hidden md:block relative z-50 flex-shrink-0"
+              ref={accountMenuRef}
+            >
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                className="flex items-center gap-2 hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1 transition-all cursor-pointer text-left select-none"
+              >
+                <div className="w-7 h-7 rounded-full bg-[#DAB78C] text-[#242221] font-extrabold text-xs flex items-center justify-center border border-white/30 shrink-0">
+                  {initials}
+                </div>
+
+                <div className="flex flex-col leading-tight">
+                  <span className="text-[11px] text-gray-300 font-normal truncate max-w-[100px]">
+                    Hello, {user.name?.split(' ')[0]}
+                  </span>
+                  <div className="flex items-center gap-0.5">
+                    <span className="text-xs font-bold text-white">
+                      Account
+                    </span>
+                    <ChevronDown
+                      className={`h-3 w-3 text-gray-300 transition-transform ${accountMenuOpen ? 'rotate-180 text-[#DAB78C]' : ''
+                        }`}
+                    />
+                  </div>
+                </div>
+              </button>
+
+              {/* Account Dropdown Menu */}
+              {accountMenuOpen && (
+                <div className="absolute left-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[9999] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
+                  <div className="px-3.5 py-2.5 border-b border-gray-100 bg-[#F7F1E7]">
+                    <p className="text-xs font-bold text-[#4E4033] truncate">
+                      {user.name}
+                    </p>
+                    <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  <div className="py-1">
+                    <Link
+                      to="/profile"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
+                    >
+                      <User className="h-4 w-4 text-[#A5794F] shrink-0" />
+                      <span>Profile</span>
+                    </Link>
+
+                    <Link
+                      to="/my-orders"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
+                    >
+                      <Package className="h-4 w-4 text-[#A5794F] shrink-0" />
+                      <span>My Orders</span>
+                    </Link>
+
+                    <Link
+                      to="/support"
+                      onClick={() => setAccountMenuOpen(false)}
+                      className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
+                    >
+                      <Headphones className="h-4 w-4 text-[#A5794F] shrink-0" />
+                      <span>Help & Support</span>
+                    </Link>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-1 mt-0.5">
+                    <button
+                      type="button"
+                      onClick={handleLogoutClick}
+                      className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
+                    >
+                      <LogOut className="h-4 w-4 text-rose-600 shrink-0" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="hidden md:flex items-center gap-2 hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1 flex-shrink-0 transition-all text-left"
+            >
+              <div className="w-7 h-7 rounded-full border border-white/40 flex items-center justify-center text-white shrink-0">
+                <User className="h-4 w-4 text-white" strokeWidth={1.75} />
+              </div>
+              <div className="flex flex-col leading-tight">
+                <span className="text-[11px] text-gray-300 font-normal">
+                  Hello, Sign in
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <span className="text-xs font-bold text-white">
+                    Account
+                  </span>
+                  <ChevronDown className="h-3 w-3 text-gray-300" />
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* =================================================
               DELIVERY LOCATION - DESKTOP
           ================================================= */}
-
           <div
             onClick={handleLocationRequest}
             title={
@@ -655,61 +760,51 @@ const Topbar = () => {
                 ? 'Detecting location...'
                 : `Deliver to ${userLocation}`
             }
-            className="hidden md:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-[#E5C79A] rounded px-1.5 py-0.5 cursor-pointer select-none"
+            className="hidden xl:flex flex-col items-start flex-shrink-0 hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1 cursor-pointer select-none"
           >
-            <span className="text-xs text-[#F7F1E7]/80 leading-tight">
+            <span className="text-[10px] text-gray-300 leading-tight">
               Deliver to
             </span>
 
             <div className="flex items-center gap-1">
               <MapPin
-                className={`h-4 w-4 text-[#E5C79A] ${isFetchingLocation
-                  ? 'animate-bounce'
-                  : ''
+                className={`h-3.5 w-3.5 text-[#DAB78C] ${isFetchingLocation ? 'animate-bounce' : ''
                   }`}
               />
 
-              <span className="text-sm font-bold truncate max-w-[140px] text-[#FDFBF6]">
-                {isFetchingLocation
-                  ? 'Detecting...'
-                  : userLocation}
+              <span className="text-xs font-bold truncate max-w-[130px] text-[#FDFBF6]">
+                {isFetchingLocation ? 'Detecting...' : userLocation}
               </span>
             </div>
           </div>
 
           {/* =================================================
-              SEARCH - DESKTOP
+              SEARCH - DESKTOP (STYLE AS IN IMAGE 2)
           ================================================= */}
-
           <div
             ref={searchContainerRef}
-            className="hidden md:flex relative flex-1 min-w-0"
+            className="hidden md:flex relative flex-1 min-w-[220px] mx-1 lg:mx-2"
           >
             <form
               onSubmit={handleSearch}
-              className="flex w-full rounded-md overflow-hidden shadow-sm"
+              className="flex w-full rounded-xl overflow-hidden bg-[#242221] border border-white/10 shadow-xs"
             >
-              <button
-                type="submit"
-                className="bg-[#F7F1E7] px-2 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer"
-              >
-                <Search className="h-5 w-5 border-1 text-[#4E4033]" />
-              </button>
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) =>
-                  setSearchQuery(e.target.value)
-                }
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                onFocus={() =>
-                  setShowSuggestions(true)
-                }
-                placeholder="Search products,brands and more"
-                className="flex-1 min-w-0  py-2.5 text-xs bg-[#F7F1E7] text-[#4E4033] placeholder-[#6E5136]/60 focus:outline-none focus:ring-2 focus:ring-[#A5794F]"
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="Search products by name, category, subcategory..."
+                className="flex-1 min-w-0 px-3.5 py-2 text-xs bg-[#242221] text-[#F7F1E7] placeholder-[#a89f91] focus:outline-none"
               />
-
-
+              <button
+                type="submit"
+                className="bg-[#DAB78C] hover:bg-[#c99b6b] px-4 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer text-[#242221]"
+                aria-label="Search"
+              >
+                <Search className="h-4 w-4 text-[#242221]" strokeWidth={2.2} />
+              </button>
             </form>
 
             {/* Desktop Search Suggestions */}
@@ -973,29 +1068,25 @@ const Topbar = () => {
               RIGHT ACTIONS
           ================================================= */}
 
-          <div className="flex items-center gap-1 md:gap-2 ml-auto md:ml-0">
+          <div className="flex items-center gap-1.5 md:gap-3 ml-auto md:ml-0 flex-shrink-0">
 
             {/* =================================================
                 DESKTOP ROUTINE MATCHER - WELLNESS ASSISTANT
             ================================================= */}
-
             <Link
               to="/routine-builder"
               className="
-                flex items-center justify-center
-                gap-1
-                px-1.5 py-1.5
-                sm:px-2 sm:py-1.5
-                lg:px-2.5 lg:py-1
-                rounded-lg
-                bg-[#4E4033]/90
-                hover:bg-[#6E5136]
-                border border-[#A5794F]/50
-                text-[#E5C79A]
+                hidden xl:flex items-center justify-center
+                gap-1.5
+                px-3 py-1.5
+                rounded-full
+                bg-[#242221]
+                hover:bg-[#332e2a]
+                border border-[#DAB78C]/40
+                text-[#DAB78C]
                 hover:text-[#F7F1E7]
                 transition-all
-                text-[10px]
-                sm:text-xs
+                text-xs
                 font-bold
                 group
                 shadow-xs
@@ -1007,194 +1098,35 @@ const Topbar = () => {
             >
               <Sparkles
                 className="
-                  w-4 h-4
-                  sm:w-3.5 sm:h-3.5
-                  text-[#E5C79A]
+                  w-3.5 h-3.5
+                  text-[#DAB78C]
                   group-hover:rotate-12
                   transition-transform
                   flex-shrink-0
                 "
               />
-
-              <span className="inline sm:hidden">
-
-              </span>
-
-              <span className="hidden sm:inline">
-                Wellness Assistant
-              </span>
+              <span>Wellness Assistant</span>
             </Link>
-
-            {/* =================================================
-                DESKTOP ACCOUNT
-            ================================================= */}
-
-            {user ? (
-              <div
-                className="hidden md:block relative z-50"
-                ref={accountMenuRef}
-              >
-                <button
-                  type="button"
-                  onClick={() =>
-                    setAccountMenuOpen(
-                      (prev) => !prev
-                    )
-                  }
-                  className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#E5C79A] rounded px-2 py-1 flex-shrink-0 transition-all cursor-pointer text-left select-none"
-                >
-                  <div className="w-7 h-7 rounded-full bg-[#A5794F] text-[#292117] font-extrabold text-xs flex items-center justify-center border border-[#E5C79A] shadow-xs shrink-0">
-                    {initials}
-                  </div>
-
-                  <div className="flex flex-col">
-                    <span className="text-xs text-[#F7F1E7]/90 leading-tight truncate max-w-[110px]">
-                      Hello,{' '}
-                      {user.name?.split(
-                        ' '
-                      )[0]}
-                    </span>
-
-                    <div className="flex items-center gap-0.5">
-                      <span className="text-xs font-bold leading-tight text-[#F7F1E7]">
-                        Account & Lists
-                      </span>
-
-                      <ChevronDown
-                        className={`h-3 w-3 text-[#E5C79A] transition-transform ${accountMenuOpen
-                          ? 'rotate-180 text-[#E5C79A]'
-                          : ''
-                          }`}
-                      />
-                    </div>
-                  </div>
-                </button>
-
-                {/* Desktop Account Dropdown */}
-                {accountMenuOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 py-1.5 z-[9999] text-gray-800 animate-in fade-in zoom-in-95 duration-100">
-
-                    <div className="px-3.5 py-2.5 border-b border-gray-100 bg-[#F7F1E7]">
-                      <p className="text-xs font-bold text-[#4E4033] truncate">
-                        {user.name}
-                      </p>
-
-                      <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <div className="py-1">
-                      <Link
-                        to="/profile"
-                        onClick={() =>
-                          setAccountMenuOpen(
-                            false
-                          )
-                        }
-                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
-                      >
-                        <User className="h-4 w-4 text-[#A5794F] shrink-0" />
-
-                        <span>
-                          Profile
-                        </span>
-                      </Link>
-
-                      <Link
-                        to="/my-orders"
-                        onClick={() =>
-                          setAccountMenuOpen(
-                            false
-                          )
-                        }
-                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
-                      >
-                        <Package className="h-4 w-4 text-[#A5794F] shrink-0" />
-
-                        <span>
-                          My Orders
-                        </span>
-                      </Link>
-
-                      <Link
-                        to="/support"
-                        onClick={() =>
-                          setAccountMenuOpen(
-                            false
-                          )
-                        }
-                        className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-[#F7F1E7] hover:text-[#6E5136] transition-colors"
-                      >
-                        <Headphones className="h-4 w-4 text-[#A5794F] shrink-0" />
-
-                        <span>
-                          Help & Support
-                        </span>
-                      </Link>
-                    </div>
-
-                    <div className="border-t border-gray-100 pt-1 mt-0.5">
-                      <button
-                        type="button"
-                        onClick={
-                          handleLogoutClick
-                        }
-                        className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer text-left"
-                      >
-                        <LogOut className="h-4 w-4 text-rose-600 shrink-0" />
-
-                        <span>
-                          Logout
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="hidden md:flex flex-col hover:ring-1 hover:ring-[#E5C79A] rounded px-2 py-1 flex-shrink-0 transition-all"
-              >
-                <span className="text-xs text-[#F7F1E7]/90 leading-tight">
-                  Hello, Sign in
-                </span>
-
-                <div className="flex items-center gap-0.5">
-                  <span className="text-xs font-bold leading-tight text-[#F7F1E7]">
-                    Account & Lists
-                  </span>
-
-                  <ChevronDown className="h-3 w-3 text-[#E5C79A]" />
-                </div>
-              </Link>
-            )}
 
             {/* =================================================
                 MOBILE USER ICON
             ================================================= */}
-
             <div className="md:hidden">
               {user ? (
                 <button
                   type="button"
-                  onClick={() =>
-                    setMobileAccountMenuOpen(
-                      true
-                    )
-                  }
-                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#E5C79A] rounded-lg transition-all cursor-pointer"
+                  onClick={() => setMobileAccountMenuOpen(true)}
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#DAB78C] rounded-lg transition-all cursor-pointer"
                   aria-label="Account menu"
                 >
-                  <div className="w-7 h-7 rounded-full bg-[#A5794F] text-[#292117] font-extrabold text-xs flex items-center justify-center border border-[#E5C79A] shadow-xs">
+                  <div className="w-7 h-7 rounded-full bg-[#DAB78C] text-[#242221] font-extrabold text-xs flex items-center justify-center border border-white/20 shadow-xs">
                     {initials}
                   </div>
                 </button>
               ) : (
                 <Link
                   to="/login"
-                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#E5C79A] rounded-lg text-white transition-all"
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#DAB78C] rounded-lg text-white transition-all"
                   aria-label="Sign in"
                 >
                   <User
@@ -1208,84 +1140,68 @@ const Topbar = () => {
             {/* =================================================
                 ORDERS
             ================================================= */}
-
             <Link
               to="/my-orders"
-              className="hidden md:flex flex-col hover:ring-1 hover:ring-[#E5C79A] rounded px-2 py-1 flex-shrink-0 transition-all"
+              className="hidden lg:flex flex-col hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1 flex-shrink-0 transition-all"
             >
-              <span className="text-xs text-[#F7F1E7]/90 leading-tight">
+              <span className="text-[10px] text-gray-300 leading-tight">
                 Returns
               </span>
-
               <span className="text-xs font-bold leading-tight text-[#F7F1E7]">
                 & Orders
               </span>
             </Link>
 
             {/* =================================================
-                WISHLIST
+                WISHLIST (STYLE AS IN IMAGE 2)
             ================================================= */}
-
             <button
               type="button"
               onClick={() => {
-                setActiveDrawerTab(
-                  'wishlist'
-                );
-
-                // Existing cart drawer behaviour
-                dispatch(
-                  openCartDrawer()
-                );
+                setActiveDrawerTab('wishlist');
+                dispatch(openCartDrawer());
               }}
-              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#E5C79A] rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
+              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1.5 flex-shrink-0 relative transition-all group cursor-pointer"
             >
-              <div className="relative flex items-center justify-center p-0.5">
+              <div className="relative flex items-center justify-center">
                 <Heart
-                  className="h-6 w-6 text-[#F7F1E7] group-hover:text-[#E5C79A] group-hover:scale-105 transition-all"
+                  className="h-5 w-5 text-white group-hover:text-[#DAB78C] transition-all"
                   strokeWidth={1.75}
                 />
-
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2 bg-[#E5C79A] text-[#292117] text-[10px] font-black rounded-full min-w-[18px] h-[18px] px-1 flex items-center justify-center border-2 border-[#292117] shadow-md leading-none">
+                  <span className="absolute -top-1.5 -right-2 bg-[#DAB78C] text-[#242221] text-[10px] font-black rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center border border-[#242221] shadow-xs leading-none">
                     {wishlistCount}
                   </span>
                 )}
               </div>
-
-              <span className="hidden sm:block text-xs font-bold leading-none text-[#F7F1E7] group-hover:text-[#E5C79A]">
+              <span className="hidden sm:block text-sm font-medium leading-none text-white group-hover:text-[#DAB78C]">
                 Wishlist
               </span>
             </button>
 
             {/* =================================================
-                CART
+                CART (STYLE AS IN IMAGE 2)
             ================================================= */}
-
             <button
+              type="button"
               onClick={() => {
                 setActiveDrawerTab('cart');
-
-                dispatch(
-                  openCartDrawer()
-                );
+                dispatch(openCartDrawer());
               }}
-              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#E5C79A] rounded-lg px-2 py-1 flex-shrink-0 relative transition-all group cursor-pointer"
+              className="flex items-center gap-1.5 hover:ring-1 hover:ring-[#DAB78C]/40 rounded-lg px-2 py-1.5 flex-shrink-0 relative transition-all group cursor-pointer"
             >
-              <div className="relative flex items-center justify-center p-0.5">
+              <div className="relative flex items-center justify-center">
                 <ShoppingCart
-                  className="h-7 w-7 text-[#F7F1E7] group-hover:text-[#E5C79A] group-hover:scale-105 transition-all"
+                  className="h-5 w-5 text-white group-hover:text-[#DAB78C] transition-all"
                   strokeWidth={1.75}
                 />
-
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-[#E5C79A] text-[#292117] text-[11px] font-black rounded-full min-w-[20px] h-[20px] px-1 flex items-center justify-center border-2 border-[#292117] shadow-md leading-none">
+                  <span className="absolute -top-1.5 -right-2 bg-[#DAB78C] text-[#242221] text-[10px] font-black rounded-full min-w-[16px] h-[16px] px-1 flex items-center justify-center border border-[#242221] shadow-xs leading-none">
                     {cartItemCount}
                   </span>
                 )}
               </div>
-
-              <span className="hidden sm:block text-xs font-bold leading-none text-[#F7F1E7] group-hover:text-[#E5C79A]">
+              <span className="hidden sm:block text-sm font-medium leading-none text-white group-hover:text-[#DAB78C]">
                 Cart
               </span>
             </button>
@@ -1295,7 +1211,6 @@ const Topbar = () => {
         {/* =====================================================
             MOBILE ROW 2 - LOCATION
         ====================================================== */}
-
         <div
           onClick={handleLocationRequest}
           title={
@@ -1303,24 +1218,18 @@ const Topbar = () => {
               ? 'Detecting location...'
               : `Deliver to ${userLocation}`
           }
-          className="md:hidden flex items-center px-3 py-1.5 bg-[#2E040C] text-xs text-[#F7F1E7] border-t border-b border-[#A5794F]/20 cursor-pointer select-none hover:bg-[#292117] transition-colors"
+          className="md:hidden flex items-center px-3 py-1.5 bg-[#3a2c1e] text-xs text-[#F7F1E7] border-t border-b border-white/10 cursor-pointer select-none hover:bg-[#2e2318] transition-colors"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <MapPin
-              className={`h-4 w-4 text-[#E5C79A] flex-shrink-0 ${isFetchingLocation
-                ? 'animate-bounce'
-                : ''
+              className={`h-4 w-4 text-[#DAB78C] flex-shrink-0 ${isFetchingLocation ? 'animate-bounce' : ''
                 }`}
             />
-
             <span className="text-[#F7F1E7]/80 flex-shrink-0 text-[11px] font-medium">
               Deliver to
             </span>
-
             <span className="font-bold text-[#F7F1E7] text-xs truncate max-w-[240px] xs:max-w-[280px] sm:max-w-[350px]">
-              {isFetchingLocation
-                ? 'Detecting location...'
-                : userLocation}
+              {isFetchingLocation ? 'Detecting location...' : userLocation}
             </span>
           </div>
         </div>
@@ -1328,34 +1237,28 @@ const Topbar = () => {
         {/* =====================================================
             MOBILE ROW 3 - SEARCH
         ====================================================== */}
-
         <div
           ref={mobileSearchContainerRef}
-          className="md:hidden px-3 py-2 relative bg-herb-ink"
+          className="md:hidden px-3 py-2 relative bg-[#443524]"
         >
           <form
             onSubmit={handleSearch}
-            className="flex rounded-md overflow-hidden shadow-sm"
+            className="flex rounded-xl overflow-hidden shadow-xs bg-[#242221] border border-white/10"
           >
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) =>
-                setSearchQuery(e.target.value)
-              }
+              onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() =>
-                setShowSuggestions(true)
-              }
-              placeholder="Search products..."
-              className="flex-1 min-w-0 px-3 py-2 text-xs bg-[#F7F1E7] text-[#4E4033] focus:outline-none"
+              onFocus={() => setShowSuggestions(true)}
+              placeholder="Search products by name, category..."
+              className="flex-1 min-w-0 px-3 py-2 text-xs bg-[#242221] text-[#F7F1E7] placeholder-[#a89f91] focus:outline-none"
             />
-
             <button
               type="submit"
-              className="bg-[#A5794F] hover:bg-[#E5C79A] px-3.5 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer"
+              className="bg-[#DAB78C] hover:bg-[#c99b6b] px-3.5 transition-colors flex items-center justify-center flex-shrink-0 cursor-pointer text-[#242221]"
             >
-              <Search className="h-4 w-4 text-[#4E4033]" />
+              <Search className="h-4 w-4 text-[#242221]" />
             </button>
           </form>
 
