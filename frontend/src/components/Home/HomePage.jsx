@@ -348,24 +348,24 @@ const ExploreCategories = ({ products }) => {
         Explore Categories
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
         {visibleCategories.map((name) => {
           const { icon: CatIcon, color, bg } = getCategoryIcon(name);
           return (
             <Link
               key={name}
               to={`/collections/all?category=${encodeURIComponent(name.toLowerCase())}`}
-              className="group flex items-center justify-between gap-2 rounded-xl border border-herb-border bg-herb-card px-4 py-3.5 hover:border-herb-wood hover:bg-herb-accent/40 transition-colors"
+              className="group flex items-center justify-between gap-1.5 sm:gap-2 rounded-xl border border-herb-border bg-herb-card px-2.5 sm:px-4 py-2.5 sm:py-3.5 min-h-[54px] sm:min-h-[60px] hover:border-herb-wood hover:bg-herb-accent/40 transition-colors"
             >
-              <span className="flex items-center gap-2.5 min-w-0">
-                <span className={`w-8 h-8 rounded-full border flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 ${bg}`}>
-                  <CatIcon className={`h-4 w-4 ${color}`} />
+              <span className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+                <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full border flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${bg}`}>
+                  <CatIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${color}`} />
                 </span>
-                <span className="text-sm font-semibold text-herb-foreground truncate group-hover:text-herb-ink transition-colors">
+                <span className="text-xs sm:text-sm font-semibold text-herb-foreground line-clamp-2 leading-tight group-hover:text-herb-ink transition-colors break-words">
                   {name}
                 </span>
               </span>
-              <ChevronRight className="h-4 w-4 text-herb-wood flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
+              <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-herb-wood shrink-0 group-hover:translate-x-0.5 transition-transform" />
             </Link>
           );
         })}

@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
     try {
         const mongoUri =
-            process.env.METAFIT_WELLNESS_MONGO_URI ||
             process.env.MONGO_URI ||
+            process.env.METAFIT_WELLNESS_MONGO_URI ||
             process.env.URI;
 
         if (!mongoUri) {
