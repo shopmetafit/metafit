@@ -101,7 +101,7 @@ const Home = () => {
   }, [dispatch]);
 
   return (
-    <LeafRevealIntro>
+    <LeafRevealIntro onlyOncePerSession={true}>
       <div className="w-full min-h-screen bg-[#F7F1E7]">
         <SEO jsonLd={homeJsonLd} />
 
