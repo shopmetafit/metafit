@@ -13,6 +13,7 @@ import {
   X,
   Sparkles,
   Headphones,
+  Menu,
 } from 'lucide-react';
 import axios from 'axios';
 import CartDrawer from '../Layout/CartDrawer';
@@ -25,7 +26,7 @@ import {
 } from '../../redux/slices/cartSlice';
 import { detectDistrictAndState } from '../../utils/location';
 
-const Topbar = () => {
+const Topbar = ({ onOpenMobileNav }) => {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
@@ -620,6 +621,18 @@ const Topbar = () => {
         <div className="max-w-screen-2xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between md:justify-start gap-2 lg:gap-3.5 relative z-10">
 
           {/* =================================================
+              MOBILE HAMBURGER MENU BUTTON
+          ================================================= */}
+          <button
+            type="button"
+            onClick={onOpenMobileNav}
+            className="md:hidden flex items-center justify-center p-1.5 -ml-1 text-white hover:text-[#DAB78C] rounded-lg transition-colors cursor-pointer select-none"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="h-6 w-6 text-[#F7F1E7]" strokeWidth={2.2} />
+          </button>
+
+          {/* =================================================
               LOGO (ORIGINAL LOGO RESTORED AS REQUESTED)
           ================================================= */}
           <Link
@@ -1115,7 +1128,7 @@ const Topbar = () => {
               {user ? (
                 <button
                   type="button"
-                  onClick={() => setMobileAccountMenuOpen(true)}
+                  onClick={() => (onOpenMobileNav ? onOpenMobileNav() : setMobileAccountMenuOpen(true))}
                   className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#DAB78C] rounded-lg transition-all cursor-pointer"
                   aria-label="Account menu"
                 >
@@ -1124,16 +1137,17 @@ const Topbar = () => {
                   </div>
                 </button>
               ) : (
-                <Link
-                  to="/login"
-                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#DAB78C] rounded-lg text-white transition-all"
+                <button
+                  type="button"
+                  onClick={() => (onOpenMobileNav ? onOpenMobileNav() : navigate("/login"))}
+                  className="flex items-center justify-center p-1.5 hover:ring-1 hover:ring-[#DAB78C] rounded-lg text-white transition-all cursor-pointer"
                   aria-label="Sign in"
                 >
                   <User
                     className="h-6 w-6 text-[#F7F1E7]"
                     strokeWidth={1.75}
                   />
-                </Link>
+                </button>
               )}
             </div>
 

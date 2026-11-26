@@ -33,6 +33,14 @@ const categories = [
 
 const moreLinks = [
   {
+    label: "Returns & Orders",
+    link: "/my-orders",
+  },
+  {
+    label: "Your Account",
+    link: "/profile",
+  },
+  {
     label: "About Us",
     link: "/aboutUs",
   },
@@ -41,17 +49,13 @@ const moreLinks = [
     link: "/contactUs",
   },
   {
-    label: "My Orders",
-    link: "/my-orders",
-  },
-  {
     label: "Become a Vendor",
     link: "https://partner.mwellnessbazaar.com/become-vendor",
     external: true,
   },
 ];
 
-const Navbar = () => {
+const Navbar = ({ onOpenMobileNav }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const { user } = useSelector((state) => state.auth);
@@ -130,9 +134,10 @@ const Navbar = () => {
 
           {/* ALL CATEGORIES — opens sidebar menu */}
           <button
-            onClick={() => setMenuOpen(true)}
+            onClick={() => (onOpenMobileNav ? onOpenMobileNav() : setMenuOpen(true))}
             className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium text-white hover:text-[#DAB78C] whitespace-nowrap rounded-md flex-shrink-0 transition-colors cursor-pointer"
           >
+            <Menu className="h-4 w-4 text-white" />
             <span>All categories</span>
             <ChevronRight className="h-4 w-4 text-white" />
           </button>
