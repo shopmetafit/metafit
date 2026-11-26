@@ -132,25 +132,25 @@ const Footer = () => {
       {/* ── Back to Top ── */}
       <button
         onClick={scrollToTop}
-        className="w-full bg-[#382b1d] hover:bg-[#2f2418] text-[#DAB78C] border-t border-[#544330] text-xs sm:text-sm font-semibold py-3 flex items-center justify-center gap-2 transition-colors cursor-pointer group"
+        className="w-full bg-[#382b1d] hover:bg-[#2f2418] text-white border-t border-[#544330] text-sm sm:text-base font-semibold py-3.5 flex items-center justify-center gap-2 transition-colors cursor-pointer group"
       >
-        <ChevronUp className="h-4 w-4 text-[#DAB78C] group-hover:-translate-y-0.5 transition-transform" />
+        <ChevronUp className="h-4 w-4 text-white group-hover:-translate-y-0.5 transition-transform" />
         <span>Back to top</span>
       </button>
 
       {/* ── Tagline & Links ── */}
-      <div className="bg-[#443524] text-[#F7F1E7]">
+      <div className="bg-[#443524] text-white">
         <div className="max-w-screen-2xl mx-auto px-6 pt-7 pb-9 sm:pt-8 sm:pb-10">
-          <div className="text-center mb-7 pb-5 border-b border-white/10">
-            <p className="font-serif text-lg sm:text-xl text-[#F7F1E7] tracking-wide">
+          <div className="text-center mb-7 pb-5 border-b border-white/15">
+            <p className="font-serif text-xl sm:text-2xl text-white tracking-wide font-medium">
               A little care. A better every day.
             </p>
-            <p className="text-xs text-[#DAB78C]/80 mt-1 tracking-wider uppercase">
+            <p className="text-xs sm:text-sm text-white mt-1.5 tracking-wider uppercase font-semibold">
               M Wellness Bazaar · Authentic Indian Wellness
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-y-6 lg:gap-y-0 lg:divide-x lg:divide-white/15">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-y-6 lg:gap-y-0 lg:divide-x lg:divide-white/20">
             {allColumns.map((col, idx) => (
               <div
                 key={col.heading}
@@ -158,12 +158,12 @@ const Footer = () => {
                   idx === 0 ? "lg:pr-6" : idx === allColumns.length - 1 ? "lg:pl-6" : "lg:px-6"
                 }`}
               >
-                <div className="inline-flex items-center bg-[#242221]/80 border border-[#DAB78C]/30 rounded-full px-3.5 py-1.5 mb-4 shadow-xs">
-                  <h3 className="font-serif text-xs sm:text-sm font-semibold text-[#DAB78C] whitespace-nowrap tracking-wide">
+                <div className="inline-flex items-center bg-[#242221]/90 border border-white/30 rounded-full px-4 py-1.5 mb-4 shadow-xs">
+                  <h3 className="font-serif text-sm sm:text-base font-bold text-white whitespace-nowrap tracking-wide">
                     {col.heading}
                   </h3>
                 </div>
-                <ul className="space-y-2.5 px-1">
+                <ul className="space-y-3 px-1">
                   {col.links.map((link) => {
                     const LinkIcon = link.icon;
                     return (
@@ -173,19 +173,19 @@ const Footer = () => {
                             href={link.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-xs text-[#F7F1E7]/80 hover:text-[#DAB78C] hover:translate-x-0.5 transition-all"
+                            className="flex items-center gap-2.5 text-sm sm:text-[15px] text-white hover:text-[#DAB78C] hover:translate-x-0.5 transition-all font-medium"
                             title={link.label}
                           >
-                            {LinkIcon && <LinkIcon className="h-3.5 w-3.5 text-[#DAB78C] flex-shrink-0" />}
+                            {LinkIcon && <LinkIcon className="h-4 w-4 text-white flex-shrink-0" />}
                             <span className="truncate">{link.label}</span>
                           </a>
                         ) : (
                           <Link
                             to={link.href}
-                            className="flex items-center gap-2 text-xs text-[#F7F1E7]/80 hover:text-[#DAB78C] hover:translate-x-0.5 transition-all"
+                            className="flex items-center gap-2.5 text-sm sm:text-[15px] text-white hover:text-[#DAB78C] hover:translate-x-0.5 transition-all font-medium"
                             title={link.label}
                           >
-                            {LinkIcon && <LinkIcon className="h-3.5 w-3.5 text-[#DAB78C] flex-shrink-0" />}
+                            {LinkIcon && <LinkIcon className="h-4 w-4 text-white flex-shrink-0" />}
                             <span className="truncate">{link.label}</span>
                           </Link>
                         )}
@@ -199,10 +199,10 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* ── Trust Badges Row ── */}
-      <div className="bg-[#3a2c1e] border-t border-white/10">
+      {/* ── Trust Badges Row (Desktop only, hidden on mobile) ── */}
+      <div className="hidden md:block bg-[#3a2c1e] border-t border-white/15">
         <div className="max-w-screen-2xl mx-auto px-6 py-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:divide-x md:divide-white/15">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-0 md:divide-x md:divide-white/20">
             {[
               { icon: "🌿", title: "Thoughtfully Chosen", desc: "Trusted Indian wellness brands" },
               { icon: "🔒", title: "Secure Payments", desc: "100% safe & encrypted transactions" },
@@ -216,8 +216,8 @@ const Footer = () => {
               >
                 <span className="text-2xl flex-shrink-0">{badge.icon}</span>
                 <div>
-                  <p className="text-xs sm:text-sm font-bold text-[#F7F1E7]">{badge.title}</p>
-                  <p className="text-xs text-[#DAB78C]/80">{badge.desc}</p>
+                  <p className="text-sm sm:text-base font-bold text-white">{badge.title}</p>
+                  <p className="text-xs sm:text-sm text-white font-medium">{badge.desc}</p>
                 </div>
               </div>
             ))}
@@ -226,13 +226,13 @@ const Footer = () => {
       </div>
 
       {/* ── Bottom Bar ── */}
-      <div className="bg-[#2b2015] border-t border-white/10">
+      <div className="bg-[#2b2015] border-t border-white/15">
         <div className="max-w-screen-2xl mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-5">
 
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white/95 border border-white/20 flex items-center justify-center shadow-sm">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg overflow-hidden bg-white/95 border border-white/30 flex items-center justify-center shadow-sm">
                 <img
                   src="/metafit-logo.png"
                   alt="M Wellness Bazaar"
@@ -240,10 +240,10 @@ const Footer = () => {
                 />
               </div>
               <div className="leading-tight">
-                <div className="font-serif text-sm font-bold text-[#F7F1E7] group-hover:text-[#DAB78C] transition-colors">
+                <div className="font-serif text-base sm:text-lg font-bold text-white group-hover:text-[#DAB78C] transition-colors">
                   M Wellness Bazaar
                 </div>
-                <div className="text-[11px] text-[#DAB78C]/80">MetaFit Wellness</div>
+                <div className="text-xs text-white font-medium">MetaFit Wellness</div>
               </div>
             </Link>
 
@@ -253,7 +253,7 @@ const Footer = () => {
                 href="https://www.facebook.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/15 transition-colors"
+                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/20 transition-colors"
                 aria-label="Facebook"
               >
                 <Facebook className="h-4 w-4" />
@@ -262,7 +262,7 @@ const Footer = () => {
                 href="https://www.instagram.com/mwellnessbazaar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/15 transition-colors"
+                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/20 transition-colors"
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4" />
@@ -271,21 +271,21 @@ const Footer = () => {
                 href="https://wa.me/918829912389"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/15 transition-colors"
+                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/20 transition-colors"
                 aria-label="WhatsApp"
               >
                 <MessageCircle className="h-4 w-4" />
               </a>
               <a
                 href="tel:+918829912389"
-                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/15 transition-colors"
+                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/20 transition-colors"
                 aria-label="Phone"
               >
                 <Phone className="h-4 w-4" />
               </a>
               <a
                 href="mailto:info@metafitwellness.com"
-                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/15 transition-colors"
+                className="w-8 h-8 bg-[#443524] hover:bg-[#DAB78C] text-white hover:text-[#242221] rounded-lg flex items-center justify-center border border-white/20 transition-colors"
                 aria-label="Email"
               >
                 <Mail className="h-4 w-4" />
@@ -294,8 +294,8 @@ const Footer = () => {
 
             {/* Copyright + Policies */}
             <div className="flex flex-col items-center md:items-end gap-1.5 md:pr-14">
-              <p className="text-xs text-[#F7F1E7]/75">
-                © mWellness Bazaar · <span className="text-[#DAB78C] font-semibold">MetaFit Wellness</span>
+              <p className="text-xs sm:text-sm text-white font-medium">
+                © mWellness Bazaar · <span className="text-white font-bold">MetaFit Wellness</span>
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {[
@@ -308,7 +308,7 @@ const Footer = () => {
                   <Link
                     key={p.label}
                     to={p.href}
-                    className="text-xs text-[#F7F1E7]/75 hover:text-[#DAB78C] transition-colors"
+                    className="text-xs sm:text-sm text-white hover:text-[#DAB78C] hover:underline transition-colors font-medium"
                   >
                     {p.label}
                   </Link>

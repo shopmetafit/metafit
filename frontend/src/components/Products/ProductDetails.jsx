@@ -290,29 +290,67 @@ const ProductDetails = ({ productId }) => {
 
   const keyFeatures = (() => {
     if (!selectedProduct?.description) return [];
-    const htmlString = selectedProduct.description;
-    const items = [];
+    const raw = selectedProduct.description;
+
+    // 1. Check for <li> tags if HTML formatted
+    const liMatches = [];
     const liRegex = /<li[^>]*>([\s\S]*?)<\/li>/gi;
     let match;
-    while ((match = liRegex.exec(htmlString)) !== null) {
-      const content = match[1];
-      const strongMatch = content.match(/<strong[^>]*>([\s\S]*?)<\/strong>/i);
-      let title = "";
-      if (strongMatch) {
-        title = strongMatch[1].replace(/<[^>]+>/g, "").trim();
-      } else {
-        const plainText = content.replace(/<[^>]+>/g, "").trim();
-        title = plainText.split(/[–—\-:]/)[0].trim();
-      }
-      title = title
+    while ((match = liRegex.exec(raw)) !== null) {
+      const text = match[1]
+        .replace(/<[^>]+>/g, "")
         .replace(/&amp;/g, "&")
         .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA70}-\u{1FAFF}\u{FE0F}]/gu, "")
         .trim();
-      if (title && !items.includes(title)) {
-        items.push(title);
+      if (text && !liMatches.includes(text)) {
+        liMatches.push(text);
       }
     }
-    return items;
+    if (liMatches.length > 0) return liMatches;
+
+    // 2. Check for bullet characters (•, *, -, –, ✓, ✨) in raw text
+    const cleanLines = raw
+      .split(/\r?\n|<br\s*\/?>|<\/p>/gi)
+      .map((l) =>
+        l
+          .replace(/<[^>]+>/g, "")
+          .replace(/&amp;/g, "&")
+          .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1FA70}-\u{1FAFF}\u{FE0F}]/gu, "")
+          .trim()
+      )
+      .filter(Boolean);
+
+    const bulletLines = [];
+    cleanLines.forEach((line) => {
+      if (/^(why choose|how to use|storage|directions|ingredients|storage instructions)/i.test(line) || line.endsWith("?")) {
+        return;
+      }
+      if (/^[•\*\-–✓✨]/.test(line)) {
+        const cleaned = line.replace(/^[•\*\-–✓✨\s:]+/, "").trim();
+        if (cleaned.length > 3 && !bulletLines.includes(cleaned)) {
+          bulletLines.push(cleaned);
+        }
+      }
+    });
+
+    if (bulletLines.length > 0) return bulletLines;
+
+    // 3. Fallback: split sentences from clean lines to make clean points
+    const sentences = [];
+    cleanLines.forEach((line) => {
+      if (/^(why choose|how to use|storage|directions|ingredients|storage instructions)/i.test(line) || line.endsWith("?")) {
+        return;
+      }
+      const parts = line.split(/(?<=[.!?])\s+/);
+      parts.forEach((p) => {
+        const trimmed = p.trim();
+        if (trimmed.length > 20 && trimmed.length < 180 && !sentences.includes(trimmed)) {
+          sentences.push(trimmed);
+        }
+      });
+    });
+
+    return sentences.slice(0, 6);
   })();
 
   useEffect(() => {
@@ -1947,116 +1985,94 @@ const ProductDetails = ({ productId }) => {
         </div>
 
         {/* ======================================================
-            ABOUT THIS PRODUCT & PRODUCT DETAILS (2-COLUMN GRID)
+            ABOUT THIS PRODUCT & SPECIFICATIONS (LOVABLE STYLE)
         ====================================================== */}
         {(selectedProduct.description || selectedProduct.brand || selectedProduct.category || selectedProduct.wellnessGoal?.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8 items-stretch">
-            {/* LEFT CARD: About this product */}
-            <div className="bg-[#FDFBF6] rounded-2xl border border-[#E6DDD0] p-5 sm:p-7 shadow-xs h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#EFEAE2]">
-                <div className="w-9 h-9 rounded-xl bg-[#F3EBE0] border border-[#E6DDD0] text-[#443524] flex items-center justify-center flex-shrink-0">
-                  <Sprout className="w-4.5 h-4.5" />
-                </div>
-                <h2 className="font-serif text-xl md:text-2xl font-bold text-[#242221] tracking-tight">
-                  About this product
-                </h2>
-              </div>
+          <div className="mt-12 mb-10 grid gap-8 md:gap-10 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start">
+            {/* 1. About this product */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                About this product
+              </h2>
+              {keyFeatures.length > 0 ? (
+                <ul className="list-disc space-y-2.5 pl-5 text-[#5C4D3E] text-[15px] leading-relaxed">
+                  {keyFeatures.map((item, idx) => (
+                    <li key={idx} className="pl-1">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ) : selectedProduct.description ? (
+                <div
+                  className="about-product-rich-text text-[15px] text-[#5C4D3E] leading-relaxed space-y-3"
+                  dangerouslySetInnerHTML={{
+                    __html: formatProductDescription(selectedProduct.description, selectedProduct.name),
+                  }}
+                />
+              ) : (
+                <p className="text-[15px] text-[#6E5D4B] italic">No description available for this product.</p>
+              )}
+            </section>
 
-              <div className="flex-1 flex flex-col justify-start">
-                {keyFeatures.length > 0 ? (
-                  <ul className="flex flex-col gap-3.5 mt-1">
-                    {keyFeatures.map((item, idx) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <div className="w-5 h-5 min-w-[20px] min-h-[20px] rounded-full bg-[#443524] text-[#DAB78C] flex items-center justify-center flex-shrink-0 text-[10px] font-extrabold shadow-xs mt-0.5">
-                          ✓
-                        </div>
-                        <span className="text-sm md:text-[15px] font-normal text-[#3d352c] leading-snug">
-                          {item}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : selectedProduct.description ? (
-                  <div
-                    className="about-product-rich-text text-sm text-[#3d352c] leading-relaxed mt-1"
-                    dangerouslySetInnerHTML={{
-                      __html: formatProductDescription(selectedProduct.description, selectedProduct.name),
-                    }}
-                  />
-                ) : (
-                  <p className="text-sm text-[#6E5D4B] italic">No description available for this product.</p>
+            {/* 2. Specifications */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                Specifications
+              </h2>
+              <dl className="divide-y divide-[#E6DDD0] rounded-xl border border-[#E6DDD0] bg-white overflow-hidden shadow-2xs">
+                {selectedProduct.brand && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Brand</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.brand}</dd>
+                  </div>
                 )}
-              </div>
-            </div>
-
-            {/* RIGHT CARD: Product Details */}
-            <div className="bg-[#FDFBF6] rounded-2xl border border-[#E6DDD0] p-5 sm:p-7 shadow-xs h-full flex flex-col">
-              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#EFEAE2]">
-                <div className="w-9 h-9 rounded-xl bg-[#F3EBE0] border border-[#E6DDD0] text-[#443524] flex items-center justify-center flex-shrink-0">
-                  <Layers className="w-4.5 h-4.5" />
+                {selectedProduct.category && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Category</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium capitalize">{selectedProduct.category}</dd>
+                  </div>
+                )}
+                {selectedProduct.wellnessGoal?.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                    <dt className="text-[#6E5D4B] text-sm">Wellness Goals</dt>
+                    <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.wellnessGoal.join(", ")}</dd>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2 px-4 py-2.5">
+                  <dt className="text-[#6E5D4B] text-sm">Country of origin</dt>
+                  <dd className="text-[#1A1612] text-sm font-medium">{selectedProduct.countryOfOrigin || "India"}</dd>
                 </div>
-                <h2 className="font-serif text-xl md:text-2xl font-bold text-[#242221] tracking-tight">
-                  Product Details
-                </h2>
+              </dl>
+            </section>
+
+            {/* 3. About the brand */}
+            <section>
+              <h2 className="mb-3.5 font-serif text-2xl font-normal text-[#1A1612]">
+                About the brand
+              </h2>
+              <div className="rounded-xl bg-[#F4EDE2] p-5 border border-[#E6DDD0]">
+                <p className="font-serif text-xl font-semibold text-[#1A1612]">
+                  {selectedProduct.brand || "MetaFit Wellness Partner"}
+                </p>
+                <p className="text-sm text-[#6E5D4B] mt-0.5">
+                  Authentic Wellness & Herbal Partner
+                </p>
+                <p className="mt-3 text-sm text-[#4A3E31] leading-relaxed">
+                  Dedicated to authentic Ayurvedic and wellness formulations, natural ingredients, and high purity standards.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    Made in India
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    100% Genuine
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-[#1A1612] border border-[#E6DDD0]">
+                    Natural Care
+                  </span>
+                </div>
               </div>
-
-              <div className="border border-[#E6DDD0] rounded-xl overflow-hidden bg-white shadow-xs flex-1 flex flex-col">
-                <table className="w-full h-full text-sm text-left border-collapse">
-                  <tbody>
-                    {selectedProduct.brand && (
-                      <tr className="border-b border-[#E6DDD0] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-medium text-[#6E5D4B] bg-[#FAF6F0] border-r border-[#E6DDD0]">
-                          Brand
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-[#242221] font-medium">
-                          {selectedProduct.brand}
-                        </td>
-                      </tr>
-                    )}
-
-                    {selectedProduct.category && (
-                      <tr className="border-b border-[#E6DDD0] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-medium text-[#6E5D4B] bg-[#FAF6F0] border-r border-[#E6DDD0]">
-                          Category
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-[#242221] font-medium capitalize">
-                          {selectedProduct.category}
-                        </td>
-                      </tr>
-                    )}
-
-                    {selectedProduct.wellnessGoal?.length > 0 && (
-                      <tr className="border-b border-[#E6DDD0] last:border-b-0">
-                        <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-medium text-[#6E5D4B] bg-[#FAF6F0] border-r border-[#E6DDD0] align-middle">
-                          Wellness Goals
-                        </td>
-                        <td className="py-3 sm:py-3.5 px-4 text-[#242221]">
-                          <div className="flex flex-wrap gap-2">
-                            {selectedProduct.wellnessGoal.map((goal, idx) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#F3EBE0] text-[#443524] border border-[#DFD3C3]"
-                              >
-                                {goal}
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-
-                    <tr className="border-b border-[#E6DDD0] last:border-b-0">
-                      <td className="w-36 sm:w-44 py-3 sm:py-3.5 px-4 font-medium text-[#6E5D4B] bg-[#FAF6F0] border-r border-[#E6DDD0]">
-                        Country of Origin
-                      </td>
-                      <td className="py-3 sm:py-3.5 px-4 text-[#242221] font-medium">
-                        {selectedProduct.countryOfOrigin || "India"}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            </section>
           </div>
         )}
 
