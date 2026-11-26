@@ -37,9 +37,9 @@ function LeafPetal({ p }) {
   );
 }
 
-export default function LeafRevealIntro({ children, onlyOncePerSession = false }) {
+export default function LeafRevealIntro({ children, onlyOncePerSession = true }) {
   const [phase, setPhase] = useState(() => {
-    if (onlyOncePerSession && typeof window !== "undefined") {
+    if (typeof window !== "undefined") {
       const shown = sessionStorage.getItem("mwellness_intro_shown");
       if (shown) return "done";
     }
@@ -61,7 +61,7 @@ export default function LeafRevealIntro({ children, onlyOncePerSession = false }
   useEffect(() => {
     if (phase === "done") return;
 
-    if (onlyOncePerSession) {
+    if (typeof window !== "undefined") {
       sessionStorage.setItem("mwellness_intro_shown", "true");
     }
 
@@ -77,7 +77,7 @@ export default function LeafRevealIntro({ children, onlyOncePerSession = false }
       clearTimeout(timer1);
       clearTimeout(timer2);
     };
-  }, [phase, onlyOncePerSession]);
+  }, [phase]);
 
   return (
     <>

@@ -339,7 +339,7 @@ const CollectionPage = () => {
 
   if (isHome) {
     return (
-      <LeafRevealIntro>
+      <LeafRevealIntro onlyOncePerSession={true}>
         <div className="min-h-screen">
           <SEO
             title="M Wellness Bazaar — Indian wellness products, delivered"
