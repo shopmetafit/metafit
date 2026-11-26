@@ -60,12 +60,23 @@ const ReferralAssignments = lazy(() => import("./components/Admin/ReferralAssign
 const ReviewManagement = lazy(() => import("./components/Admin/ReviewManagement"));
 const TicketManagement = lazy(() => import("./components/Admin/TicketManagement"));
 
-// Minimalist smooth spinner fallback for lazy routes
+// Skeleton fallback for lazy-loaded routes
 const PageLoader = () => (
-  <div className="min-h-[50vh] w-full flex items-center justify-center p-4">
-    <div className="flex flex-col items-center gap-2.5">
-      <div className="w-8 h-8 border-3 border-teal-600/20 border-t-teal-600 rounded-full animate-spin" />
-      <span className="text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Loading...</span>
+  <div className="min-h-[60vh] w-full max-w-7xl mx-auto px-4 py-6 space-y-8 animate-pulse" aria-busy="true" aria-label="Loading page">
+    <div className="h-44 sm:h-56 w-full rounded-2xl bg-herb-secondary/70 border border-herb-border" />
+    <div className="space-y-3">
+      <div className="h-6 w-48 rounded bg-herb-secondary/80" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className="rounded-xl border border-herb-border bg-herb-card overflow-hidden">
+            <div className="aspect-square w-full bg-herb-secondary/60" />
+            <div className="p-3 space-y-2">
+              <div className="h-3.5 w-4/5 rounded bg-herb-secondary/80" />
+              <div className="h-3.5 w-1/2 rounded bg-herb-secondary/60" />
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   </div>
 );

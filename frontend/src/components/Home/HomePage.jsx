@@ -162,7 +162,37 @@ const DealCard = ({ product }) => {
 /* ─────────────────────────────────────────────
    TODAY'S DEALS
 ───────────────────────────────────────────── */
-const TodaysDeals = ({ products }) => {
+const TodaysDealsSkeleton = () => (
+  <section id="deals" className="scroll-mt-32" aria-busy="true" aria-label="Loading today's deals">
+    <div className="flex items-end justify-between mb-4">
+      <div>
+        <h2 className="font-display text-2xl sm:text-3xl font-semibold text-herb-ink">
+          Today's Deals
+        </h2>
+        <div className="h-4 w-48 rounded bg-herb-secondary/80 animate-pulse mt-1.5" />
+      </div>
+      <div className="h-4 w-16 rounded bg-herb-secondary/80 animate-pulse" />
+    </div>
+
+    <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+      {Array.from({ length: 6 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="w-44 sm:w-52 flex-shrink-0 rounded-xl overflow-hidden bg-herb-card border border-herb-border animate-pulse"
+        >
+          <div className="aspect-square w-full bg-herb-secondary/70" />
+          <div className="p-3 space-y-2">
+            <div className="h-3.5 w-4/5 rounded bg-herb-secondary/80" />
+            <div className="h-3.5 w-2/5 rounded bg-herb-secondary/60" />
+            <div className="h-4 w-16 rounded bg-herb-secondary/80 mt-1" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+const TodaysDeals = ({ products, loading = false }) => {
   const deals = useMemo(
     () =>
       (products || [])
@@ -172,6 +202,7 @@ const TodaysDeals = ({ products }) => {
     [products]
   );
 
+  if (loading) return <TodaysDealsSkeleton />;
   if (deals.length === 0) return null;
 
   return (
@@ -323,7 +354,28 @@ const getCategoryIcon = (categoryName = "") => {
 /* ─────────────────────────────────────────────
    EXPLORE CATEGORIES
 ───────────────────────────────────────────── */
-const ExploreCategories = ({ products }) => {
+const ExploreCategoriesSkeleton = () => (
+  <section id="explore" className="scroll-mt-32" aria-busy="true" aria-label="Loading categories">
+    <h2 className="font-display text-center text-2xl sm:text-3xl font-semibold text-herb-ink mb-5">
+      Explore Categories
+    </h2>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+      {Array.from({ length: 8 }).map((_, idx) => (
+        <div
+          key={idx}
+          className="flex items-center justify-between gap-2 rounded-xl border border-herb-border bg-herb-card px-2.5 sm:px-4 py-2.5 sm:py-3.5 min-h-[54px] sm:min-h-[60px] animate-pulse"
+        >
+          <span className="flex items-center gap-2 sm:gap-2.5 flex-1">
+            <span className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-herb-secondary/80 shrink-0" />
+            <span className="h-3.5 w-3/4 rounded bg-herb-secondary/80" />
+          </span>
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+const ExploreCategories = ({ products, loading = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const categories = useMemo(() => {
@@ -337,6 +389,7 @@ const ExploreCategories = ({ products }) => {
     return [...seen.values()];
   }, [products]);
 
+  if (loading) return <ExploreCategoriesSkeleton />;
   if (categories.length === 0) return null;
 
   // 2 rows on desktop (4 columns x 2 rows = 8 items)
@@ -560,7 +613,31 @@ const renderBrandWordmark = (name) => {
   );
 };
 
-const ExploreBrands = ({ products }) => {
+const ExploreBrandsSkeleton = () => (
+  <section
+    className="rounded-2xl bg-herb-secondary border border-herb-border px-5 py-6 sm:px-8"
+    aria-busy="true"
+    aria-label="Loading brands"
+  >
+    <div className="mb-5">
+      <h2 className="font-display text-2xl sm:text-3xl font-semibold text-herb-ink">
+        Explore Top Brands
+      </h2>
+      <p className="text-sm text-herb-muted-foreground mt-1">
+        Indian brands we trust, thoughtfully curated
+      </p>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-5 items-center">
+      {Array.from({ length: 12 }).map((_, idx) => (
+        <div key={idx} className="flex items-center justify-center py-2.5">
+          <div className="h-5 w-28 sm:w-32 rounded-md bg-herb-border/70 animate-pulse" />
+        </div>
+      ))}
+    </div>
+  </section>
+);
+
+const ExploreBrands = ({ products, loading = false }) => {
   const brands = useMemo(() => {
     const brandMap = new Map();
 
@@ -593,6 +670,7 @@ const ExploreBrands = ({ products }) => {
     );
   }, [products]);
 
+  if (loading) return <ExploreBrandsSkeleton />;
   if (brands.length === 0) return null;
 
   return (
@@ -774,20 +852,22 @@ const TrustStrip = () => (
 ───────────────────────────────────────────── */
 const HomePage = () => {
   const dispatch = useDispatch();
-  const { allProducts } = useSelector(
-    (state) => state.products || { allProducts: [] }
+  const { allProducts, loading } = useSelector(
+    (state) => state.products || { allProducts: [], loading: false }
   );
 
   useEffect(() => {
     dispatch(fetchAllProducts());
   }, [dispatch]);
 
+  const isInitialLoading = loading && (!allProducts || allProducts.length === 0);
+
   return (
     <div className="space-y-10 sm:space-y-14 pb-6">
       <Hero />
-      <TodaysDeals products={allProducts} />
-      <ExploreCategories products={allProducts} />
-      <ExploreBrands products={allProducts} />
+      <TodaysDeals products={allProducts} loading={isInitialLoading} />
+      <ExploreCategories products={allProducts} loading={isInitialLoading} />
+      <ExploreBrands products={allProducts} loading={isInitialLoading} />
       <WelcomeSection />
       <TrustStrip />
       <HomeFaq />
