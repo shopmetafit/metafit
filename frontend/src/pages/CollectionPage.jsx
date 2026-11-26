@@ -14,6 +14,7 @@ import WelcomeAccordion from "../components/common/WelcomeAccordion";
 import LeafRevealIntro from "../components/common/LeafRevealIntro";
 
 import SEO from "../components/SEO/SEO";
+import { trackGtmViewItemList } from "../lib/gtm";
 
 export const getProductDiscount = (product) => {
   if (!product) return 0;
@@ -88,6 +89,17 @@ const CollectionPage = () => {
     delete params.location;
     dispatch(fetchProductsByFilters(params));
   }, [dispatch, collection, categorySlug, searchParams]);
+
+  // GA4 - view_item_list tracking on product list render
+  useEffect(() => {
+    if (!loading && products && products.length > 0) {
+      trackGtmViewItemList({
+        items: products,
+        item_list_name: activeCategory || collection || "Product Catalog",
+        item_list_id: categorySlug || collection || "catalog",
+      });
+    }
+  }, [loading, products, activeCategory, collection, categorySlug]);
 
   // Load next batch when user scrolls near the bottom
   const loadNextBatch = useCallback(() => {

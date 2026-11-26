@@ -13,6 +13,7 @@ import axios from "axios";
 import checkoutSchema from "./checkout-schema";
 import { toast } from "sonner";
 import { trackMetaEvent } from "../../lib/meta-pixel";
+import { trackGtmAddShippingInfo, trackGtmAddPaymentInfo } from "../../lib/gtm";
 import {
   clearReferralContext,
   getReferralForCartItems,
@@ -511,6 +512,15 @@ const CheckOut = () => {
           }
         }
       });
+
+      trackGtmAddPaymentInfo({
+        items: cart?.products || [],
+        value: price,
+        currency: "INR",
+        payment_type: "Razorpay",
+        coupon: appliedCoupon || "",
+      });
+
       paymentObject.open();
     } catch (error) {
       console.error("Payment error:", error);
@@ -563,6 +573,14 @@ const CheckOut = () => {
         num_items: cart.products.reduce((acc, item) => acc + Number(item.quantity || 1), 0),
         value: finalTotal,
         currency: "INR",
+      });
+
+      trackGtmAddShippingInfo({
+        items: cart.products,
+        value: finalTotal,
+        currency: "INR",
+        shipping_tier: "Standard Delivery",
+        coupon: appliedCoupon || "",
       });
 
       const res = await dispatch(

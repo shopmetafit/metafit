@@ -6,6 +6,7 @@ import { CheckCircle, Package, Truck, CreditCard, MapPin, ReceiptText } from "lu
 import { clearCart } from "../redux/slices/cartSlice";
 import { clearReferralContext } from "../services/referralStorage";
 import { trackMetaEvent } from "../lib/meta-pixel";
+import { trackGtmPurchase } from "../lib/gtm";
 
 const OrderConfirmationPage = () => {
   const dispatch = useDispatch();
@@ -59,6 +60,48 @@ const OrderConfirmationPage = () => {
         num_items: numItems,
         value: Number(checkout.totalPrice || 0),
         currency: "INR",
+      });
+    }
+  }, [checkout]);
+
+  // GA4 & GTM - Purchase Event (Fires ONLY on confirmed paid orders, deduplicated per transaction_id)
+  useEffect(() => {
+    if (!checkout || !checkout._id) return;
+
+    const isConfirmedPaid =
+      checkout.isPaid === true ||
+      checkout.paymentStatus === "paid" ||
+      checkout.paymentStatus === "Paid" ||
+      checkout.paymentStatus === "Completed";
+
+    if (!isConfirmedPaid) return;
+
+    const transactionId = String(checkout.orderNumber || checkout._id);
+    const gtmPurchaseKey = `ga4_purchase_${transactionId}`;
+    const alreadyTracked = localStorage.getItem(gtmPurchaseKey);
+
+    if (!alreadyTracked) {
+      localStorage.setItem(gtmPurchaseKey, "true");
+
+      const itemsList = checkout.orderItems || checkout.checkoutItems || [];
+      const formattedItems = itemsList.map((item) => ({
+        productId: item.productId || item._id,
+        name: item.name || "",
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || item.qty || 1),
+        size: item.size,
+        color: item.color,
+        variant: item.variant,
+      }));
+
+      trackGtmPurchase({
+        transaction_id: transactionId,
+        value: Number(checkout.totalPrice || 0),
+        tax: Number(checkout.serviceFee || 0),
+        shipping: Number(checkout.deliveryCharge || 0),
+        currency: "INR",
+        coupon: checkout.couponCode || "",
+        items: formattedItems,
       });
     }
   }, [checkout]);

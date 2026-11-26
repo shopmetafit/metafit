@@ -38,6 +38,7 @@ import {
 } from "../../services/referralStorage";
 
 import { trackMetaEvent } from "../../lib/meta-pixel";
+import { trackGtmViewItem, trackGtmAddToCart, trackGtmBeginCheckout } from "../../lib/gtm";
 
 const formatCurrency = (value) => {
   const numericValue = Number(value);
@@ -104,9 +105,13 @@ const ProductDetails = ({ productId }) => {
   const wishlistProducts = wishlistState?.products || [];
   const compareItems = useSelector((state) => state.compare?.items || []);
 
-  const { reviews, stats, productId: reviewProductId } = useSelector(
-    (state) => state.reviews
-  );
+  const {
+    reviews,
+    stats,
+    productId: reviewProductId,
+    loading: reviewsLoading,
+    error: reviewsError,
+  } = useSelector((state) => state.reviews);
 
   const [selectedProduct, setSelectedProduct] =
     useState(null);
@@ -366,18 +371,28 @@ const ProductDetails = ({ productId }) => {
   */
 
   const isCurrentProductReviews =
-    selectedProduct?._id && reviewProductId === selectedProduct._id;
+    Boolean(selectedProduct?._id && reviewProductId === selectedProduct._id);
 
-  const totalReviews = isCurrentProductReviews && stats
+  const isReviewsLoadingForCurrent =
+    Boolean(selectedProduct?._id && reviewsLoading && reviewProductId !== selectedProduct._id);
+
+  // Read actual review count from backend stats, reviews array, or product document
+  const totalReviews = isCurrentProductReviews && stats && typeof stats.totalReviews === "number"
     ? stats.totalReviews
-    : (isCurrentProductReviews && reviews ? reviews.length : 0);
+    : (isCurrentProductReviews && Array.isArray(reviews)
+        ? reviews.length
+        : (Number(selectedProduct?.numReviews) || 0));
 
-  const rawAverage = isCurrentProductReviews && stats
+  // Read actual average rating from backend stats, reviews array, or product document
+  const rawAverage = isCurrentProductReviews && stats && typeof stats.averageRating === "number"
     ? stats.averageRating
-    : (totalReviews > 0 && reviews ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / totalReviews) : 0);
+    : (isCurrentProductReviews && Array.isArray(reviews) && reviews.length > 0
+        ? (reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) / reviews.length)
+        : (Number(selectedProduct?.rating) || 0));
 
   const averageRating = Math.round(rawAverage * 10) / 10;
-  const formattedAverage = averageRating.toFixed(1);
+  const formattedAverage = averageRating > 0 ? averageRating.toFixed(1) : null;
+  const hasRealReviews = Boolean(totalReviews > 0 && averageRating > 0);
 
   const renderRatingStars = (ratingVal) => {
     const stars = [];
@@ -614,6 +629,15 @@ const ProductDetails = ({ productId }) => {
       content_name: selectedProduct.name,
       content_type: "product",
       value: productPrice,
+      currency: "INR",
+    });
+
+    trackGtmViewItem({
+      product: {
+        ...selectedProduct,
+        productId: metaProductId,
+        price: productPrice,
+      },
       currency: "INR",
     });
   }, [
@@ -870,6 +894,22 @@ const ProductDetails = ({ productId }) => {
         quantity,
       });
 
+      trackGtmAddToCart({
+        items: [
+          {
+            ...selectedProduct,
+            productId: actualProductId,
+            price: itemPrice,
+            quantity,
+            variant: selectedVariant,
+            size: selectedSize,
+            color: selectedColor,
+          },
+        ],
+        value: itemPrice * quantity,
+        currency: "INR",
+      });
+
       /*
       --------------------------------------------------------
       SUCCESS
@@ -1122,6 +1162,22 @@ const ProductDetails = ({ productId }) => {
         quantity,
       });
 
+      trackGtmAddToCart({
+        items: [
+          {
+            ...selectedProduct,
+            productId: actualProductId,
+            price: itemPrice,
+            quantity,
+            variant: selectedVariant,
+            size: selectedSize,
+            color: selectedColor,
+          },
+        ],
+        value: itemPrice * quantity,
+        currency: "INR",
+      });
+
       trackMetaEvent("InitiateCheckout", {
         content_ids: [actualProductId],
         content_name: selectedProduct.name,
@@ -1129,6 +1185,22 @@ const ProductDetails = ({ productId }) => {
         value: itemPrice * quantity,
         currency: "INR",
         num_items: quantity,
+      });
+
+      trackGtmBeginCheckout({
+        items: [
+          {
+            ...selectedProduct,
+            productId: actualProductId,
+            price: itemPrice,
+            quantity,
+            variant: selectedVariant,
+            size: selectedSize,
+            color: selectedColor,
+          },
+        ],
+        value: itemPrice * quantity,
+        currency: "INR",
       });
 
       navigate("/checkout");
@@ -1507,20 +1579,44 @@ const ProductDetails = ({ productId }) => {
                 LEFT - CLEAN IMAGE GALLERY
             ================================================== */}
 
-            <div className="w-full lg:w-[46%] max-w-[490px] flex-shrink-0 mx-auto lg:mx-0 lg:sticky lg:top-28">
+            <div className="w-full lg:w-[42%] max-w-[420px] flex-shrink-0 mx-auto lg:mx-0 lg:sticky lg:top-28">
               {/* MAIN PRODUCT IMAGE CARD */}
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#ECE6DD] flex items-center justify-center">
+              <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-white border border-[#E6DDD0] flex items-center justify-center p-3 sm:p-4 shadow-xs">
+                {/* TOP-LEFT: DISCOUNT BADGE */}
+                {(() => {
+                  let pPrice = selectedVariant?.discountPrice || selectedProduct?.discountPrice || selectedProduct?.price;
+                  let pMrp = selectedVariant?.price || selectedProduct?.price;
+                  const discountPct = pMrp && pMrp > pPrice ? Math.round(((pMrp - pPrice) / pMrp) * 100) : 0;
+                  if (discountPct > 0) {
+                    return (
+                      <span className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-[#FF3B30] text-white text-xs font-bold rounded-full shadow-xs">
+                        -{discountPct}% OFF
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
+
+                {/* TOP-RIGHT: METAFIT / M WELLNESS BAZAAR LOGO BADGE */}
+                <div className="absolute top-3 right-3 z-10 w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-white/95 border border-[#E6DDD0] shadow-xs p-1 flex items-center justify-center">
+                  <img
+                    src="/metafit-logo.png"
+                    alt="M Wellness Bazaar"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
                 {mainImage === "video" ? (
                   <video
                     src={selectedProduct.videoUrl}
                     controls
-                    className="w-full h-full object-cover rounded-2xl"
+                    className="w-full h-full object-contain rounded-xl"
                   />
                 ) : (
                   <img
                     src={mainImage || "https://via.placeholder.com/600"}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover rounded-2xl transition-all duration-300"
+                    className="w-full h-full object-contain rounded-xl transition-all duration-300"
                   />
                 )}
               </div>
@@ -1638,9 +1734,11 @@ const ProductDetails = ({ productId }) => {
                 </div>
               )}
 
-              {/* RATING & STOCK */}
-              <div className="flex flex-wrap items-center gap-2.5 mb-4">
-                {totalReviews > 0 ? (
+              {/* RATING (REAL DATABASE REVIEWS - NO BESTSELLER BADGE, NO DUMMY VALUES) */}
+              <div className="flex items-center gap-2 mb-4 min-h-[24px]">
+                {isReviewsLoadingForCurrent ? (
+                  <span className="text-xs text-[#8C7A68]">Loading reviews...</span>
+                ) : hasRealReviews ? (
                   <div className="flex items-center gap-1.5 text-sm text-[#5C4D3C]">
                     <span className="text-[#B58250] text-sm leading-none">★</span>
                     <span className="font-semibold text-[#1A1612]">{formattedAverage}</span>
@@ -1648,20 +1746,8 @@ const ProductDetails = ({ productId }) => {
                     <span>{totalReviews} {totalReviews === 1 ? "rating" : "ratings"}</span>
                   </div>
                 ) : (
-                  <span className="text-xs text-[#6E5D4B] font-normal">
-                    No ratings yet
-                  </span>
-                )}
-
-                {selectedProduct.countInStock !== undefined && (
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium ${
-                      selectedProduct.countInStock > 0
-                        ? "bg-[#B58250]/15 text-[#7A5229]"
-                        : "bg-rose-50 text-rose-700"
-                    }`}
-                  >
-                    {selectedProduct.countInStock > 0 ? "In Stock" : "Out of Stock"}
+                  <span className="text-xs sm:text-sm text-[#6E5D4B] font-normal">
+                    No reviews yet
                   </span>
                 )}
               </div>

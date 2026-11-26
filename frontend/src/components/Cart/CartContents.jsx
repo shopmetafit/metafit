@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { removeFromCart, updateCartItemQuantity } from "../../redux/slices/cartSlice";
 import { Link } from "react-router-dom";
 import { trackMetaEvent } from "../../lib/meta-pixel";
+import { trackGtmRemoveFromCart } from "../../lib/gtm";
 
 const CartContents = ({ cart, userId, guestId }) => {
   const dispatch = useDispatch();
@@ -43,6 +44,16 @@ const CartContents = ({ cart, userId, guestId }) => {
   };
 
   const handleRemove = (productId, size, color) => {
+    const itemToRemove = cart?.products?.find(
+      (p) => (p.productId || p._id) === productId && p.size === size && p.color === color
+    ) || { productId, size, color };
+
+    trackGtmRemoveFromCart({
+      items: [itemToRemove],
+      value: Number(itemToRemove.price || 0) * Number(itemToRemove.quantity || 1),
+      currency: "INR",
+    });
+
     dispatch(removeFromCart({ productId, userId, guestId, size, color }));
   };
 

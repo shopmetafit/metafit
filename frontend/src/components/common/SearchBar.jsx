@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setFilters, fetchProductsByFilters } from "../../redux/slices/productSlice";
 import { trackMetaEvent } from "../../lib/meta-pixel";
+import { trackGtmSearch } from "../../lib/gtm";
 
 const SearchBar = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,6 +22,9 @@ const SearchBar = () => {
     if (searchTerm.trim()) {
       trackMetaEvent("Search", {
         search_string: searchTerm.trim(),
+      });
+      trackGtmSearch({
+        search_term: searchTerm.trim(),
       });
     }
     dispatch(setFilters({ search: searchTerm }));

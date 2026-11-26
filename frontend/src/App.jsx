@@ -10,6 +10,7 @@ import ProtectedRoutes from "./components/common/ProtectedRoutes";
 import SessionExpiredModal from "./components/common/SessionExpiredModal";
 import { readReferralParams, saveReferralContext } from "./services/referralStorage";
 import { trackMetaEvent } from "./lib/meta-pixel";
+import { trackGtmPageView } from "./lib/gtm";
 
 // Lazy-loaded route components for optimal initial bundle performance
 const Login = lazy(() => import("./pages/Login"));
@@ -95,6 +96,20 @@ const MetaPixelPageViewTracker = () => {
   return null;
 };
 
+const GtmPageViewTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackGtmPageView({
+      page_path: location.pathname + location.search,
+      page_location: typeof window !== "undefined" ? window.location.href : "",
+      page_title: typeof document !== "undefined" ? document.title : "",
+    });
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const App = () => {
   return (
     <Provider store={store}>
@@ -102,6 +117,7 @@ const App = () => {
       <BrowserRouter>
         <GlobalReferralTracker />
         <MetaPixelPageViewTracker />
+        <GtmPageViewTracker />
         <Toaster position="top-right" />
         <Suspense fallback={<PageLoader />}>
           <Routes>

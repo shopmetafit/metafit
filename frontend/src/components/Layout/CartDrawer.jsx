@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { fetchCart } from "../../redux/slices/cartSlice";
 import { removeFromWishlist } from "../../redux/slices/wishlistSlice";
 import { trackMetaEvent } from "../../lib/meta-pixel";
+import { trackGtmViewCart, trackGtmBeginCheckout } from "../../lib/gtm";
 
 const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActiveTab }) => {
   const navigate = useNavigate();
@@ -21,6 +22,17 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
     }
   }, [drawerOpen, dispatch, userId, guestId]);
 
+  // GA4 - view_cart event when Cart Drawer opens
+  useEffect(() => {
+    if (drawerOpen && cart?.products && cart.products.length > 0) {
+      trackGtmViewCart({
+        items: cart.products,
+        value: cart.totalPrice || 0,
+        currency: "INR",
+      });
+    }
+  }, [drawerOpen, cart?.products, cart?.totalPrice]);
+
   const itemCount = cart?.products?.reduce((t, p) => t + p.quantity, 0) || 0;
   const wishlistCount = wishlist?.products?.length || 0;
   const subtotal = cart?.totalPrice ?? 0;
@@ -32,6 +44,11 @@ const CartDrawer = ({ drawerOpen, togglerCartOpen, activeTab = 'cart', setActive
         content_ids: cart.products.map((p) => p.productId || p._id),
         content_type: "product",
         num_items: itemCount,
+        value: subtotal,
+        currency: "INR",
+      });
+      trackGtmBeginCheckout({
+        items: cart.products,
         value: subtotal,
         currency: "INR",
       });
