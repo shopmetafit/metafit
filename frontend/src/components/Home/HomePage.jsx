@@ -449,20 +449,20 @@ const ExploreCategories = ({ products, loading = false }) => {
 const BRAND_WORDMARKS = {
   "metafit wellness": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none tracking-tight"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none tracking-tight"
       style={{ fontFamily: "'Montserrat', sans-serif", color: "#9E4E33" }}
     >
-      <span className="text-lg sm:text-xl font-extrabold">Metafit</span>
-      <span className="text-lg sm:text-xl font-light tracking-normal">wellness</span>
+      <span className="text-sm sm:text-base md:text-lg font-extrabold">Metafit</span>
+      <span className="text-sm sm:text-base md:text-lg font-light tracking-normal">wellness</span>
     </span>
   ),
   "vedic beauty": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.14em]"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.14em]"
       style={{ fontFamily: "'Cormorant Garamond', serif", color: "#31681F" }}
     >
-      <span className="text-lg sm:text-xl font-bold">VEDIC</span>
-      <span className="text-base sm:text-lg font-semibold">BEAUTY</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold">VEDIC</span>
+      <span className="text-xs sm:text-sm md:text-base font-semibold">BEAUTY</span>
     </span>
   ),
   "pranshi enterprises": () => (
@@ -470,17 +470,17 @@ const BRAND_WORDMARKS = {
       className="inline-flex items-baseline justify-center gap-1 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Poppins', sans-serif" }}
     >
-      <span className="text-base sm:text-lg font-bold tracking-tight text-[#2E5A27]">Pranshi</span>
-      <span className="text-sm sm:text-base font-medium text-[#7A542E]">Enterprises</span>
+      <span className="text-xs sm:text-sm md:text-base font-bold tracking-tight text-[#2E5A27]">Pranshi</span>
+      <span className="text-[11px] sm:text-xs md:text-sm font-medium text-[#7A542E]">Enterprises</span>
     </span>
   ),
   "adi wellness": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Cormorant Garamond', serif" }}
     >
-      <span className="text-xl sm:text-2xl font-bold tracking-wide text-[#2D5A3F]">Adi</span>
-      <span className="text-lg sm:text-xl italic font-semibold text-[#8C6239]">wellness</span>
+      <span className="text-base sm:text-lg md:text-xl font-bold tracking-wide text-[#2D5A3F]">Adi</span>
+      <span className="text-sm sm:text-base md:text-lg italic font-semibold text-[#8C6239]">wellness</span>
     </span>
   ),
   sadaharit: () => (
@@ -488,43 +488,43 @@ const BRAND_WORDMARKS = {
       className="inline-flex items-baseline justify-center whitespace-nowrap leading-none tracking-tight"
       style={{ fontFamily: "'Lora', serif", color: "#276738" }}
     >
-      <span className="text-xl sm:text-2xl font-bold">Sadaharit</span>
+      <span className="text-base sm:text-lg md:text-xl font-bold">Sadaharit</span>
     </span>
   ),
   "outer woods": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.08em]"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.08em]"
       style={{ fontFamily: "'Oswald', sans-serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#1E3F2B]">OUTER</span>
-      <span className="text-lg sm:text-xl font-medium text-[#1F2937]">WOODS</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#1E3F2B]">OUTER</span>
+      <span className="text-sm sm:text-base md:text-lg font-medium text-[#1F2937]">WOODS</span>
     </span>
   ),
   "aayu herbal": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Lora', serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#2F6B35]">Aayu</span>
-      <span className="text-lg sm:text-xl font-medium text-[#6B4F2C]">Herbal</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#2F6B35]">Aayu</span>
+      <span className="text-sm sm:text-base md:text-lg font-medium text-[#6B4F2C]">Herbal</span>
     </span>
   ),
   "truly yours": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Cormorant Garamond', serif", color: "#7D2948" }}
     >
-      <span className="text-xl sm:text-2xl italic font-bold">Truly</span>
-      <span className="text-lg sm:text-xl font-semibold tracking-wide">Yours</span>
+      <span className="text-base sm:text-lg md:text-xl italic font-bold">Truly</span>
+      <span className="text-sm sm:text-base md:text-lg font-semibold tracking-wide">Yours</span>
     </span>
   ),
   "rg hair solutions": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.06em]"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none uppercase tracking-[0.06em]"
       style={{ fontFamily: "'Oswald', sans-serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#1F2937]">RG</span>
-      <span className="text-base sm:text-lg font-medium text-[#5C4033]">HAIR SOLUTIONS</span>
+      <span className="text-xs sm:text-sm md:text-base font-bold text-[#1F2937]">RG</span>
+      <span className="text-[10px] sm:text-xs md:text-sm font-medium text-[#5C4033]">HAIR SOLUTIONS</span>
     </span>
   ),
   "kaps care": () => (
@@ -532,8 +532,8 @@ const BRAND_WORDMARKS = {
       className="inline-flex items-baseline justify-center gap-1 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Poppins', sans-serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold tracking-tight text-[#2E7D32]">Kaps</span>
-      <span className="text-lg sm:text-xl font-normal text-[#4B3621]">Care</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold tracking-tight text-[#2E7D32]">Kaps</span>
+      <span className="text-sm sm:text-base md:text-lg font-normal text-[#4B3621]">Care</span>
     </span>
   ),
   panchakarma: () => (
@@ -541,35 +541,35 @@ const BRAND_WORDMARKS = {
       className="inline-flex items-baseline justify-center whitespace-nowrap leading-none tracking-wide"
       style={{ fontFamily: "'Lora', serif", color: "#6D4C2F" }}
     >
-      <span className="text-lg sm:text-xl font-bold">Panchakarma</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold">Panchakarma</span>
     </span>
   ),
   "preet secrets": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Cormorant Garamond', serif" }}
     >
-      <span className="text-xl sm:text-2xl font-bold text-[#3A5A40]">Preet</span>
-      <span className="text-xl sm:text-2xl italic font-semibold text-[#9A6B2F]">Secrets</span>
+      <span className="text-base sm:text-lg md:text-xl font-bold text-[#3A5A40]">Preet</span>
+      <span className="text-base sm:text-lg md:text-xl italic font-semibold text-[#9A6B2F]">Secrets</span>
     </span>
   ),
   "palm & pestle": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Playfair Display', serif", color: "#4A2E1B" }}
     >
-      <span className="text-lg sm:text-xl font-bold">Palm</span>
-      <span className="text-base sm:text-lg italic font-semibold text-[#8B5A2B]">&amp;</span>
-      <span className="text-lg sm:text-xl font-bold">Pestle</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold">Palm</span>
+      <span className="text-xs sm:text-sm md:text-base italic font-semibold text-[#8B5A2B]">&amp;</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold">Pestle</span>
     </span>
   ),
   "kalewa cookies": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Playfair Display', serif" }}
     >
-      <span className="text-lg sm:text-xl font-extrabold text-[#7C3F1D]">Kalewa</span>
-      <span className="text-base sm:text-lg font-semibold text-[#4F6238]">Cookies</span>
+      <span className="text-sm sm:text-base md:text-lg font-extrabold text-[#7C3F1D]">Kalewa</span>
+      <span className="text-xs sm:text-sm md:text-base font-semibold text-[#4F6238]">Cookies</span>
     </span>
   ),
   "millet uncle": () => (
@@ -577,26 +577,26 @@ const BRAND_WORDMARKS = {
       className="inline-flex items-baseline justify-center gap-1 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Quicksand', sans-serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#3A6B35]">Millet</span>
-      <span className="text-lg sm:text-xl font-bold text-[#A45D28]">Uncle</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#3A6B35]">Millet</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#A45D28]">Uncle</span>
     </span>
   ),
   "nadi tarangini": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none tracking-tight"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none tracking-tight"
       style={{ fontFamily: "'Poppins', sans-serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#1B4D7A]">Nadi</span>
-      <span className="text-lg sm:text-xl font-medium text-[#0E7C7B]">Tarangini</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#1B4D7A]">Nadi</span>
+      <span className="text-sm sm:text-base md:text-lg font-medium text-[#0E7C7B]">Tarangini</span>
     </span>
   ),
   "satvik healing": () => (
     <span
-      className="inline-flex items-baseline justify-center gap-1.5 whitespace-nowrap leading-none"
+      className="inline-flex items-baseline justify-center gap-1 sm:gap-1.5 whitespace-nowrap leading-none"
       style={{ fontFamily: "'Lora', serif" }}
     >
-      <span className="text-lg sm:text-xl font-bold text-[#5E3A6E]">Satvik</span>
-      <span className="text-lg sm:text-xl font-medium text-[#3B6E4C]">Healing</span>
+      <span className="text-sm sm:text-base md:text-lg font-bold text-[#5E3A6E]">Satvik</span>
+      <span className="text-sm sm:text-base md:text-lg font-medium text-[#3B6E4C]">Healing</span>
     </span>
   ),
 };
@@ -607,7 +607,7 @@ const renderBrandWordmark = (name) => {
     return BRAND_WORDMARKS[key]();
   }
   return (
-    <span className="text-sm sm:text-base font-semibold text-herb-foreground truncate group-hover:text-herb-ink transition-colors">
+    <span className="text-xs sm:text-sm md:text-base font-semibold text-herb-foreground truncate group-hover:text-herb-ink transition-colors">
       {name}
     </span>
   );
@@ -615,22 +615,25 @@ const renderBrandWordmark = (name) => {
 
 const ExploreBrandsSkeleton = () => (
   <section
-    className="rounded-2xl bg-herb-secondary border border-herb-border px-5 py-6 sm:px-8"
+    className="rounded-2xl sm:rounded-3xl bg-herb-secondary/50 border border-herb-border p-4 sm:p-6 lg:p-8"
     aria-busy="true"
     aria-label="Loading brands"
   >
-    <div className="mb-5">
-      <h2 className="font-display text-2xl sm:text-3xl font-semibold text-herb-ink">
+    <div className="mb-3.5 sm:mb-5">
+      <h2 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-herb-ink">
         Explore Top Brands
       </h2>
-      <p className="text-sm text-herb-muted-foreground mt-1">
+      <p className="text-xs sm:text-sm text-herb-muted-foreground mt-0.5 sm:mt-1">
         Indian brands we trust, thoughtfully curated
       </p>
     </div>
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-5 items-center">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-3">
       {Array.from({ length: 12 }).map((_, idx) => (
-        <div key={idx} className="flex items-center justify-center py-2.5">
-          <div className="h-5 w-28 sm:w-32 rounded-md bg-herb-border/70 animate-pulse" />
+        <div
+          key={idx}
+          className="flex items-center justify-center min-h-[48px] sm:min-h-[58px] md:min-h-[64px] rounded-xl bg-white border border-herb-border shadow-2xs p-2 sm:p-3"
+        >
+          <div className="h-4 w-16 sm:w-24 rounded-md bg-herb-border/70 animate-pulse" />
         </div>
       ))}
     </div>
@@ -674,26 +677,28 @@ const ExploreBrands = ({ products, loading = false }) => {
   if (brands.length === 0) return null;
 
   return (
-    <section className="rounded-2xl bg-herb-secondary border border-herb-border px-5 py-6 sm:px-8">
-      <div className="flex items-end justify-between mb-5">
+    <section className="rounded-2xl sm:rounded-3xl bg-herb-secondary/50 border border-herb-border p-4 sm:p-6 lg:p-8">
+      <div className="flex items-end justify-between mb-3.5 sm:mb-5">
         <div>
-          <h2 className="font-display text-2xl sm:text-3xl font-semibold text-herb-ink">
+          <h2 className="font-display text-xl sm:text-2xl md:text-3xl font-semibold text-herb-ink">
             Explore Top Brands
           </h2>
-          <p className="text-sm text-herb-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-herb-muted-foreground mt-0.5 sm:mt-1">
             Indian brands we trust, thoughtfully curated
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-5 items-center">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-2 sm:gap-3">
         {brands.map((brand) => (
           <Link
             key={brand.name}
             to={`/collections/all?brand=${encodeURIComponent(brand.name)}`}
-            className="group flex items-center justify-center px-2 py-2.5 text-center transition-transform duration-200 hover:scale-105"
+            className="group flex items-center justify-center min-h-[48px] sm:min-h-[58px] md:min-h-[64px] px-2 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-white border border-herb-border shadow-2xs hover:shadow-xs hover:border-[#8E5E3C]/60 hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 text-center overflow-hidden"
           >
-            {renderBrandWordmark(brand.name)}
+            <div className="w-full flex items-center justify-center overflow-hidden">
+              {renderBrandWordmark(brand.name)}
+            </div>
           </Link>
         ))}
       </div>

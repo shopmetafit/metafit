@@ -25,6 +25,7 @@ import {
   closeCartDrawer
 } from '../../redux/slices/cartSlice';
 import { detectDistrictAndState } from '../../utils/location';
+import { trackGtmSearch } from '../../lib/gtm';
 
 const Topbar = ({ onOpenMobileNav }) => {
   const dispatch = useDispatch();
@@ -549,6 +550,10 @@ const Topbar = ({ onOpenMobileNav }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+
+    if (searchQuery.trim()) {
+      trackGtmSearch({ search_term: searchQuery.trim() });
+    }
 
     setShowSuggestions(false);
     setSelectedIndex(-1);
