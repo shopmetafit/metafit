@@ -12,6 +12,15 @@ import {
   Star,
 } from "lucide-react";
 
+// High-performance Cloudinary dynamic image optimizer for grid thumbnails (~20KB instead of 2-3MB)
+const getOptimizedGridImage = (rawUrl, size = 400) => {
+  if (!rawUrl || typeof rawUrl !== "string") return rawUrl;
+  if (rawUrl.includes("cloudinary.com") && rawUrl.includes("/upload/")) {
+    return rawUrl.replace("/upload/", `/upload/w_${size},h_${size},c_fill,q_auto:good,f_auto/`);
+  }
+  return rawUrl;
+};
+
 // Clean borderless Shimmer Skeleton Card
 export const ProductSkeleton = () => {
   return (
@@ -106,14 +115,17 @@ const ProductCard = ({ product, onProductClick }) => {
     }
   };
 
-  const primaryImage =
-    (product.images && product.images.length > 0 && product.images[0]?.url) ||
+  const rawPrimary =
+    (product.images && product.images.length > 0 && (typeof product.images[0] === "string" ? product.images[0] : product.images[0]?.url)) ||
+    product.thumbnail ||
     "https://cdn-icons-png.flaticon.com/512/4076/4076504.png";
+  const primaryImage = getOptimizedGridImage(rawPrimary, 400);
 
-  const secondaryImage =
-    product.images && product.images.length > 1 && product.images[1]?.url
-      ? product.images[1].url
+  const rawSecondary =
+    product.images && product.images.length > 1
+      ? (typeof product.images[1] === "string" ? product.images[1] : product.images[1]?.url)
       : null;
+  const secondaryImage = rawSecondary ? getOptimizedGridImage(rawSecondary, 400) : null;
 
   const currentImage = hoveredImage || primaryImage;
 

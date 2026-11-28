@@ -222,6 +222,12 @@ productSchema.index({ vendorId: 1 });
 productSchema.index({ tags: 1 });
 productSchema.index({ isPublished: 1, priority: -1 });
 productSchema.index({ isPublished: 1, category: 1, priority: -1 });
+productSchema.index({ isPublished: 1, category: 1, subCategory: 1 });
+productSchema.index({ isPublished: 1, brand: 1 });
+productSchema.index({ isPublished: 1, slug: 1 });
+productSchema.index({ isPublished: 1, createdAt: -1 });
+productSchema.index({ isPublished: 1, rating: -1 });
+productSchema.index({ isPublished: 1, discountPrice: 1 });
 productSchema.index({ isPublished: 1, name: 1 });
 productSchema.index({ isPublished: 1, wellnessGoal: 1 });
 

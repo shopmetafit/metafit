@@ -114,7 +114,6 @@ export const updateProduct = createAsyncThunk(
 );
 
 // Async thunk to fetch similar product
-
 export const fetchSimilarProduct = createAsyncThunk(
   "products/fetchSimilarProducts",
   async ({ id }) => {
@@ -122,6 +121,20 @@ export const fetchSimilarProduct = createAsyncThunk(
       `${import.meta.env.VITE_BACKEND_URL}/api/products/similar/${id}`
     );
     return response.data;
+  },
+  {
+    condition: ({ id }, { getState }) => {
+      const { products } = getState();
+      if (products?.similarLoading) return false;
+      const currentSelectedId = products?.selectedProduct?._id || products?.selectedProduct?.id;
+      if (
+        currentSelectedId === id &&
+        Array.isArray(products?.similarProducts) &&
+        products.similarProducts.length > 0
+      ) {
+        return false; // Skip redundant network fetch if already loaded for this product
+      }
+    },
   }
 );
 

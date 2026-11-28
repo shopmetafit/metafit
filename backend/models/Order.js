@@ -363,7 +363,12 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-
+// High-Performance Query Indexes
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ isPaid: 1, createdAt: -1 });
+orderSchema.index({ "vendorFulfillments.vendorId": 1, createdAt: -1 });
 
 const OrderModel = mongoose.model("order", orderSchema);
 if (!mongoose.models.Order) {

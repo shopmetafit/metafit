@@ -7,13 +7,14 @@ const router = express.Router();
 // ─── 1. Bounded LRU Cache & Expired Entry Purger (Items #2 & #6) ───
 const SEARCH_CACHE_TTL_MS = 5 * 60 * 1000; // 5-min TTL
 const MAX_CACHE_SIZE = 500; // Item #6: Max 500 entries
-const memorySearchCache = new Map(); // key -> { timestamp, data, etag }
+const memorySearchCache = new Map(); // key -> { timestamp, data, etag, ttl }
 
 // Item #2: Periodic cleanup of expired entries every 60 seconds
 setInterval(() => {
   const now = Date.now();
   for (const [key, entry] of memorySearchCache.entries()) {
-    if (now - entry.timestamp >= SEARCH_CACHE_TTL_MS) {
+    const ttl = entry.ttl || SEARCH_CACHE_TTL_MS;
+    if (now - entry.timestamp >= ttl) {
       memorySearchCache.delete(key);
     }
   }
@@ -22,20 +23,25 @@ setInterval(() => {
 function getFromNodeCache(key) {
   const entry = memorySearchCache.get(key);
   if (!entry) return null;
-  if (Date.now() - entry.timestamp >= SEARCH_CACHE_TTL_MS) {
+  const ttl = entry.ttl || SEARCH_CACHE_TTL_MS;
+  if (Date.now() - entry.timestamp >= ttl) {
     memorySearchCache.delete(key);
     return null;
   }
   return entry;
 }
 
-function setInNodeCache(key, data, etag) {
+function setInNodeCache(key, data, etag = null, ttl = SEARCH_CACHE_TTL_MS) {
   // LRU Eviction: Remove oldest key when cache reaches 500 entries
   if (memorySearchCache.size >= MAX_CACHE_SIZE) {
     const oldestKey = memorySearchCache.keys().next().value;
     if (oldestKey) memorySearchCache.delete(oldestKey);
   }
-  memorySearchCache.set(key, { timestamp: Date.now(), data, etag });
+  memorySearchCache.set(key, { timestamp: Date.now(), data, etag, ttl });
+}
+
+function clearProductMemoryCache() {
+  memorySearchCache.clear();
 }
 
 function normalizeSearchQuery(input) {
@@ -278,9 +284,20 @@ router.get("/all", async (req, res) => {
 // @access Public
 router.get("/categories", async (req, res) => {
   try {
+    const cacheKey = "public_categories_list";
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+      if (cached.etag) res.setHeader("ETag", cached.etag);
+      return res.json(cached.data);
+    }
     const Product = require("../models/Product");
     const activeCategories = await Product.distinct("category", { isPublished: { $ne: false } });
     const cleaned = activeCategories.map((c) => String(c).trim()).filter(Boolean);
+    const etag = `W/"${Buffer.from(JSON.stringify(cleaned)).toString("base64").substring(0, 16)}"`;
+    setInNodeCache(cacheKey, cleaned, etag, 10 * 60 * 1000);
+    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+    res.setHeader("ETag", etag);
     res.json(cleaned);
   } catch (error) {
     console.error(error);
@@ -493,6 +510,14 @@ router.get("/wellness-goals", async (req, res) => {
 // @access Public
 router.get("/categories-full", async (req, res) => {
   try {
+    const cacheKey = "public_categories_full";
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+      if (cached.etag) res.setHeader("ETag", cached.etag);
+      return res.json(cached.data);
+    }
+
     const Category = require("../models/Category");
     const Product = require("../models/Product");
 
@@ -543,6 +568,10 @@ router.get("/categories-full", async (req, res) => {
       });
     });
 
+    const etag = `W/"${Buffer.from(JSON.stringify(result)).toString("base64").substring(0, 16)}"`;
+    setInNodeCache(cacheKey, result, etag, 10 * 60 * 1000);
+    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+    res.setHeader("ETag", etag);
     res.json(result);
   } catch (error) {
     console.error(error);
@@ -559,12 +588,21 @@ router.get("/subcategories", async (req, res) => {
     if (!categoryName) {
       return res.status(400).json({ message: "Category is required" });
     }
+    const cacheKey = `subcats_${categoryName.toLowerCase()}`;
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+      return res.json(cached.data);
+    }
+
     const Product = require("../models/Product");
     const subCategories = await Product.distinct("subCategory", {
       category: { $regex: new RegExp(`^${categoryName}$`, "i") },
       isPublished: { $ne: false },
     });
     const cleaned = subCategories.map((s) => String(s).trim()).filter(Boolean);
+    setInNodeCache(cacheKey, cleaned, null, 10 * 60 * 1000);
+    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
     res.json(cleaned);
   } catch (error) {
     console.error(error);
@@ -633,6 +671,7 @@ router.post("/", protect, admin, async (req, res) => {
     });
 
     const createProduct = await product.save();
+    clearProductMemoryCache();
     res.status(201).json(createProduct);
   } catch (error) {
     res.status(500).send("Server Error", error);
@@ -715,6 +754,7 @@ router.post("/admin/add-for-vendor/:vendorId", protect, admin, async (req, res) 
     });
 
     const createProduct = await product.save();
+    clearProductMemoryCache();
     console.log(`✅ Product created successfully for vendor: ${vendorId}`);
     res.status(201).json(createProduct);
   } catch (error) {
@@ -792,6 +832,7 @@ router.put("/:id", protect, admin, async (req, res) => {
 
       //   save the  updated product
       const updatedProduct = await product.save();
+      clearProductMemoryCache();
       res.json(updatedProduct);
     } else {
       res.status(404).json({ message: "Product not found" });
@@ -813,6 +854,7 @@ router.delete("/:id", protect, admin, async (req, res) => {
     if (product) {
       // Remove the product from DB
       await product.deleteOne();
+      clearProductMemoryCache();
       res.json({ message: "Product removed" });
     } else {
       res.status(404).json({ message: "Product not found" });
@@ -926,15 +968,19 @@ router.get("/", async (req, res) => {
     const pageNum = parseInt(req.query.page, 10);
     const limitNum = parseInt(req.query.limit, 10);
 
+    // Parallel count & query for paginated listing
     if (pageNum && limitNum > 0) {
       const skip = (pageNum - 1) * limitNum;
-      const totalProducts = await ProductReadModel.countDocuments(query);
-      const products = await ProductReadModel.find(query)
-        .sort(sort)
-        .skip(skip)
-        .limit(limitNum)
-        .lean();
+      const [totalProducts, products] = await Promise.all([
+        ProductReadModel.countDocuments(query),
+        ProductReadModel.find(query)
+          .sort(sort)
+          .skip(skip)
+          .limit(limitNum)
+          .lean(),
+      ]);
 
+      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
       return res.json({
         products,
         page: pageNum,
@@ -944,10 +990,30 @@ router.get("/", async (req, res) => {
       });
     }
 
+    // Check in-memory cache for default public un-filtered product listing
+    const isDefaultQuery = !search && !category && !subCategory && !collection && !brand && !minPrice && !maxPrice && !targetGoal && !size && !color && !gender && (!limit || Number(limit) === 0);
+    if (isDefaultQuery) {
+      const cached = getFromNodeCache("default_products_listing");
+      if (cached) {
+        res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=300");
+        if (cached.etag) res.setHeader("ETag", cached.etag);
+        return res.json(cached.data);
+      }
+    }
+
     let products = await ProductReadModel.find(query)
       .sort(sort)
       .limit(Number(limit) || 0)
       .lean();
+
+    if (isDefaultQuery && Array.isArray(products) && products.length > 0) {
+      const etag = `W/"${Buffer.from(JSON.stringify(products.length)).toString("base64")}"`;
+      setInNodeCache("default_products_listing", products, etag, 2 * 60 * 1000);
+      res.setHeader("Cache-Control", "public, max-age=120, stale-while-revalidate=300");
+      res.setHeader("ETag", etag);
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=120");
+    }
 
     res.json(products);
   } catch (error) {
@@ -962,9 +1028,17 @@ router.get("/", async (req, res) => {
 // @access Public
 router.get("/best-seller", async (req, res) => {
   try {
+    const cacheKey = "product_best_seller";
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=120");
+      return res.json(cached.data);
+    }
     const ProductReadModel = await getProductReadModel();
     const bestSeller = await ProductReadModel.findOne({ isPublished: true }).sort({ rating: -1 }).lean();
     if (bestSeller) {
+      setInNodeCache(cacheKey, bestSeller, null, 5 * 60 * 1000);
+      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=120");
       res.json(bestSeller);
     } else {
       res.status(404).json({ message: " No best seller found" });
@@ -981,8 +1055,16 @@ router.get("/best-seller", async (req, res) => {
 
 router.get("/new-arrivals", async (req, res) => {
   try {
+    const cacheKey = "product_new_arrivals";
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=120");
+      return res.json(cached.data);
+    }
     const ProductReadModel = await getProductReadModel();
     const newArrivals = await ProductReadModel.find({ isPublished: true }).sort({ createdAt: -1 }).limit(8).lean();
+    setInNodeCache(cacheKey, newArrivals, null, 5 * 60 * 1000);
+    res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=120");
     res.json(newArrivals);
   } catch (error) {
     console.error(error);
@@ -1003,6 +1085,71 @@ const slugify = (name) => {
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-");
 };
+
+// @desc Dynamic Open Graph preview for WhatsApp / Social Crawlers
+// @access Public
+router.get("/share/:id", async (req, res) => {
+  try {
+    const ProductReadModel = await getProductReadModel();
+    const mongoose = require("mongoose");
+    const param = req.params.id;
+    let product = null;
+
+    if (mongoose.Types.ObjectId.isValid(param) && String(new mongoose.Types.ObjectId(param)) === param) {
+      product = await ProductReadModel.findOne({ _id: param }).lean();
+    }
+    if (!product) {
+      product = await ProductReadModel.findOne({ slug: param.toLowerCase() }).lean();
+    }
+    if (!product) {
+      const nameSearch = param.toLowerCase().replace(/-/g, " ");
+      product = await ProductReadModel.findOne({ searchName: nameSearch }).lean();
+    }
+
+    const name = product?.name || "M Wellness Bazaar";
+    const rawPrice = product?.discountPrice || product?.price || 0;
+    const price = rawPrice > 0 ? `₹${rawPrice}` : "";
+    const title = price ? `${name} - ${price} | M Wellness Bazaar` : `${name} | M Wellness Bazaar`;
+    const description = product?.description
+      ? product.description.replace(/<[^>]+>/g, "").slice(0, 160)
+      : "Shop authentic wellness, Ayurvedic, and healthcare products at M Wellness Bazaar India.";
+    const imageUrl = product?.images?.[0]?.url || product?.thumbnail || "https://res.cloudinary.com/diqbny8ne/image/upload/M_Wellness_Bazaar_Logo_k776aq.png";
+    let ogImageUrl = imageUrl;
+    if (ogImageUrl.includes("cloudinary.com") && ogImageUrl.includes("/upload/")) {
+      ogImageUrl = ogImageUrl.replace("/upload/", "/upload/w_600,h_600,c_pad,b_white,q_75,f_jpg/");
+    }
+    const targetUrl = `https://mwellnessbazaar.com/product/${product?.slug || param}`;
+
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>${name} | M Wellness Bazaar</title>
+  <meta property="og:site_name" content="M Wellness Bazaar">
+  <meta property="og:type" content="product">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:image" content="${ogImageUrl}">
+  <meta property="og:image:secure_url" content="${ogImageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="600">
+  <meta property="og:url" content="${targetUrl}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:image" content="${ogImageUrl}">
+  <meta http-equiv="refresh" content="0;url=${targetUrl}">
+</head>
+<body>
+  <script>window.location.replace("${targetUrl}");</script>
+  <p>Redirecting to <a href="${targetUrl}">${name}</a>...</p>
+</body>
+</html>`);
+  } catch {
+    res.redirect(`https://mwellnessbazaar.com/product/${req.params.id}`);
+  }
+});
 
 router.get("/:id", async (req, res) => {
   try {
@@ -1075,6 +1222,13 @@ router.get("/similar/:id", async (req, res) => {
     }
 
     const currentIdStr = product._id.toString();
+    const cacheKey = `similar_${currentIdStr}`;
+    const cached = getFromNodeCache(cacheKey);
+    if (cached) {
+      res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
+      return res.json(cached.data);
+    }
+
     const MAX_RELATED = 8;
 
     const STOP_WORDS = new Set([
@@ -1104,11 +1258,62 @@ router.get("/similar/:id", async (req, res) => {
     const currentNameTerms = extractTerms(product.name);
     const targetIsEquipment = isEquipmentItem(product.category, product.name);
 
-    // Fetch candidate published products (excluding current product)
-    const candidates = await ProductReadModel.find({
+    // Fetch relevant candidate published products with indexed query and field projection (Item #3)
+    const candidateProjection = {
+      _id: 1,
+      name: 1,
+      slug: 1,
+      category: 1,
+      subCategory: 1,
+      brand: 1,
+      price: 1,
+      discountPrice: 1,
+      images: 1,
+      thumbnail: 1,
+      wellnessGoal: 1,
+      tags: 1,
+      isPublished: 1,
+      rating: 1,
+      numReviews: 1,
+      isBestSeller: 1,
+      soldCount: 1,
+      priority: 1,
+    };
+
+    const candidateOrFilters = [];
+    if (product.category) candidateOrFilters.push({ category: product.category });
+    if (product.brand) candidateOrFilters.push({ brand: product.brand });
+    if (Array.isArray(product.wellnessGoal) && product.wellnessGoal.length > 0) {
+      candidateOrFilters.push({ wellnessGoal: { $in: product.wellnessGoal } });
+    }
+
+    const candidateQuery = {
       _id: { $ne: product._id },
       isPublished: true,
-    }).lean();
+      ...(candidateOrFilters.length > 0 ? { $or: candidateOrFilters } : {}),
+    };
+
+    let candidates = await ProductReadModel.find(candidateQuery, candidateProjection)
+      .limit(60)
+      .lean();
+
+    // Fallback if not enough candidates in same category/brand: pull top published products
+    if (!candidates || candidates.length < 8) {
+      const fallbackCandidates = await ProductReadModel.find(
+        { _id: { $ne: product._id }, isPublished: true },
+        candidateProjection
+      )
+        .sort({ priority: -1, createdAt: -1 })
+        .limit(30)
+        .lean();
+      const existingIds = new Set(candidates.map((c) => String(c._id)));
+      for (const fc of fallbackCandidates) {
+        if (!existingIds.has(String(fc._id))) {
+          candidates.push(fc);
+          existingIds.add(String(fc._id));
+        }
+      }
+    }
 
     // Score and rank all candidate products based on relevance
     const scoredCandidates = candidates.map((cand) => {
@@ -1188,6 +1393,8 @@ router.get("/similar/:id", async (req, res) => {
       }
     }
 
+    setInNodeCache(cacheKey, relatedProducts, null, 15 * 60 * 1000);
+    res.setHeader("Cache-Control", "public, max-age=600, stale-while-revalidate=300");
     res.json(relatedProducts);
   } catch (error) {
     console.error("Error in /api/products/similar/:id:", error);

@@ -29,7 +29,9 @@ import {
   ChevronRight,
   MapPin,
   CheckCircle2,
+  Share2,
 } from "lucide-react";
+import ProductShareModal from "./ProductShareModal";
 import axios from "axios";
 import {
   clearReferralContext,
@@ -132,6 +134,8 @@ const ProductDetails = ({ productId }) => {
     useState(null);
   const [isAboutExpanded, setIsAboutExpanded] =
     useState(true);
+  const [isShareModalOpen, setIsShareModalOpen] =
+    useState(false);
 
   /* Delivery Pincode checker state */
   const [deliveryPincode, setDeliveryPincode] = useState(() => {
@@ -2049,6 +2053,17 @@ const ProductDetails = ({ productId }) => {
                 >
                   <Heart className={`h-5 w-5 ${isWishlisted ? "fill-rose-500 text-rose-500" : "text-[#1A1612]"}`} />
                 </button>
+
+                {/* SHARE BUTTON */}
+                <button
+                  type="button"
+                  onClick={() => setIsShareModalOpen(true)}
+                  title="Share this product with friends & family"
+                  aria-label="Share product"
+                  className="w-12 h-12 min-w-[48px] rounded-xl border border-[#E6DDD0] bg-white text-[#1A1612] hover:border-[#8E5E3C] hover:text-[#8E5E3C] hover:bg-[#FAF7F0] active:scale-95 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 p-0 shadow-xs"
+                >
+                  <Share2 className="h-5 w-5" />
+                </button>
               </div>
 
               {/* TRUST BADGES */}
@@ -2202,6 +2217,14 @@ const ProductDetails = ({ productId }) => {
           </div>
         )}
       </div>
+
+      {/* PRODUCT SHARE MODAL */}
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={selectedProduct}
+        currentImage={mainImage}
+      />
     </div>
   );
 };
